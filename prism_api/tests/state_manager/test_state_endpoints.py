@@ -27,7 +27,7 @@ class TestStateClient(unittest.TestCase):
     def setUp(self) -> None:
         self.client = TestClient(app)
 
-    @mock.patch('prism_api.state_manager.store.Store', FakeStore)
+    @mock.patch('prism_api.state_manager.store.api.Store', FakeStore)
     def test_save_state(self):
         response = self.client.post(
             self.endpoint,
@@ -36,7 +36,7 @@ class TestStateClient(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), fake_state)
 
-    @mock.patch('prism_api.state_manager.store.Store', FakeStore)
+    @mock.patch('prism_api.state_manager.store.api.Store', FakeStore)
     def test_read_state(self):
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, 200)

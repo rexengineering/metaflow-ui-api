@@ -3,7 +3,7 @@ import json
 import unittest
 from unittest import mock
 
-from prism_api.state_manager import store
+from prism_api.state_manager.store import api as store
 from ..utils import FakeStore
 
 
@@ -31,12 +31,12 @@ class TestStateStore(unittest.TestCase):
         state = store.deserialize_state(serialized_state)
         self.assertEqual(state, fake_state)
 
-    @mock.patch('prism_api.state_manager.store.Store', FakeStore)
+    @mock.patch('prism_api.state_manager.store.api.Store', FakeStore)
     def test_save_state(self):
         state = asyncio.run(store.save_state(client_id, fake_state))
         self.assertEqual(state, fake_state)
 
-    @mock.patch('prism_api.state_manager.store.Store', FakeStore)
+    @mock.patch('prism_api.state_manager.store.api.Store', FakeStore)
     def test_read_state(self):
         state = asyncio.run(store.read_state(client_id))
         self.assertEqual(state, FakeStore.default)

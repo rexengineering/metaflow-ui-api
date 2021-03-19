@@ -1,8 +1,10 @@
 import json
 import time
 
+from prism_api.state_manager.store.adapters import StoreABC
 
-class FakeStore:
+
+class FakeStore(StoreABC):
     sleep_time = 1.0
 
     default = {
