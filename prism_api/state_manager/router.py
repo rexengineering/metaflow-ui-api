@@ -1,26 +1,28 @@
-import json
 import logging
 from typing import Dict
 
 from fastapi import APIRouter, Body
+
+from . import store
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=['state'])
 
 
-@router.get('/state')
-async def read_state():
-    return json.loads('{ "state": "ok" }')
+@router.get('/state/{client_id}')
+async def read_state(client_id: str):
+    return await store.read_state(client_id)
 
 
-@router.post('/state')
+@router.post('/state/{client_id}')
 async def save_state(
+    client_id: str,
     state: Dict = Body(
         ...,
         example={
             "state": "test"
         },
-    )
+    ),
 ):
-    return {'saved': state}
+    return await store.save_state(client_id, state)
