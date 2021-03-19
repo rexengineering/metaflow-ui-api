@@ -1,0 +1,4 @@
+"""Configuration values"""
+
+
+DEBUG = True

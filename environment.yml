@@ -52,3 +52,6 @@ dependencies:
   - yaml=0.2.5
   - zipp=3.4.1
   - zlib=1.2.11
+  - pip:
+    - ariadne==0.13.0
+    - graphql-core==3.1.3
