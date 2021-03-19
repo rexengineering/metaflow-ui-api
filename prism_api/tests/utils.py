@@ -3,6 +3,10 @@ import time
 
 
 class FakeStore:
+    default = {
+        'status': 'ok',
+    }
+
     def __init__(self, client_id) -> None:
         self.client_id = client_id
         self.data = None
@@ -10,10 +14,7 @@ class FakeStore:
     async def read(self):
         # Fake some loading process
         time.sleep(1)
-        return self.data or json.dumps({
-            'status': 'ok',
-            'client_id': self.client_id,
-        })
+        return self.data or json.dumps(self.default)
 
     async def save(self, state: str):
         # Fake some saving process
