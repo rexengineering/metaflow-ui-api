@@ -7,6 +7,8 @@ from prism_api.state_manager import store
 from ..utils import FakeStore
 
 
+FakeStore.sleep_time = 0.1
+
 client_id = 'test123'
 
 fake_state = {
