@@ -1,10 +1,10 @@
 """Manages saving application state"""
 import json
 
-from prism_api.tests.utils import FakeStore
+from .adapters import RedisStore
 
-# Currently this are placeholder functions that only simulate the API
-Store = FakeStore
+
+Store = RedisStore
 
 
 def serialize_state(state: dict) -> str:
