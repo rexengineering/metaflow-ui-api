@@ -23,13 +23,23 @@ RUN yes | anaconda login --username $REX_ANACONDA_MACHINE_USER_USERNAME --passwo
     conda env create && \
     conda clean --all --yes
 
-FROM req as code
+FROM req as build
 # Copy the code files.
 COPY prism_api /code/prism_api
 COPY setup.py /code/setup.py
 COPY scripts /code/scripts
 
-FROM code as container
+FROM build as lint
+
+SHELL ["/bin/bash", "-c"]
+RUN source activate prism-api && flake8
+
+FROM build as test
+
+SHELL ["/bin/bash", "-c"]
+RUN source activate prism-api && echo "no tests yet"
+
+FROM build as container
 
 # Run the app
 EXPOSE 8000
