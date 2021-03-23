@@ -53,3 +53,4 @@ Thumbs.db
 
 .env
 .coverage
+cov.xml

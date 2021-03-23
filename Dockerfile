@@ -36,8 +36,9 @@ RUN source activate prism-api && flake8
 
 FROM build as test
 
+COPY pytest.ini /code/pytest.ini
 SHELL ["/bin/bash", "-c"]
-RUN source activate prism-api && echo "no tests yet"
+RUN source activate prism-api && pytest -m 'ci' --cov prism_api
 
 FROM req as debugger
 
