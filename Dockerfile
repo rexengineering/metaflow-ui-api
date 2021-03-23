@@ -39,6 +39,18 @@ FROM build as test
 SHELL ["/bin/bash", "-c"]
 RUN source activate prism-api && echo "no tests yet"
 
+FROM req as debugger
+
+RUN pip install debugpy -t /tmp --upgrade
+
+FROM build as debug
+
+COPY --from=debugger /tmp/debugpy /tmp/debugpy
+EXPOSE 8000
+EXPOSE 5678
+
+CMD ["./scripts/run_prism.debug.sh"]
+
 FROM build as container
 
 # Run the app
