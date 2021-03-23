@@ -2,11 +2,13 @@ name: prism-api
 channels:
   - conda-forge
   - defaults
+  - rexchange
 dependencies:
   - fastapi
   - flake8
   - pip
   - pytest
+  - pytest-cov
   - python>=3.9
   - requests
   - uvicorn
