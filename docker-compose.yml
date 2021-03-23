@@ -1,0 +1,18 @@
+version: "3"
+services:
+  prismapi:
+    image: prismapi
+    env_file: .env
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+      target: container
+      args:
+        - REX_ANACONDA_MACHINE_USER_USERNAME=${REX_ANACONDA_MACHINE_USER_USERNAME}
+        - REX_ANACONDA_MACHINE_USER_PASSWORD=${REX_ANACONDA_MACHINE_USER_PASSWORD}
+    ports:
+      - 8000:8000
+    volumes:
+      - ./prism_api:/code/prism_api
+    environment: 
+      UVICORN_ARGS: --reload
