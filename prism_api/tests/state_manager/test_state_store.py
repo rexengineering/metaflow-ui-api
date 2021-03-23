@@ -3,6 +3,8 @@ import json
 import unittest
 from unittest import mock
 
+import pytest
+
 from prism_api.state_manager.store import api as store
 from ..utils import FakeStore
 
@@ -21,6 +23,7 @@ fake_state = {
 }
 
 
+@pytest.mark.ci
 class TestStateStore(unittest.TestCase):
     def test_serialize_state(self):
         serialized_state = store.serialize_state(fake_state)

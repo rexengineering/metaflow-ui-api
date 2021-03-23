@@ -2,6 +2,7 @@ import unittest
 from unittest import mock
 
 from fastapi.testclient import TestClient
+import pytest
 
 from prism_api.app import app
 from ..utils import FakeStore
@@ -21,6 +22,7 @@ fake_state = {
 }
 
 
+@pytest.mark.ci
 class TestStateClient(unittest.TestCase):
     endpoint = '/state/' + client_id
 

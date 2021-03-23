@@ -8,6 +8,7 @@ dependencies:
   - flake8
   - pip
   - pytest
+  - pytest-cov
   - python>=3.9
   - requests
   - rexredis

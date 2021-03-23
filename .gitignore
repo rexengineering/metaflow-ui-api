@@ -50,3 +50,7 @@ Thumbs.db
 
 # Visual Studio Code
 .vscode
+
+.env
+.coverage
+cov.xml
