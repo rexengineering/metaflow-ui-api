@@ -4,8 +4,9 @@ import unittest
 from unittest import mock
 
 import pytest
+from rexredis import RexRedis
 
-from prism_api.state_manager import store
+from prism_api.state_manager.store import api as store
 from ..utils import FakeStore
 
 
@@ -34,12 +35,36 @@ class TestStateStore(unittest.TestCase):
         state = store.deserialize_state(serialized_state)
         self.assertEqual(state, fake_state)
 
-    @mock.patch('prism_api.state_manager.store.Store', FakeStore)
+    @mock.patch('prism_api.state_manager.store.api.Store', FakeStore)
     def test_save_state(self):
         state = asyncio.run(store.save_state(client_id, fake_state))
         self.assertEqual(state, fake_state)
 
-    @mock.patch('prism_api.state_manager.store.Store', FakeStore)
+    @mock.patch('prism_api.state_manager.store.api.Store', FakeStore)
     def test_read_state(self):
         state = asyncio.run(store.read_state(client_id))
         self.assertEqual(state, FakeStore.default)
+
+
+@pytest.mark.ci
+class TestRedisStore(unittest.TestCase):
+    def get_mock_instance(self):
+        mockInstance = mock.MagicMock(spec=RexRedis)
+        mockInstance.get_val.return_value = json.dumps(fake_state)
+        return mockInstance
+
+    def test_save_redis(self):
+        with mock.patch(
+            'prism_api.state_manager.store.adapters.RexRedis',
+            return_value=self.get_mock_instance(),
+        ):
+            state = asyncio.run(store.save_state(client_id, fake_state))
+            self.assertEqual(state, fake_state)
+
+    def test_read_redis(self):
+        with mock.patch(
+            'prism_api.state_manager.store.adapters.RexRedis',
+            return_value=self.get_mock_instance(),
+        ):
+            state = asyncio.run(store.read_state(client_id))
+            self.assertEqual(state, fake_state)

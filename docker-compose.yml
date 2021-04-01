@@ -16,3 +16,5 @@ services:
       - ./prism_api:/code/prism_api
     environment: 
       UVICORN_ARGS: --reload
+  redis:
+    image: redis
