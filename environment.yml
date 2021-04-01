@@ -11,6 +11,7 @@ dependencies:
   - pytest-cov
   - python>=3.9
   - requests
+  - rexredis
   - uvicorn
   - pip:
     - ariadne
