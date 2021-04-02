@@ -1,5 +1,5 @@
 
-"""Scalar types"""
+# Scalar types
 
 scalar SessionId
 
@@ -9,7 +9,9 @@ scalar WorkflowType
 
 scalar TaskId
 
-"""Enum types"""
+scalar State
+
+# Enum types
 
 enum WorkflowStatus {
     WAITING
@@ -35,7 +37,12 @@ enum DataType {
     TEXT
 }
 
-"""Data structures"""
+# Data structures
+
+type Session {
+    id: SessionId!
+    state: State!
+}
 
 type Workflow {
     id: WorkflowId!
@@ -61,14 +68,14 @@ type TaskData {
     validators: [Validator!]!
 }
 
-"""Data filters"""
+# Data filters
 
-type WorkflowFilter {
+input WorkflowFilter {
     ids: [WorkflowId!]!
     status: WorkflowStatus
 }
 
-type TaskFilter {
+input TaskFilter {
     ids: [TaskId!]!
     status: TaskStatus
 }

@@ -1,0 +1,6 @@
+type Query {
+    """Current session information"""
+    session: Session!
+    """Active workflows for the current session"""
+    workflows(filter: WorkflowFilter): [Workflow!]!
+}
