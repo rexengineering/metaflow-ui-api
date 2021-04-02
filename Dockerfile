@@ -29,7 +29,6 @@ COPY prism_api /code/prism_api
 COPY setup.py /code/setup.py
 COPY scripts /code/scripts
 COPY schema /code/schema
-COPY schema.graphql /code/schema.graphql
 
 FROM build as lint
 
