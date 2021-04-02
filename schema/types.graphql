@@ -24,6 +24,11 @@ enum TaskStatus {
     FINISHED
 }
 
+enum OperationStatus {
+    SUCCESS
+    FAILURE
+}
+
 """Client side constraints for user input"""
 enum Validator {
     REQUIRED
