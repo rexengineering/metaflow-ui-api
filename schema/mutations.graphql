@@ -25,6 +25,8 @@ type WorkflowMutations {
 }
 
 type TasksMutations {
+    """Validate data without saving (might not be used)"""
+    validate(input: ValidateTaskInput): ValidateTaskPayload
     """Save and validate collected task's data"""
     save(input: SaveTasksInput!): SaveTasksPayload
     """Finish the task"""
@@ -43,8 +45,13 @@ input StartWorkflowInput {
     did: WorkflowDeployment!
 }
 
+input ValidateTaskInput {
+    """List of tasks to be validated"""
+    tasks: [TaskInput!]!
+}
+
 input SaveTasksInput {
-    """List of task to be modified"""
+    """List of tasks to be modified"""
     tasks: [TaskInput!]!
 }
 
@@ -94,9 +101,16 @@ type StartWorkflowPayload {
     query: Query
 }
 
+type ValidateTaskPayload {
+    status: OperationStatus!
+    tasks: [Task!]
+    errors: [TaskProblems!]
+    query: Query
+}
+
 type SaveTasksPayload {
     status: OperationStatus!
-    task: Task
+    tasks: [Task!]
     errors: [TaskProblems!]
     query: Query
 }
