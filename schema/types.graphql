@@ -3,9 +3,9 @@
 
 scalar SessionId
 
-scalar WorkflowId
+scalar WorkflowInstance
 
-scalar WorkflowType
+scalar WorkflowDeployment
 
 scalar TaskId
 
@@ -50,8 +50,10 @@ type Session {
 }
 
 type Workflow {
-    id: WorkflowId!
-    type: WorkflowType
+    """Id for a workflow instance"""
+    iid: WorkflowInstance!
+    """Id for a workflow deployment"""
+    did: WorkflowDeployment
     status: WorkflowStatus!
     tasks(filter: TaskFilter): [Task!]!
 }
@@ -75,8 +77,9 @@ type TaskData {
 
 # Data filters
 
+"""Filter for the active workflows"""
 input WorkflowFilter {
-    ids: [WorkflowId!]!
+    ids: [WorkflowInstance!]!
     status: WorkflowStatus
 }
 

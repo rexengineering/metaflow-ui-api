@@ -39,8 +39,8 @@ input UpdateStateInput {
 }
 
 input StartWorkflowInput {
-    """Type of new workflow"""
-    type: WorkflowType!
+    """Id of workflow deployment"""
+    did: WorkflowDeployment!
 }
 
 input SaveTasksInput {
@@ -88,6 +88,7 @@ type CloseSessionPayload {
 
 type StartWorkflowPayload {
     status: OperationStatus!
+    iid: WorkflowInstance
     workflow: Workflow!
     errors: [WorkflowProblems!]!
     query: Query
