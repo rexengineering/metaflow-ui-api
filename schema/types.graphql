@@ -9,6 +9,8 @@ scalar WorkflowDeployment
 
 scalar TaskId
 
+scalar DataId
+
 scalar State
 
 # Enum types
@@ -30,11 +32,9 @@ enum OperationStatus {
 }
 
 """Client side constraints for user input"""
-enum Validator {
+enum ValidationType {
     REQUIRED
-    NUMERIC
-    PHONE_NUMBER
-    EMAIL
+    REGEX
 }
 
 """Data request types that will be mapped to UI components"""
@@ -68,11 +68,18 @@ type Task {
 
 """Individual data element that will map to a component on the UI"""
 type TaskData {
-    request: String!
+    id: DataId!
     type: DataType!
+    label: String
     data: String
     encrypted: Boolean!
     validators: [Validator!]!
+}
+
+type Validator {
+    type: ValidationType!
+    """For regex validation the regex should go here"""
+    constraint: String
 }
 
 # Data filters

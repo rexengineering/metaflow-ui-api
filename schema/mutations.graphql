@@ -55,7 +55,7 @@ input TaskInput {
 }
 
 input TaskDataInput {
-    request: String!
+    id: DataId!
     data: String!
 }
 
