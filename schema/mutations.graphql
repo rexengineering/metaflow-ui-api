@@ -68,42 +68,42 @@ input CompleteTasksInput {
 
 type StartSessionPayload {
     status: OperationStatus!
-    session: Session!
-    errors: [SessionProblems!]!
+    session: Session
+    errors: [SessionProblems!]
     query: Query
 }
 
 type UpdateStatePayload {
     status: OperationStatus!
-    state: String!
-    errors: [UpdateStateProblems!]!
+    state: String
+    errors: [UpdateStateProblems!]
     query: Query
 }
 
 type CloseSessionPayload {
     status: OperationStatus!
-    errors: [SessionProblems!]!
+    errors: [SessionProblems!]
     query: Query
 }
 
 type StartWorkflowPayload {
     status: OperationStatus!
     iid: WorkflowInstance
-    workflow: Workflow!
-    errors: [WorkflowProblems!]!
+    workflow: Workflow
+    errors: [WorkflowProblems!]
     query: Query
 }
 
 type SaveTasksPayload {
     status: OperationStatus!
-    task: Task!
-    errors: [TaskProblems!]!
+    task: Task
+    errors: [TaskProblems!]
     query: Query
 }
 
 type CompleteTasksPayload {
     status: OperationStatus!
-    task: Task!
-    errors: [TaskProblems!]!
+    task: Task
+    errors: [TaskProblems!]
     query: Query
 }
