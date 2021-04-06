@@ -25,6 +25,8 @@ type WorkflowMutations {
 }
 
 type TasksMutations {
+    """Start a new task"""
+    start(input: StartTasksInput): StartTasksPayload
     """Validate data without saving (might not be used)"""
     validate(input: ValidateTaskInput): ValidateTaskPayload
     """Save and validate collected task's data"""
@@ -43,6 +45,31 @@ input UpdateStateInput {
 input StartWorkflowInput {
     """Id of workflow deployment"""
     did: WorkflowDeployment!
+}
+
+input StartTasksInput {
+    tasks: [TaskStartInput!]!
+}
+
+input TaskStartInput {
+    iid: WorkflowInstance!
+    id: TaskId!
+    data: [TaskDataStartInput!]!
+}
+
+input TaskDataStartInput {
+    id: DataId!
+    type: DataType!
+    order: Int!
+    label: String
+    data: String
+    encrypted: Boolean!
+    validators: [ValidatorInput!]!
+}
+
+input ValidatorInput {
+    type: ValidationType!
+    constraint: String
 }
 
 input ValidateTaskInput {
@@ -98,6 +125,13 @@ type StartWorkflowPayload {
     iid: WorkflowInstance
     workflow: Workflow
     errors: [WorkflowProblems!]
+    query: Query
+}
+
+type StartTasksPayload {
+    status: OperationStatus!
+    tasks: [Task!]
+    errors: [TaskProblems!]
     query: Query
 }
 
