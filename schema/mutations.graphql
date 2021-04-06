@@ -151,7 +151,7 @@ type SaveTasksPayload {
 
 type CompleteTasksPayload {
     status: OperationStatus!
-    task: Task
+    tasks: [Task!]
     errors: [TaskProblems!]
     query: Query
 }
