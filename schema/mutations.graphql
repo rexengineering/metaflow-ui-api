@@ -20,6 +20,8 @@ type StateMutations {
 type WorkflowMutations {
     """Start a new workflow"""
     start(input: StartWorkflowInput!): StartWorkflowPayload
+    """Mark a workflow as completed"""
+    complete(input: CompleteWorkflowInput!): CompleteWorkflowPayload
     """Interact with workflow tasks"""
     tasks: TasksMutations
 }
@@ -45,6 +47,11 @@ input UpdateStateInput {
 input StartWorkflowInput {
     """Id of workflow deployment"""
     did: WorkflowDeployment!
+}
+
+input CompleteWorkflowInput {
+    """Id of workflow instance"""
+    iid: WorkflowInstance!
 }
 
 input StartTasksInput {
@@ -124,6 +131,13 @@ type StartWorkflowPayload {
     status: OperationStatus!
     iid: WorkflowInstance
     workflow: Workflow
+    errors: [WorkflowProblems!]
+    query: Query
+}
+
+type CompleteWorkflowPayload {
+    status: OperationStatus!
+    iid: WorkflowInstance
     errors: [WorkflowProblems!]
     query: Query
 }
