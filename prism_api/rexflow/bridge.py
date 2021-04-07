@@ -1,9 +1,11 @@
 import abc
+import asyncio
 import logging
-from typing import List
+from typing import Dict, List
 
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
+from httpx import AsyncClient
 from pydantic import validate_arguments
 
 from prism_api import settings
@@ -72,8 +74,14 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
 
             result = await session.execute(query, variable_values=params)
             logger.info(result)
-            payload = result['workflow']['start']
-            return entities.StartWorkflowPayload(**payload)
+            payload = entities.StartWorkflowPayload(
+                **result['workflow']['start']
+            )
+            if payload.errors:
+                raise Exception(
+                    '\n'.join([error.message for error in payload.errors])
+                )
+            return payload.workflow
 
     @validate_arguments
     def __init__(self, workflow: entities.Workflow) -> None:
@@ -99,3 +107,128 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         task_ids: List[entities.TaskId],
     ) -> List[entities.Task]:
         ...
+
+
+class REXFlowBridgeHTTP(REXFlowBridgeABC):
+    _endpoint = settings.REXFLOW_HOST
+
+    @classmethod
+    async def get_workflow_catalog(cls) -> list[entities.WorkflowDeploymentId]:
+        ...
+
+    @classmethod
+    @validate_arguments
+    async def start_workflow(
+        cls,
+        deployment_id: entities.WorkflowDeploymentId,
+    ) -> entities.Workflow:
+        async with AsyncClient() as client:
+            result = await client.post(
+                f'{cls._endpoint}/workflow/run',
+                data={
+                    'did': deployment_id
+                },
+            )
+            result.raise_for_status()
+            data = result.json()['data']
+            return entities.Workflow(
+                iid=data['instance_id'],
+                did=deployment_id,
+                status=entities.WorkflowStatus.WAITING,
+            )
+
+    @validate_arguments
+    def __init__(self, workflow: entities.Workflow) -> None:
+        self.workflow = workflow
+        self.endpoint = settings.REXFLOW_HOST_INSTANCE.format(
+            instance_id=workflow.iid
+        )
+
+    async def _concurrent_calls(
+        self,
+        endpoint: str,
+        datalist: List[Dict],
+    ) -> List:
+        async with AsyncClient() as client:
+            tasks = []
+            for data in datalist:
+                tasks.append(asyncio.create_task(
+                    client.post(
+                        endpoint,
+                        json=data,
+                    )
+                ))
+            results = await asyncio.gather(*tasks)
+            resultlist = []
+            for result in results:
+                result.raise_for_status()
+                resultlist.append(result.json()['data'])
+
+            return resultlist
+
+    @validate_arguments
+    async def get_task_data(
+        self,
+        task_ids: List[entities.TaskId],
+    ) -> List[entities.Task]:
+        results = await self._concurrent_calls(
+            f'{self.endpoint}/task/form',
+            [{
+                'task_id': task_id,
+            } for task_id in task_ids]
+        )
+
+        tasks = [
+            entities.Task(
+                id=task['id'],
+                data=task['data'],
+                status=task['status'],
+            ) for task in results
+        ]
+
+        return tasks
+
+    @validate_arguments
+    async def save_task_data(
+        self,
+        tasks: List[entities.Task],
+    ) -> List[entities.Task]:
+        results = await self._concurrent_calls(
+            f'{self.endpoint}/task/save',
+            [task.dict() for task in tasks]
+        )
+
+        tasks = [
+            entities.Task(
+                id=task['id'],
+                data=task['data'],
+                status=task['status'],
+            ) for task in results
+        ]
+
+        return tasks
+
+    @validate_arguments
+    async def complete_task(
+        self,
+        task_ids: List[entities.TaskId],
+    ) -> List[entities.Task]:
+        results = await self._concurrent_calls(
+            f'{self.endpoint}/task/complete',
+            [{
+                'task_id': task_id,
+            } for task_id in task_ids]
+        )
+
+        tasks = [
+            entities.Task(
+                id=task['id'],
+                data=task['data'],
+                status=task['status'],
+            ) for task in results
+        ]
+
+        return tasks
+
+
+REXFlowBridge = REXFlowBridgeHTTP
