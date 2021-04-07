@@ -1,3 +1,4 @@
+import abc
 import logging
 from typing import List
 
@@ -12,7 +13,42 @@ from . import entities, queries
 logger = logging.getLogger(__name__)
 
 
-class REXFlowBridge:
+class REXFlowBridgeABC(abc.ABC):
+    @classmethod
+    @abc.abstractmethod
+    async def start_workflow(
+        cls,
+        deployment_id: entities.WorkflowDeploymentId
+    ) -> entities.Workflow:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def __init__(self, workflow: entities.Workflow) -> None:
+        self.workflow = workflow
+
+    @abc.abstractmethod
+    async def get_task_data(
+        self,
+        task_ids: List[entities.TaskId],
+    ) -> List[entities.Task]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def save_task_data(
+        self,
+        tasks: List[entities.Task],
+    ) -> List[entities.Task]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def complete_task(
+        self,
+        task_ids: List[entities.TaskId],
+    ) -> List[entities.Task]:
+        raise NotImplementedError
+
+
+class REXFlowBridgeGQL(REXFlowBridgeABC):
     transport = AIOHTTPTransport(
         url=settings.REXFLOW_HOST
     )
