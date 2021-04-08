@@ -80,6 +80,52 @@ class SessionMutations:
 mutation.set_field('session', SessionMutations)
 
 
+class TasksMutations:
+    async def start(self, info, input: rxen.StartTasksInput):
+        return rxen.StartTasksPayload(
+            status=rxen.OperationStatus.SUCCESS,
+            tasks=[
+                rxen.Task(
+                    id='123',
+                    status=rxen.TaskStatus.IN_PROGRESS,
+                )
+            ]
+        )
+
+    async def validate(self, info, input: rxen.ValidateTaskInput):
+        return rxen.ValidateTasksPayload(
+            status=rxen.OperationStatus.SUCCESS,
+            tasks=[
+                rxen.Task(
+                    id='123',
+                    status=rxen.TaskStatus.IN_PROGRESS,
+                )
+            ]
+        )
+
+    async def save(self, info, input: rxen.SaveTaskInput):
+        return rxen.SaveTasksPayload(
+            status=rxen.OperationStatus.SUCCESS,
+            tasks=[
+                rxen.Task(
+                    id='123',
+                    status=rxen.TaskStatus.IN_PROGRESS,
+                )
+            ]
+        )
+
+    async def complete(self, info, input: rxen.CompleteTasksInput):
+        return rxen.CompleteTaskPayload(
+            status=rxen.OperationStatus.SUCCESS,
+            tasks=[
+                rxen.Task(
+                    id='123',
+                    status=rxen.TaskStatus.FINISHED,
+                )
+            ]
+        )
+
+
 class WorkflowMutations:
     def __init__(self, *_) -> None:
         pass
@@ -97,6 +143,9 @@ class WorkflowMutations:
             status=rxen.OperationStatus.SUCCESS,
             iid='123'
         )
+
+    async def tasks(self, info):
+        return TasksMutations()
 
 
 mutation.set_field('workflow', WorkflowMutations)
