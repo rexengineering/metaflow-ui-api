@@ -78,3 +78,25 @@ class SessionMutations:
 
 
 mutation.set_field('session', SessionMutations)
+
+
+class WorkflowMutations:
+    def __init__(self, *_) -> None:
+        pass
+
+    async def start(self, info, input: rxen.StartWorkflowInput):
+        logger.info(input)
+        return rxen.StartWorkflowPayload(
+            status=rxen.OperationStatus.SUCCESS,
+            iid='123',
+        )
+
+    async def complete(self, info, input: rxen.CompleteWorkflowInput):
+        logger.info(input)
+        return rxen.CompleteWorkflowPayload(
+            status=rxen.OperationStatus.SUCCESS,
+            iid='123'
+        )
+
+
+mutation.set_field('workflow', WorkflowMutations)
