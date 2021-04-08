@@ -96,18 +96,21 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[entities.TaskId],
+        task_ids: List[entities.TaskId] = [],
     ) -> List[entities.Task]:
         async with Client(
             transport=self.transport,
             fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.GET_TASK_DATA_QUERY)
-            params = {
-                'taskFilter': entities.TaskFilter(
-                    ids=task_ids,
-                ).dict(),
-            }
+            if task_ids:
+                params = {
+                    'taskFilter': entities.TaskFilter(
+                        ids=task_ids,
+                    ).dict(),
+                }
+            else:
+                params = {}
 
             result = await session.execute(query, variable_values=params)
             logger.info(result)
@@ -292,6 +295,3 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
         ]
 
         return tasks
-
-
-REXFlowBridge = REXFlowBridgeGQL

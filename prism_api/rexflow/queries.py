@@ -24,7 +24,7 @@ mutation StartWorkflow($startWorkflowInput: StartWorkflowInput!) {
 '''
 
 GET_TASK_DATA_QUERY = '''
-query GetTaskData($taskFilter: TaskFilter!) {
+query GetTaskData($taskFilter: TaskFilter) {
   workflows {
     active {
       tasks(filter: $taskFilter) {
