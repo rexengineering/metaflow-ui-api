@@ -6,6 +6,7 @@ channels:
 dependencies:
   - fastapi
   - flake8
+  - httpx=0.17.*
   - pip
   - pydantic=1.8.*
   - pytest
