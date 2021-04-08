@@ -6,7 +6,9 @@ channels:
 dependencies:
   - fastapi
   - flake8
+  - httpx=0.17.*
   - pip
+  - pydantic=1.8.*
   - pytest
   - pytest-cov
   - python>=3.9
@@ -15,3 +17,4 @@ dependencies:
   - uvicorn
   - pip:
     - ariadne
+    - gql[aiohttp]==3.0.0a5
