@@ -141,7 +141,7 @@ class SaveTaskInput(BaseModel):
 
 
 class CompleteTasksInput(BaseModel):
-    ids: List[TaskId]
+    tasks: List[TaskInput]
 
 
 # GraphQL error types

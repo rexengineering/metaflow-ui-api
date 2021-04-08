@@ -45,7 +45,7 @@ class REXFlowBridgeABC(abc.ABC):
     @abc.abstractmethod
     async def complete_task(
         self,
-        task_ids: List[entities.TaskId],
+        tasks: List[entities.Task],
     ) -> List[entities.Task]:
         raise NotImplementedError
 
@@ -150,7 +150,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     @validate_arguments
     async def complete_task(
         self,
-        task_ids: List[entities.TaskId],
+        tasks: List[entities.Task],
     ) -> List[entities.Task]:
         async with Client(
             transport=self.transport,
@@ -159,7 +159,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             query = gql(queries.COMPLETE_TASK_MUTATION)
             params = {
                 'completeTasksInput': entities.CompleteTasksInput(
-                    ids=task_ids,
+                    tasks=tasks,
                 ).dict(),
             }
 
@@ -277,13 +277,13 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
     @validate_arguments
     async def complete_task(
         self,
-        task_ids: List[entities.TaskId],
+        tasks: List[entities.Task],
     ) -> List[entities.Task]:
         results = await self._concurrent_calls(
             f'{self.endpoint}/task/complete',
             [{
-                'task_id': task_id,
-            } for task_id in task_ids]
+                'task_id': task.id,
+            } for task in tasks]
         )
 
         tasks = [

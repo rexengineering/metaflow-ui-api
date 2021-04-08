@@ -103,7 +103,7 @@ input TaskDataInput {
 
 input CompleteTasksInput {
     """Ids of task to be completed"""
-    ids: [TaskId!]!
+    tasks: [TaskInput!]!
 }
 
 # Response payloads
