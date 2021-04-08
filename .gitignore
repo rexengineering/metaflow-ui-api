@@ -11,6 +11,7 @@ dist/
 *.class
 
 # Compiled Python bytecode
+__pycache__
 *.py[cod]
 
 # Log files
