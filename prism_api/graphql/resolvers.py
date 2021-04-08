@@ -1,4 +1,4 @@
-from ariadne import QueryType, ObjectType
+from ariadne import QueryType, ObjectType, MutationType
 
 from prism_api.rexflow import entities as rxen
 
@@ -39,3 +39,48 @@ async def resolve_workflow_available(obj, *_):
         '123',
         '456',
     ]
+
+
+mutation = MutationType()
+
+
+@mutation.field('session')
+async def resolve_session_mutation(*_):
+    return {}
+
+
+session_mutations = ObjectType('SessionMutations')
+
+
+@session_mutations.field('start')
+async def resolve_session_start(*_):
+    return {
+        'status': rxen.OperationStatus.SUCCESS,
+        'session': {
+            'id': '',
+            'state': '',
+        },
+    }
+
+
+@session_mutations.field('state')
+async def resolve_session_state(*_):
+    return {}
+
+
+state_mutations = ObjectType('StateMutations')
+
+
+@state_mutations.field('update')
+async def resolve_session_state_update(*_, input):
+    return {
+        'status': rxen.OperationStatus.SUCCESS,
+        'state': ''
+    }
+
+
+@session_mutations.field('close')
+async def resolve_session_close(*_):
+    return {
+        'status': rxen.OperationStatus.SUCCESS,
+    }
