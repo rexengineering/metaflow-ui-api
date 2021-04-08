@@ -90,6 +90,7 @@ input SaveTasksInput {
 }
 
 input TaskInput {
+    iid: WorkflowInstance!
     id: TaskId!
     """Data to be saved"""
     data: [TaskDataInput!]!

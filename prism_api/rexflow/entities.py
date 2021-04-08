@@ -61,9 +61,10 @@ class TaskData(BaseModel):
 
 
 class Task(BaseModel):
+    iid: WorkflowInstanceId
     id: TaskId
     data: List[TaskData] = []
-    status: TaskStatus
+    status: TaskStatus = TaskStatus.IN_PROGRESS
 
 
 class Workflow(BaseModel):
@@ -126,6 +127,7 @@ class TaskDataInput(BaseModel):
 
 
 class TaskInput(BaseModel):
+    iid: WorkflowInstanceId
     id: TaskId
     data: List[TaskDataInput]
 
