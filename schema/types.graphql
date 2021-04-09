@@ -92,6 +92,6 @@ input WorkflowFilter {
 }
 
 input TaskFilter {
-    ids: [TaskId!]!
+    ids: [TaskId!]
     status: TaskStatus
 }

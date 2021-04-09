@@ -44,7 +44,11 @@ class Index:
         return cls.data[workflow_id]['tasks']
 
     @classmethod
-    def get_task(cls, workflow_id: e.WorkflowInstanceId, task_id: e.TaskId):
+    def get_task(
+        cls,
+        workflow_id: e.WorkflowInstanceId,
+        task_id: e.TaskId,
+    ) -> e.Task:
         return cls.data[workflow_id]['tasks'][task_id]
 
 
@@ -65,7 +69,12 @@ async def start_workflow(
 async def _refresh_workflow(workflow: e.Workflow):
     """Refresh a single workflow task"""
     bridge = REXFlowBridge(workflow)
-    workflow.tasks = await bridge.get_task_data()
+    tasks = await bridge.get_task_data()
+    workflow.tasks = tasks
+    Index.data[workflow.iid]['tasks'] = {
+        task.id: task
+        for task in tasks
+    }
 
 
 async def refresh_workflows() -> None:
@@ -101,19 +110,24 @@ async def _save_tasks(
     tasks: List[e.TaskInput],
 ) -> List[e.Task]:
     bridge = REXFlowBridge(Index.get_workflow(iid))
-    return await bridge.save_task_data(tasks)
+    updated_tasks = []
+    for task_input in tasks:
+        task = Index.get_task(iid, task_input.id)
+        task_data = task.get_data_dict()
+        for task_data_input in task_input.data:
+            task_data[task_data_input.id].data = task_data_input.data
+        updated_tasks.append(task)
+    return await bridge.save_task_data(updated_tasks)
 
 
 @validate_arguments
 async def save_tasks(tasks: List[e.TaskInput]) -> List[e.Task]:
-    # This is not the right process
-    # input only contains data not other requirements
     workflow_instances = defaultdict(list)
     for task in tasks:
         workflow_instances[task.iid].append(task)
     results = await asyncio.gather(*[
         _save_tasks(iid, tasks)
-        for iid, tasks in workflow_instances
+        for iid, tasks in workflow_instances.items()
     ])
 
     return list(itertools.chain(*results))
@@ -121,21 +135,23 @@ async def save_tasks(tasks: List[e.TaskInput]) -> List[e.Task]:
 
 async def _complete_tasks(
     iid: e.WorkflowInstanceId,
-    tasks: List[e.Task],
+    tasks: List[e.TaskInput],
 ) -> List[e.Task]:
+    updated_tasks = await _save_tasks(iid, tasks)
     bridge = REXFlowBridge(Index.get_workflow(iid))
-    return await bridge.complete_task(tasks)
+    return await bridge.complete_task(updated_tasks)
 
 
+@validate_arguments
 async def complete_tasks(
-    tasks: List[e.Task],
+    tasks: List[e.TaskInput],
 ) -> List[e.Task]:
     workflow_instances = defaultdict(list)
     for task in tasks:
         workflow_instances[task.iid].append(task)
     results = await asyncio.gather(*[
         _complete_tasks(iid, tasks)
-        for iid, tasks in workflow_instances
+        for iid, tasks in workflow_instances.items()
     ])
 
     return list(itertools.chain(*results))

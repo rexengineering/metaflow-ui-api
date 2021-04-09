@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -66,12 +66,24 @@ class Task(BaseModel):
     data: List[TaskData] = []
     status: TaskStatus = TaskStatus.IN_PROGRESS
 
+    def get_data_dict(self):
+        return {
+            d.id: d
+            for d in self.data
+        }
+
 
 class Workflow(BaseModel):
     iid: WorkflowInstanceId
     did: Optional[WorkflowDeploymentId]
     status: WorkflowStatus
     tasks: List[Task] = []
+
+    def get_task_dict(self):
+        return {
+            task.id: task
+            for task in self.tasks
+        }
 
 
 # GraphQL filter types
@@ -82,7 +94,7 @@ class WorkflowFilter(BaseModel):
 
 
 class TaskFilter(BaseModel):
-    ids: List[TaskId]
+    ids: List[TaskId] = []
     status: Optional[TaskStatus]
 
 
@@ -115,6 +127,13 @@ class TaskStartInput(BaseModel):
     iid: WorkflowInstanceId
     id: TaskId
     data: List[TaskDataStartInput]
+
+    def to_task(self):
+        return Task(
+            iid=self.iid,
+            id=self.id,
+            data=[TaskData(**d.dict()) for d in self.data],
+        )
 
 
 class StartTasksInput(BaseModel):
@@ -155,6 +174,7 @@ class Problem(BaseModel):
 class Payload(BaseModel):
     status: OperationStatus
     errors: Optional[List[Problem]]
+    query: Dict = {}
 
 
 class StartWorkflowPayload(Payload):

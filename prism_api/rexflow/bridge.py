@@ -31,7 +31,7 @@ class REXFlowBridgeABC(abc.ABC):
     @abc.abstractmethod
     async def get_task_data(
         self,
-        task_ids: List[entities.TaskId],
+        task_ids: List[entities.TaskId] = [],
     ) -> List[entities.Task]:
         raise NotImplementedError
 
@@ -235,7 +235,7 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[entities.TaskId],
+        task_ids: List[entities.TaskId] = [],
     ) -> List[entities.Task]:
         results = await self._concurrent_calls(
             f'{self.endpoint}/task/form',
