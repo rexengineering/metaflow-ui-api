@@ -27,7 +27,22 @@ async def start_workflow(
     return workflow
 
 
+async def _refresh_workflow(workflow: e.Workflow):
+    """Refresh a single workflow task"""
+    bridge = REXFlowBridge(workflow)
+    workflow.tasks = await bridge.get_task_data()
+
+
+async def refresh_workflows() -> None:
+    """Asyncrhonously refresh all workflows tasks"""
+    await asyncio.gather(*[
+        _refresh_workflow(workflow)
+        for workflow in workflows.values()
+    ])
+
+
 async def get_active_workflows() -> List[e.Workflow]:
+    await refresh_workflows()
     return workflows.values()
 
 
@@ -48,20 +63,6 @@ async def start_tasks(tasks: List[e.TaskStartInput]) -> None:
         workflows[task.iid].tasks.append(new_task)
         created_tasks.append(new_task)
     return created_tasks
-
-
-async def _refresh_workflow(workflow: e.Workflow):
-    """Refresh a single workflow task"""
-    bridge = REXFlowBridge(workflow)
-    workflow.tasks = await bridge.get_task_data()
-
-
-async def refresh_workflows() -> None:
-    """Asyncrhonously refresh all workflows tasks"""
-    await asyncio.gather(*[
-        _refresh_workflow(workflow)
-        for workflow in workflows.values()
-    ])
 
 
 async def _save_tasks(
