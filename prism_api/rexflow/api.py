@@ -2,54 +2,13 @@
 import asyncio
 from collections import defaultdict
 import itertools
-from typing import Dict, List, Union
+from typing import List
 
 from pydantic import validate_arguments
 
 from . import entities as e
 from .bridge import REXFlowBridgeGQL as REXFlowBridge
-
-
-class Index:
-    data: Dict[
-        e.WorkflowInstanceId,
-        Dict[str, Union[e.Workflow, Dict]]
-    ] = {}
-
-    @classmethod
-    def add_workflow(cls, workflow: e.Workflow):
-        cls.data[workflow.iid] = {'workflow': workflow, 'tasks': {}}
-
-    @classmethod
-    def get_workflow(cls, workflow_id: e.WorkflowInstanceId):
-        return cls.data[workflow_id]['workflow']
-
-    @classmethod
-    def get_workflow_list(cls):
-        return [
-            d['workflow']
-            for d in cls.data.values()
-        ]
-
-    @classmethod
-    def delete_workflow(cls, workflow_id: e.WorkflowInstanceId):
-        del cls.data[workflow_id]
-
-    @classmethod
-    def add_task(cls, task: e.Task):
-        cls.data[task.iid]['tasks'][task.id] = task
-
-    @classmethod
-    def get_workflow_tasks(cls, workflow_id: e.WorkflowInstanceId):
-        return cls.data[workflow_id]['tasks']
-
-    @classmethod
-    def get_task(
-        cls,
-        workflow_id: e.WorkflowInstanceId,
-        task_id: e.TaskId,
-    ) -> e.Task:
-        return cls.data[workflow_id]['tasks'][task_id]
+from .store import Store
 
 
 async def get_available_workflows() -> List[e.WorkflowDeploymentId]:
@@ -62,7 +21,7 @@ async def start_workflow(
     workflow = await REXFlowBridge.start_workflow(
         deployment_id=deployment_id,
     )
-    Index.add_workflow(workflow)
+    Store.add_workflow(workflow)
     return workflow
 
 
@@ -71,7 +30,7 @@ async def _refresh_workflow(workflow: e.Workflow):
     bridge = REXFlowBridge(workflow)
     tasks = await bridge.get_task_data()
     workflow.tasks = tasks
-    Index.data[workflow.iid]['tasks'] = {
+    Store.data[workflow.iid]['tasks'] = {
         task.id: task
         for task in tasks
     }
@@ -81,26 +40,26 @@ async def refresh_workflows() -> None:
     """Asyncrhonously refresh all workflows tasks"""
     await asyncio.gather(*[
         _refresh_workflow(d['workflow'])
-        for d in Index.data.values()
+        for d in Store.data.values()
     ])
 
 
 async def get_active_workflows() -> List[e.Workflow]:
     await refresh_workflows()
-    return Index.get_workflow_list()
+    return Store.get_workflow_list()
 
 
 async def complete_workflow(
     instance_id: e.WorkflowInstanceId,
 ) -> None:
-    Index.delete_workflow(instance_id)
+    Store.delete_workflow(instance_id)
 
 
 @validate_arguments
 async def start_tasks(tasks: List[e.Task]) -> List[e.Task]:
     created_tasks = []
     for task in tasks:
-        Index.add_task(task)
+        Store.add_task(task)
         created_tasks.append(task)
     return created_tasks
 
@@ -109,10 +68,10 @@ async def _save_tasks(
     iid: e.WorkflowInstanceId,
     tasks: List[e.TaskInput],
 ) -> List[e.Task]:
-    bridge = REXFlowBridge(Index.get_workflow(iid))
+    bridge = REXFlowBridge(Store.get_workflow(iid))
     updated_tasks = []
     for task_input in tasks:
-        task = Index.get_task(iid, task_input.id)
+        task = Store.get_task(iid, task_input.id)
         task_data = task.get_data_dict()
         for task_data_input in task_input.data:
             task_data[task_data_input.id].data = task_data_input.data
@@ -138,7 +97,7 @@ async def _complete_tasks(
     tasks: List[e.TaskInput],
 ) -> List[e.Task]:
     updated_tasks = await _save_tasks(iid, tasks)
-    bridge = REXFlowBridge(Index.get_workflow(iid))
+    bridge = REXFlowBridge(Store.get_workflow(iid))
     return await bridge.complete_task(updated_tasks)
 
 

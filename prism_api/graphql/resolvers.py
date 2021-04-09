@@ -4,8 +4,8 @@ from typing import Optional
 from ariadne import QueryType, MutationType, ObjectType
 from pydantic.decorator import validate_arguments
 
-from prism_api.rexflow import entities as e
 from prism_api.rexflow import api as rexflow
+from prism_api.rexflow import entities as e
 
 logger = logging.getLogger(__name__)
 
