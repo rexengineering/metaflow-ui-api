@@ -9,4 +9,5 @@ schema = ariadne.make_executable_schema(
     typedefs,
     res.query,
     res.mutation,
+    res.workflow_object,
 )
