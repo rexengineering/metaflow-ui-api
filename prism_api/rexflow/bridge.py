@@ -51,9 +51,12 @@ class REXFlowBridgeABC(abc.ABC):
 
 
 class REXFlowBridgeGQL(REXFlowBridgeABC):
-    _transport = AIOHTTPTransport(
-        url=f'{settings.REXFLOW_HOST}/query',
-    )
+    @classmethod
+    def get_transport(cls):
+        transport = AIOHTTPTransport(
+            url=f'{settings.REXFLOW_HOST}',
+        )
+        return transport
 
     @classmethod
     @validate_arguments
@@ -62,7 +65,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         deployment_id: entities.WorkflowDeploymentId,
     ) -> entities.Workflow:
         async with Client(
-            transport=cls._transport,
+            transport=cls.get_transport(),
             fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.START_WORKFLOW_MUTATION)
@@ -89,9 +92,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         self.endpoint = settings.REXFLOW_HOST_INSTANCE.format(
             instance_id=workflow.iid,
         )
-        self.transport = AIOHTTPTransport(
-            url=f'{self.endpoint}/query',
-        )
+        self.transport = self.get_transport()
 
     @validate_arguments
     async def get_task_data(
@@ -114,11 +115,14 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
 
             result = await session.execute(query, variable_values=params)
             logger.info(result)
-            tasks = result['workflow']['active']['tasks']
-            return [
-                entities.Task(**task)
-                for task in tasks
-            ]
+            all_tasks = []
+            for workflow in result['workflows']['active']:
+                tasks = [
+                    entities.Task(iid=workflow['iid'], **task)
+                    for task in workflow['tasks']
+                ]
+                all_tasks.extend(tasks)
+            return all_tasks
 
     @validate_arguments
     async def save_task_data(

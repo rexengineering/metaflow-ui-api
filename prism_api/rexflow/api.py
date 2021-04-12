@@ -29,11 +29,11 @@ async def _refresh_workflow(workflow: e.Workflow):
     """Refresh a single workflow task"""
     bridge = REXFlowBridge(workflow)
     tasks = await bridge.get_task_data()
-    workflow.tasks = tasks
-    Store.data[workflow.iid]['tasks'] = {
-        task.id: task
-        for task in tasks
-    }
+    workflow.tasks = []
+    for task in tasks:
+        if task.iid == workflow.iid:
+            workflow.tasks.append(task)
+        Store.add_task(task)
 
 
 async def refresh_workflows() -> None:
