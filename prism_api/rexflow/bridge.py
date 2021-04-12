@@ -204,7 +204,7 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
             return entities.Workflow(
                 iid=data['instance_id'],
                 did=deployment_id,
-                status=entities.WorkflowStatus.WAITING,
+                status=entities.WorkflowStatus.START,
             )
 
     @validate_arguments

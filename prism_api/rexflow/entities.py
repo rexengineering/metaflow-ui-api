@@ -21,14 +21,18 @@ class DataId(str):
 
 
 class WorkflowStatus(str, Enum):
-    WAITING = 'WAITING'
-    IN_PROGRESS = 'IN_PROGRESS'
-    FINISHED = 'FINISHED'
+    COMPLETED = 'COMPLETED'
+    ERROR = 'ERROR'
+    RUNNING = 'RUNNING'
+    START = 'START'
+    STARTING = 'STARTING'
+    STOPPED = 'STOPPED'
+    STOPPING = 'STOPPING'
 
 
 class TaskStatus(str, Enum):
-    IN_PROGRESS = 'IN_PROGRESS'
-    FINISHED = 'FINISHED'
+    UP = 'UP'
+    DOWN = 'DOWN'
 
 
 class OperationStatus(str, Enum):
@@ -64,7 +68,7 @@ class Task(BaseModel):
     iid: WorkflowInstanceId
     id: TaskId
     data: List[TaskData] = []
-    status: TaskStatus = TaskStatus.IN_PROGRESS
+    status: TaskStatus = TaskStatus.UP
 
     def get_data_dict(self):
         return {

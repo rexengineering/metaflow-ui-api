@@ -57,7 +57,7 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         return entities.Workflow(
             did=deployment_id,
             iid='123',
-            status=entities.WorkflowStatus.IN_PROGRESS,
+            status=entities.WorkflowStatus.RUNNING,
         )
 
     @validate_arguments
@@ -102,5 +102,5 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     ) -> List[entities.Task]:
         await asyncio.sleep(self.sleep_time)
         for task in tasks:
-            task.status = entities.TaskStatus.FINISHED
+            task.status = entities.TaskStatus.DOWN
         return tasks

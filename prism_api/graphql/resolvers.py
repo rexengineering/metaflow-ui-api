@@ -120,7 +120,7 @@ class TasksMutations:
                 e.Task(
                     iid='123',
                     id='123',
-                    status=e.TaskStatus.IN_PROGRESS,
+                    status=e.TaskStatus.UP,
                 )
             ]
         )
