@@ -19,7 +19,7 @@ priorityClassName: shared-critical
 
 readinessProbe:
   httpGet:
-    path: /
+    path: /health
     port: 8000
   initialDelaySeconds: 20
   periodSeconds: 60
@@ -27,7 +27,7 @@ readinessProbe:
 
 livenessProbe:
   httpGet:
-    path: /
+    path: /health/status
     port: 8000
   initialDelaySeconds: 20
   periodSeconds: 60
