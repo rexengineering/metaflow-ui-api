@@ -1,3 +1,7 @@
+nameOverride: prism-api
+image:
+  repository: rex/prism-api
+
 services:
  - name: prism-api
    externalPort: '80'
@@ -11,10 +15,28 @@ ingress:
 
 replicaCount: 3
 
+priorityClassName: shared-critical
+
 readinessProbe:
   httpGet:
     path: /
     port: 80
-  initialDelaySeconds: 0
-  periodSecods: 5
+  initialDelaySeconds: 20
+  periodSeconds: 60
   timeoutSeconds: 5
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 20
+  periodSeconds: 60
+  timeoutSeconds: 5
+
+resources:
+  limits:
+    memory: 256Mi
+    cpu: 200m
+
+env:
+  LOG_LEVEL: INFO
