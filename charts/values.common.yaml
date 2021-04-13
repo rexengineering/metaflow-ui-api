@@ -13,7 +13,7 @@ replicaCount: 3
 
 readinessProbe:
   httpGet:
-    path: /
+    path: /health
     port: 80
   initialDelaySeconds: 0
   periodSecods: 5
