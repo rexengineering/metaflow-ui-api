@@ -12,6 +12,9 @@ def _check_redis_service():
 
 
 def _check_rexflow_service():
+    if not settings.REXFLOW_HOST:
+        return False
+
     try:
         res = httpx.get(settings.REXFLOW_HOST)
         return res.status_code == 200
