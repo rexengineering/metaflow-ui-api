@@ -13,7 +13,7 @@ def _check_redis_service():
 
 def _check_rexflow_service():
     if not settings.REXFLOW_HOST:
-        return False
+        return 'Not Configured'
 
     try:
         res = httpx.get(settings.REXFLOW_HOST)
