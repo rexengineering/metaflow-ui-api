@@ -2,14 +2,23 @@ import logging
 import sys
 
 from fastapi import FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
 
-from prism_api import services
+from prism_api import services, settings
 from prism_api.graphql.app import app as graphql_app
 from prism_api.state_manager.router import router as state_router
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 app = FastAPI()
+
+origins = settings.CORS_ORIGINS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=['*'],
+    allow_origin_regex=settings.CORS_ORIGIN_REGEX,
+)
 
 
 @app.get('/health')
