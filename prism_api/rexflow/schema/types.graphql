@@ -1,8 +1,6 @@
 
 # Scalar types
 
-scalar SessionId
-
 scalar WorkflowInstance
 
 scalar WorkflowDeployment
@@ -10,8 +8,6 @@ scalar WorkflowDeployment
 scalar TaskId
 
 scalar DataId
-
-scalar State
 
 # Enum types
 
@@ -47,11 +43,6 @@ enum DataType {
 }
 
 # Data structures
-
-type Session {
-    id: SessionId!
-    state: State!
-}
 
 type Workflow {
     """Id for a workflow instance"""
@@ -94,7 +85,7 @@ input WorkflowFilter {
     status: WorkflowStatus
 }
 
-input TaskFilter {
-    ids: [TaskId!]!
-    status: TaskStatus
+input InstanceFilter {
+    iid: WorkflowInstance!
+    tid: TaskId!
 }

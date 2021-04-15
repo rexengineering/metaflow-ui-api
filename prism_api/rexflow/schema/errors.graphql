@@ -3,18 +3,10 @@ interface ProblemInterface {
     message: String!
 }
 
-union UpdateStateProblems = ParsingProblem | ServiceNotAvailableProblem
-
 union TaskProblems = ValidationProblem | ServiceNotAvailableProblem
-
-union SessionProblems = ServiceNotAvailableProblem
 
 union WorkflowProblems = ServiceNotAvailableProblem
 
-
-type ParsingProblem implements ProblemInterface {
-    message: String!
-}
 
 type ValidationProblem implements ProblemInterface {
     message: String!
