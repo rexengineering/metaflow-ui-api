@@ -12,6 +12,7 @@ from prism_api import settings
 from . import queries
 from .entities import types as e
 from .entities import wrappers as w
+from .schema import schema
 
 
 logger = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> e.Workflow:
         async with Client(
             transport=cls.get_transport(),
-            fetch_schema_from_transport=True,
+            schema=schema,
         ) as session:
             query = gql(queries.START_WORKFLOW_MUTATION)
             params = {
@@ -103,7 +104,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> List[e.Task]:
         async with Client(
             transport=self.transport,
-            fetch_schema_from_transport=True,
+            schema=schema,
         ) as session:
             query = gql(queries.GET_TASK_DATA_QUERY)
             if task_ids:
@@ -133,7 +134,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> List[e.Task]:
         async with Client(
             transport=self.transport,
-            fetch_schema_from_transport=True,
+            schema=schema,
         ) as session:
             query = gql(queries.SAVE_TASK_DATA_MUTATION)
             params = {
@@ -160,7 +161,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> List[e.Task]:
         async with Client(
             transport=self.transport,
-            fetch_schema_from_transport=True,
+            schema=schema,
         ) as session:
             query = gql(queries.COMPLETE_TASK_MUTATION)
             params = {
