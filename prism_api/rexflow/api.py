@@ -6,8 +6,9 @@ from typing import List
 
 from pydantic import validate_arguments
 
-from . import entities as e
 from .bridge import REXFlowBridgeGQL as REXFlowBridge
+from .entities import types as e
+from .entities import wrappers as w
 from .store import Store
 
 
@@ -66,7 +67,7 @@ async def start_tasks(tasks: List[e.Task]) -> List[e.Task]:
 
 async def _save_tasks(
     iid: e.WorkflowInstanceId,
-    tasks: List[e.TaskInput],
+    tasks: List[w.TaskChange],
 ) -> List[e.Task]:
     bridge = REXFlowBridge(Store.get_workflow(iid))
     updated_tasks = []
@@ -80,7 +81,7 @@ async def _save_tasks(
 
 
 @validate_arguments
-async def save_tasks(tasks: List[e.TaskInput]) -> List[e.Task]:
+async def save_tasks(tasks: List[w.TaskChange]) -> List[e.Task]:
     workflow_instances = defaultdict(list)
     for task in tasks:
         workflow_instances[task.iid].append(task)
@@ -94,7 +95,7 @@ async def save_tasks(tasks: List[e.TaskInput]) -> List[e.Task]:
 
 async def _complete_tasks(
     iid: e.WorkflowInstanceId,
-    tasks: List[e.TaskInput],
+    tasks: List[w.TaskChange],
 ) -> List[e.Task]:
     updated_tasks = await _save_tasks(iid, tasks)
     bridge = REXFlowBridge(Store.get_workflow(iid))
@@ -103,7 +104,7 @@ async def _complete_tasks(
 
 @validate_arguments
 async def complete_tasks(
-    tasks: List[e.TaskInput],
+    tasks: List[w.TaskChange],
 ) -> List[e.Task]:
     workflow_instances = defaultdict(list)
     for task in tasks:

@@ -1,7 +1,7 @@
 """Store workflow information"""
 from typing import Dict, List, Union
 
-from prism_api.rexflow import entities as e
+from prism_api.rexflow.entities import types as e
 
 
 class Store:
