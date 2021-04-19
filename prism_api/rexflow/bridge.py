@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 class REXFlowBridgeABC(abc.ABC):
     @classmethod
     @abc.abstractmethod
+    async def get_deployments(cls):
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
     async def start_workflow(
         cls,
         deployment_id: e.WorkflowDeploymentId
@@ -60,6 +65,16 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             url=f'{settings.REXFLOW_HOST}',
         )
         return transport
+
+    @classmethod
+    async def get_deployments(cls):
+        async with AsyncClient() as client:
+            result = await client.get(
+                f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
+            )
+            result.raise_for_status()
+            data = result.json()['wf_map']
+            return data
 
     @classmethod
     @validate_arguments
@@ -268,8 +283,14 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
     _endpoint = settings.REXFLOW_HOST
 
     @classmethod
-    async def get_workflow_catalog(cls) -> list[entities.WorkflowDeploymentId]:
-        ...
+    async def get_deployments(cls):
+        async with AsyncClient() as client:
+            result = await client.get(
+                f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
+            )
+            result.raise_for_status()
+            data = result.json()['wf_map']
+            return data
 
     @classmethod
     @validate_arguments
