@@ -4,10 +4,7 @@ from graphql import build_ast_schema, parse
 
 
 schema_files = [
-    'errors.graphql',
-    'mutations.graphql',
-    'query.graphql',
-    'types.graphql',
+    'schema.graphql',
 ]
 
 
