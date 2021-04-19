@@ -6,7 +6,7 @@ from typing import List
 from pydantic import validate_arguments
 
 from prism_api.state_manager.store.adapters import StoreABC
-from prism_api.rexflow import entities
+from prism_api.rexflow.entities import types as e
 from prism_api.rexflow.bridge import REXFlowBridgeABC
 
 
@@ -48,38 +48,42 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     sleep_time = 0.2
 
     @classmethod
+    def get_deployments(cls):
+        pass
+
+    @classmethod
     @validate_arguments
     async def start_workflow(
         cls,
-        deployment_id: entities.WorkflowDeploymentId,
-    ) -> entities.Workflow:
+        deployment_id: e.WorkflowDeploymentId,
+    ) -> e.Workflow:
         await asyncio.sleep(cls.sleep_time)
-        return entities.Workflow(
+        return e.Workflow(
             did=deployment_id,
             iid='123',
-            status=entities.WorkflowStatus.RUNNING,
+            status=e.WorkflowStatus.RUNNING,
         )
 
     @validate_arguments
-    def __init__(self, workflow: entities.Workflow) -> None:
+    def __init__(self, workflow: e.Workflow) -> None:
         pass
 
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[entities.TaskId] = [],
-    ) -> List[entities.Task]:
+        task_ids: List[e.TaskId] = [],
+    ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
         if len(task_ids) == 0:
             task_ids = ['1', '2', '3']
         return [
-            entities.Task(
+            e.Task(
                 iid='123',
-                id=task_id,
+                tid=task_id,
                 data=[
-                    entities.TaskData(
+                    e.TaskFieldData(
                         id='name',
-                        type=entities.DataType.TEXT,
+                        type=e.DataType.TEXT,
                         order=1,
                     )
                 ]
@@ -90,17 +94,17 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     @validate_arguments
     async def save_task_data(
         self,
-        tasks: List[entities.Task],
-    ) -> List[entities.Task]:
+        tasks: List[e.Task],
+    ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
         return tasks
 
     @validate_arguments
     async def complete_task(
         self,
-        tasks: List[entities.Task],
-    ) -> List[entities.Task]:
+        tasks: List[e.Task],
+    ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
         for task in tasks:
-            task.status = entities.TaskStatus.DOWN
+            task.status = e.TaskStatus.DOWN
         return tasks
