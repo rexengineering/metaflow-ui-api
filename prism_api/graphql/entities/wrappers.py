@@ -50,14 +50,14 @@ class TaskDataStartInput(BaseModel):
 
 class TaskStartInput(BaseModel):
     iid: e.WorkflowInstanceId
-    id: e.TaskId
+    tid: e.TaskId
     data: List[TaskDataStartInput]
 
     def to_task(self):
         return e.Task(
             iid=self.iid,
             id=self.id,
-            data=[e.TaskData(**d.dict()) for d in self.data],
+            data=[e.TaskFieldData(**d.dict()) for d in self.data],
         )
 
 
@@ -72,7 +72,7 @@ class TaskDataInput(BaseModel):
 
 class TaskInput(BaseModel):
     iid: e.WorkflowInstanceId
-    id: e.TaskId
+    tid: e.TaskId
     data: List[TaskDataInput]
 
 

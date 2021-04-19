@@ -60,7 +60,7 @@ input StartTasksInput {
 
 input TaskStartInput {
     iid: WorkflowInstance!
-    id: TaskId!
+    tid: TaskId!
     data: [TaskDataStartInput!]!
 }
 
@@ -91,7 +91,7 @@ input SaveTasksInput {
 
 input TaskInput {
     iid: WorkflowInstance!
-    id: TaskId!
+    tid: TaskId!
     """Data to be saved"""
     data: [TaskDataInput!]!
 }

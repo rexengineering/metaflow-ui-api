@@ -65,13 +65,13 @@ type Workflow {
 """A task will request a list of data elements"""
 type Task {
     iid: WorkflowInstance!
-    id: TaskId!
-    data: [TaskData!]!
+    tid: TaskId!
+    data: [TaskFieldData!]!
     status: TaskStatus!
 }
 
 """Individual data element that will map to a component on the UI"""
-type TaskData {
+type TaskFieldData {
     id: DataId!
     type: DataType!
     order: Int!

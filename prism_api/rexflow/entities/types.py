@@ -54,7 +54,7 @@ class Validator(BaseModel):
     constraint: Optional[str]
 
 
-class TaskData(BaseModel):
+class TaskFieldData(BaseModel):
     id: DataId
     type: DataType
     order: int
@@ -66,8 +66,8 @@ class TaskData(BaseModel):
 
 class Task(BaseModel):
     iid: WorkflowInstanceId
-    id: TaskId
-    data: List[TaskData] = []
+    tid: TaskId
+    data: List[TaskFieldData] = []
     status: TaskStatus = TaskStatus.UP
 
     def get_data_dict(self):

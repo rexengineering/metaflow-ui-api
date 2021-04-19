@@ -1,8 +1,13 @@
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 from . import types as e
+
+
+def to_camel(string: str) -> str:
+    words = string.split('_')
+    return words[0] + ''.join(word.capitalize() for word in words[1:])
 
 
 class TaskDataChange(BaseModel):
@@ -12,126 +17,82 @@ class TaskDataChange(BaseModel):
 
 class TaskChange(BaseModel):
     iid: e.WorkflowInstanceId
-    id: e.TaskId
+    tid: e.TaskId
     data: List[TaskDataChange]
-
-
-# GraphQL filter types
-
-class WorkflowFilter(BaseModel):
-    ids: List[e.WorkflowInstanceId]
-    status: Optional[e.WorkflowStatus]
-
-
-class TaskFilter(BaseModel):
-    ids: List[e.TaskId] = []
-    status: Optional[e.TaskStatus]
 
 
 # GraphQL input types
 
-class StartWorkflowInput(BaseModel):
-    did: e.WorkflowDeploymentId  # deployment id
-
-
-class StartWorkflowInputBridge(BaseModel):
-    did: e.WorkflowDeploymentId
-    callback: str
-
-
-class CompleteWorkflowInput(BaseModel):
+class TaskMutationFormInput(BaseModel):
     iid: e.WorkflowInstanceId
+    tid: e.TaskId
 
 
-class ValidatorInput(BaseModel):
-    type: e.ValidatorEnum
-    constraint: Optional[str]
-
-
-class TaskDataStartInput(BaseModel):
+class TaskFieldInput(BaseModel):
     id: e.DataId
     type: e.DataType
-    order: int
-    label: Optional[str]
     data: Optional[str]
-    encrypted: bool = False
-    validators: List[ValidatorInput] = []
+    encrypted: bool
 
 
-class TaskStartInput(BaseModel):
+class TaskMutationValidateInput(BaseModel):
     iid: e.WorkflowInstanceId
-    id: e.TaskId
-    data: List[TaskDataStartInput]
-
-    def to_task(self):
-        return e.Task(
-            iid=self.iid,
-            id=self.id,
-            data=[e.TaskData(**d.dict()) for d in self.data],
-        )
+    tid: e.TaskId
+    fields: List[TaskFieldInput]
 
 
-class StartTasksInput(BaseModel):
-    tasks: List[TaskStartInput]
-
-
-class TaskDataInput(BaseModel):
-    id: e.DataId
-    data: str
-
-
-class TaskInput(BaseModel):
+class TaskMutationSaveInput(BaseModel):
     iid: e.WorkflowInstanceId
-    id: e.TaskId
-    data: List[TaskDataInput]
+    tid: e.TaskId
+    fields: List[TaskFieldInput]
 
 
-class ValidateTaskInput(BaseModel):
-    tasks: List[TaskInput]
-
-
-class SaveTaskInput(BaseModel):
-    tasks: List[TaskInput]
-
-
-class CompleteTasksInput(BaseModel):
-    tasks: List[TaskInput]
-
-
-# GraphQL error types
-
-class Problem(BaseModel):
-    message: str
+class TaskMutationCompleteInput(BaseModel):
+    iid: e.WorkflowInstanceId
+    tid: e.TaskId
 
 
 # GraphQL payload types
 
 class Payload(BaseModel):
     status: e.OperationStatus
-    errors: Optional[List[Problem]]
-    query: Dict = {}
 
 
-class StartWorkflowPayload(Payload):
-    iid: Optional[e.WorkflowInstanceId]  # instance id
-    workflow: Optional[e.Workflow]
+class CreateInstancePayload(Payload):
+    did: e.WorkflowDeploymentId
+    iid: e.WorkflowInstanceId
+    tasks: List[e.TaskId]
 
 
-class CompleteWorkflowPayload(Payload):
-    iid: Optional[e.WorkflowInstanceId]
+class TaskFormPayload(Payload):
+    iid: e.WorkflowInstanceId
+    tid: e.TaskId
+    fields: List[e.TaskFieldData]
 
 
-class StartTasksPayload(Payload):
-    tasks: Optional[List[e.Task]]
+class ValidatorResults(BaseModel):
+    validator: e.Validator
+    result: Optional[str]
 
 
-class ValidateTasksPayload(Payload):
-    tasks: Optional[List[e.Task]]
+class TaskValidatePayload(Payload):
+    iid: e.WorkflowInstanceId
+    tid: e.TaskId
+    validator_results: List[ValidatorResults]
+
+    class Config:
+        alias_generator = to_camel
 
 
-class SaveTasksPayload(Payload):
-    tasks: Optional[List[e.Task]]
+class TaskSavePayload(Payload):
+    iid: e.WorkflowInstanceId
+    tid: e.TaskId
+    validator_results: List[ValidatorResults]
+
+    class Config:
+        alias_generator = to_camel
 
 
-class CompleteTaskPayload(Payload):
-    tasks: Optional[List[e.Task]]
+class TaskCompletePayload(Payload):
+    iid: e.WorkflowInstanceId
+    tid: e.TaskId
