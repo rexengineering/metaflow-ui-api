@@ -2,6 +2,7 @@ from ariadne import QueryType, MutationType
 from pydantic import validate_arguments
 
 from . import entities as w
+from prism_api.rexflow import api
 from prism_api.rexflow.entities import types as e
 
 
@@ -22,6 +23,7 @@ class Task:
 
     @validate_arguments
     async def start(self, info, input: w.StartTaskInput):
+        await api.start_tasks(input.iid, [input.tid])
         return w.StartTaskPayload(
             status=e.OperationStatus.SUCCESS,
         )
@@ -36,6 +38,7 @@ class Workflow:
 
     @validate_arguments
     async def complete(self, info, input: w.CompleteWorkflowInput):
+        await api.complete_workflow(input.iid)
         return w.CompleteWorkflowPayload(
             status=e.OperationStatus.SUCCESS,
         )

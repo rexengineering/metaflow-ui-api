@@ -57,9 +57,13 @@ async def complete_workflow(
 
 
 @validate_arguments
-async def start_tasks(tasks: List[e.Task]) -> List[e.Task]:
+async def start_tasks(
+    iid: e.WorkflowInstanceId, 
+    tasks: List[e.TaskId]
+) -> List[e.Task]:
     created_tasks = []
-    for task in tasks:
+    for tid in tasks:
+        task = await get_task(iid, tid)
         Store.add_task(task)
         created_tasks.append(task)
     return created_tasks
