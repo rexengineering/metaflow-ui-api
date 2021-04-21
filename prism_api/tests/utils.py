@@ -8,6 +8,7 @@ from pydantic import validate_arguments
 from prism_api.state_manager.store.adapters import StoreABC
 from prism_api.rexflow.entities import types as e
 from prism_api.rexflow.bridge import REXFlowBridgeABC
+from prism_api.rexflow.store import Store
 
 
 def run_async(f):
@@ -66,30 +67,18 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
 
     @validate_arguments
     def __init__(self, workflow: e.Workflow) -> None:
-        pass
+        self.workflow = workflow
 
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[e.TaskId] = [],
+        task_ids: List[e.TaskId]
     ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
-        if len(task_ids) == 0:
-            task_ids = ['1', '2', '3']
-        return [
-            e.Task(
-                iid='123',
-                tid=task_id,
-                data=[
-                    e.TaskFieldData(
-                        id='name',
-                        type=e.DataType.TEXT,
-                        order=1,
-                    )
-                ]
-            )
-            for task_id in task_ids
-        ]
+        tasks = []
+        for tid in task_ids:
+            tasks.append(Store.get_task(self.workflow.iid, tid))
+        return tasks
 
     @validate_arguments
     async def save_task_data(

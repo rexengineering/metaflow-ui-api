@@ -29,11 +29,11 @@ async def start_workflow(
 async def _refresh_workflow(workflow: e.Workflow):
     """Refresh a single workflow task"""
     bridge = REXFlowBridge(workflow)
-    tasks = await bridge.get_task_data()
+    tasks = await bridge.get_task_data([
+        t.tid for t in workflow.tasks
+    ])
     workflow.tasks = []
     for task in tasks:
-        if task.iid == workflow.iid:
-            workflow.tasks.append(task)
         Store.add_task(task)
 
 
@@ -72,12 +72,20 @@ async def _save_tasks(
     bridge = REXFlowBridge(Store.get_workflow(iid))
     updated_tasks = []
     for task_input in tasks:
-        task = Store.get_task(iid, task_input.id)
+        task = Store.get_task(iid, task_input.tid)
         task_data = task.get_data_dict()
         for task_data_input in task_input.data:
             task_data[task_data_input.id].data = task_data_input.data
         updated_tasks.append(task)
     return await bridge.save_task_data(updated_tasks)
+
+
+@validate_arguments
+async def get_task(iid: e.WorkflowInstanceId, tid: e.TaskId):
+    bridge = REXFlowBridge(Store.get_workflow(iid))
+    task = (await bridge.get_task_data([tid])).pop()
+    Store.add_task(task)
+    return task
 
 
 @validate_arguments
@@ -99,7 +107,10 @@ async def _complete_tasks(
 ) -> List[e.Task]:
     updated_tasks = await _save_tasks(iid, tasks)
     bridge = REXFlowBridge(Store.get_workflow(iid))
-    return await bridge.complete_task(updated_tasks)
+    completed_tasks = await bridge.complete_task(updated_tasks)
+    for task in completed_tasks:
+        Store.add_task(task)
+    return completed_tasks
 
 
 @validate_arguments

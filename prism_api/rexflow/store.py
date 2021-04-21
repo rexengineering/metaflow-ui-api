@@ -31,7 +31,10 @@ class Store:
 
     @classmethod
     def add_task(cls, task: e.Task):
-        cls.data[task.iid]['tasks'][task.id] = task
+        workflow = cls.get_workflow(task.iid)
+        if task.tid not in [t.tid for t in workflow.tasks]:
+            workflow.tasks.append(task)
+        cls.data[task.iid]['tasks'][task.tid] = task
 
     @classmethod
     def get_workflow_tasks(
