@@ -1,3 +1,5 @@
+import logging
+
 from ariadne import QueryType, MutationType
 from pydantic import validate_arguments
 
@@ -5,6 +7,8 @@ from . import entities as w
 from prism_api.rexflow import api
 from prism_api.rexflow.entities import types as e
 
+
+logger = logging.getLogger(__name__)
 
 query = QueryType()
 
@@ -23,7 +27,17 @@ class Task:
 
     @validate_arguments
     async def start(self, info, input: w.StartTaskInput):
-        await api.start_tasks(input.iid, [input.tid])
+        try:
+            await api.start_tasks(input.iid, [input.tid])
+        except Exception as ex:
+            logger.exception('Error when starting task')
+            return w.StartTaskPayload(
+                status=e.OperationStatus.FAILURE,
+                errors=[
+                    w.Problem(message=str(ex))
+                ]
+            )
+
         return w.StartTaskPayload(
             status=e.OperationStatus.SUCCESS,
         )
@@ -38,7 +52,17 @@ class Workflow:
 
     @validate_arguments
     async def complete(self, info, input: w.CompleteWorkflowInput):
-        await api.complete_workflow(input.iid)
+        try:
+            await api.complete_workflow(input.iid)
+        except Exception as ex:
+            logger.exception('Error when completing workflow')
+            return w.CompleteWorkflowPayload(
+                status=e.OperationStatus.FAILURE,
+                errors=[
+                    w.Problem(message=str(ex))
+                ]
+            )
+
         return w.CompleteWorkflowPayload(
             status=e.OperationStatus.SUCCESS,
         )
