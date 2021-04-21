@@ -101,16 +101,6 @@ mutation.set_field('session', SessionMutations)
 
 
 class TasksMutations:
-    @validate_arguments
-    async def start(self, info, input: w.StartTasksInput):
-        tasks = await rexflow.start_tasks([
-            task_input.to_task()
-            for task_input in input.tasks
-        ])
-        return w.StartTasksPayload(
-            status=e.OperationStatus.SUCCESS,
-            tasks=tasks,
-        )
 
     @validate_arguments
     async def validate(self, info, input: w.ValidateTaskInput):
@@ -155,15 +145,6 @@ class WorkflowMutations:
             status=e.OperationStatus.SUCCESS,
             iid=workflow.iid,
             workflow=workflow,
-        )
-
-    @validate_arguments
-    async def complete(self, info, input: w.CompleteWorkflowInput):
-        logger.info(input)
-        await rexflow.complete_workflow(input.iid)
-        return w.CompleteWorkflowPayload(
-            status=e.OperationStatus.SUCCESS,
-            iid=input.iid
         )
 
     async def tasks(self, info):
