@@ -65,6 +65,7 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
             did=deployment_id,
             iid=cls.test_iid,
             status=e.WorkflowStatus.RUNNING,
+            data=Store.data.get(cls.test_iid, {}).get('tasks', [])
         )
 
     @validate_arguments

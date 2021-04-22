@@ -14,6 +14,7 @@ class Store:
     def add_workflow(cls, workflow: e.Workflow):
         if workflow.iid in cls.data:
             cls.data[workflow.iid]['workflow'] = workflow
+            workflow.tasks = list(cls.data[workflow.iid]['tasks'].values())
         else:
             cls.data[workflow.iid] = {'workflow': workflow, 'tasks': {}}
 
