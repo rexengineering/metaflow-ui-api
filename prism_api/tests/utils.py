@@ -79,7 +79,27 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         await asyncio.sleep(self.sleep_time)
         tasks = []
         for tid in task_ids:
-            tasks.append(Store.get_task(self.workflow.iid, tid))
+            if tid in Store.data[self.workflow.iid]['tasks']:
+                tasks.append(Store.data[self.workflow.iid]['tasks'][tid])
+            else:
+                tasks.append(e.Task(
+                    iid=self.workflow.iid,
+                    tid=tid,
+                    data=[
+                        e.TaskFieldData(
+                            id='fname',
+                            type=e.DataType.TEXT,
+                            order=1,
+                            label='First Name',
+                            validators=[
+                                e.Validator(
+                                    type=e.ValidatorEnum.REGEX,
+                                    constraint=r'.*',
+                                )
+                            ]
+                        )
+                    ],
+                ))
         return tasks
 
     @validate_arguments
