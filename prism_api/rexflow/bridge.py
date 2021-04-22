@@ -18,12 +18,17 @@ from .schema import schema
 logger = logging.getLogger(__name__)
 
 
-class REXFlowBridgeABC(abc.ABC):
-    @classmethod
-    @abc.abstractmethod
-    async def get_deployments(cls):
-        raise NotImplementedError
+async def get_deployments() -> Dict[str, List[e.WorkflowDeploymentId]]:
+    async with AsyncClient() as client:
+        result = await client.get(
+            f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
+        )
+        result.raise_for_status()
+        data = result.json()['wf_map']
+        return data
 
+
+class REXFlowBridgeABC(abc.ABC):
     @classmethod
     @abc.abstractmethod
     async def start_workflow(
@@ -59,22 +64,13 @@ class REXFlowBridgeABC(abc.ABC):
 
 
 class REXFlowBridgeGQL(REXFlowBridgeABC):
-    @classmethod
-    def get_transport(cls):
+    @staticmethod
+    def get_transport(deployment_id):
+        host = settings.REXFLOW_HOST.format(deployment_id=deployment_id)
         transport = AIOHTTPTransport(
-            url=f'{settings.REXFLOW_HOST}',
+            url=host,
         )
         return transport
-
-    @classmethod
-    async def get_deployments(cls):
-        async with AsyncClient() as client:
-            result = await client.get(
-                f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
-            )
-            result.raise_for_status()
-            data = result.json()['wf_map']
-            return data
 
     @classmethod
     @validate_arguments
@@ -83,7 +79,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         deployment_id: e.WorkflowDeploymentId,
     ) -> e.Workflow:
         async with Client(
-            transport=cls.get_transport(),
+            transport=cls.get_transport(deployment_id),
             schema=schema,
         ) as session:
             query = gql(queries.START_WORKFLOW_MUTATION)
@@ -105,12 +101,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     @validate_arguments
     def __init__(self, workflow: e.Workflow) -> None:
         self.workflow = workflow
-        self.endpoint = settings.REXFLOW_HOST_INSTANCE.format(
-            instance_id=workflow.iid,
-        )
-        self.transport = AIOHTTPTransport(
-            url=self.endpoint,
-        )
+        self.transport = self.get_transport(workflow.did)
 
     @validate_arguments
     async def get_task_data(
@@ -277,131 +268,3 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                 if payload.status != e.OperationStatus.SUCCESS:
                     raise Exception
             return tasks
-
-
-class REXFlowBridgeHTTP(REXFlowBridgeABC):
-    _endpoint = settings.REXFLOW_HOST
-
-    @classmethod
-    async def get_deployments(cls):
-        async with AsyncClient() as client:
-            result = await client.get(
-                f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
-            )
-            result.raise_for_status()
-            data = result.json()['wf_map']
-            return data
-
-    @classmethod
-    @validate_arguments
-    async def start_workflow(
-        cls,
-        deployment_id: e.WorkflowDeploymentId,
-    ) -> e.Workflow:
-        async with AsyncClient() as client:
-            result = await client.post(
-                f'{cls._endpoint}/workflow/run',
-                data={
-                    'did': deployment_id
-                },
-            )
-            result.raise_for_status()
-            data = result.json()['data']
-            return e.Workflow(
-                iid=data['instance_id'],
-                did=deployment_id,
-                status=e.WorkflowStatus.START,
-            )
-
-    @validate_arguments
-    def __init__(self, workflow: e.Workflow) -> None:
-        self.workflow = workflow
-        self.endpoint = settings.REXFLOW_HOST_INSTANCE.format(
-            instance_id=workflow.iid
-        )
-
-    async def _concurrent_calls(
-        self,
-        endpoint: str,
-        datalist: List[Dict],
-    ) -> List:
-        async with AsyncClient() as client:
-            tasks = []
-            for data in datalist:
-                tasks.append(asyncio.create_task(
-                    client.post(
-                        endpoint,
-                        json=data,
-                    )
-                ))
-            results = await asyncio.gather(*tasks)
-            resultlist = []
-            for result in results:
-                result.raise_for_status()
-                resultlist.append(result.json()['data'])
-
-            return resultlist
-
-    @validate_arguments
-    async def get_task_data(
-        self,
-        task_ids: List[e.TaskId],
-    ) -> List[e.Task]:
-        results = await self._concurrent_calls(
-            f'{self.endpoint}/task/form',
-            [{
-                'task_id': task_id,
-            } for task_id in task_ids]
-        )
-
-        tasks = [
-            e.Task(
-                id=task['id'],
-                data=task['data'],
-                status=task['status'],
-            ) for task in results
-        ]
-
-        return tasks
-
-    @validate_arguments
-    async def save_task_data(
-        self,
-        tasks: List[e.Task],
-    ) -> List[e.Task]:
-        results = await self._concurrent_calls(
-            f'{self.endpoint}/task/save',
-            [task.dict() for task in tasks]
-        )
-
-        tasks = [
-            e.Task(
-                id=task['id'],
-                data=task['data'],
-                status=task['status'],
-            ) for task in results
-        ]
-
-        return tasks
-
-    @validate_arguments
-    async def complete_task(
-        self,
-        tasks: List[e.Task],
-    ) -> List[e.Task]:
-        results = await self._concurrent_calls(
-            f'{self.endpoint}/task/complete',
-            [{
-                'task_id': task.id,
-            } for task in tasks]
-        )
-
-        tasks = [
-            e.Task(
-                id=task['id'],
-                data=task['data'],
-                status=task['status'],
-            ) for task in results
-        ]
-
-        return tasks
