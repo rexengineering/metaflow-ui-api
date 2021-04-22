@@ -69,6 +69,11 @@ class CreateInstancePayload(Payload):
     tasks: List[e.TaskId]
 
 
+class GetInstancePayload(BaseModel):
+    did: e.WorkflowInstanceId
+    iid_list: List[e.WorkflowInstanceInfo]
+
+
 class TaskFormPayload(Payload):
     iid: e.WorkflowInstanceId
     tid: e.TaskId
