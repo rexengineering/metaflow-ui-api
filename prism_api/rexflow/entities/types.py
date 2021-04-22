@@ -93,3 +93,8 @@ class Workflow(BaseModel):
 class WorkflowDeployment(BaseModel):
     name: str
     deployments: List[WorkflowDeploymentId]
+
+
+class WorkflowInstanceInfo(BaseModel):
+    iid: WorkflowInstanceId
+    graphqlUri: Optional[str]

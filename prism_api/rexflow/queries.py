@@ -12,6 +12,17 @@ mutation StartWorkflow($createWorkflow: CreateWorkflowInstanceInput!) {
 }
 '''
 
+GET_INSTANCES_QUERY = '''
+query GetInstances{
+  getInstances {
+    did
+    iid_list {
+      iid
+    }
+  }
+}
+'''
+
 GET_TASK_DATA_QUERY = '''
 mutation GetTaskData($formInput: TaskMutationFormInput) {
   tasks {

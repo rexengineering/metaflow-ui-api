@@ -12,7 +12,10 @@ class Store:
 
     @classmethod
     def add_workflow(cls, workflow: e.Workflow):
-        cls.data[workflow.iid] = {'workflow': workflow, 'tasks': {}}
+        if workflow.iid in cls.data:
+            cls.data[workflow.iid]['workflow'] = workflow
+        else:
+            cls.data[workflow.iid] = {'workflow': workflow, 'tasks': {}}
 
     @classmethod
     def get_workflow(cls, workflow_id: e.WorkflowInstanceId) -> e.Workflow:

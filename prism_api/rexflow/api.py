@@ -34,6 +34,27 @@ async def start_workflow(
     return workflow
 
 
+async def _refresh_instance(did: e.WorkflowDeploymentId):
+    instances = await REXFlowBridge.get_instances(did)
+    for iid in instances:
+        workflow = e.Workflow(
+            did=did,
+            iid=iid,
+            status=e.WorkflowStatus.RUNNING,
+        )
+        Store.add_workflow(workflow)
+
+
+async def _refresh_instances():
+    deployment_ids = await get_deployments()
+    async_tasks = []
+    for deployments in deployment_ids.values():
+        for did in deployments:
+            async_tasks.append(_refresh_instance(did))
+
+    await asyncio.gather(*async_tasks)
+
+
 async def _refresh_workflow(workflow: e.Workflow):
     """Refresh a single workflow task"""
     bridge = REXFlowBridge(workflow)
@@ -47,6 +68,7 @@ async def _refresh_workflow(workflow: e.Workflow):
 
 async def refresh_workflows() -> None:
     """Asyncrhonously refresh all workflows tasks"""
+    await _refresh_instances()
     await asyncio.gather(*[
         _refresh_workflow(d['workflow'])
         for d in Store.data.values()

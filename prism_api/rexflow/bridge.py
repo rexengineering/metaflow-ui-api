@@ -36,6 +36,14 @@ class REXFlowBridgeABC(abc.ABC):
     ) -> e.Workflow:
         raise NotImplementedError
 
+    @classmethod
+    @abc.abstractmethod
+    async def get_instances(
+        cls,
+        deployment_id: e.WorkflowDeploymentId,
+    ) -> List[e.WorkflowInstanceId]:
+        raise NotImplementedError
+
     @abc.abstractmethod
     def __init__(self, workflow: e.Workflow) -> None:
         self.workflow = workflow
@@ -98,6 +106,26 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                 did=payload.did,
                 status=e.WorkflowStatus.STARTING,
             )
+
+    @classmethod
+    @validate_arguments
+    async def get_instances(
+        cls,
+        deployment_id: e.WorkflowDeploymentId,
+    ) -> List[e.WorkflowInstanceId]:
+        async with Client(
+            transport=cls.get_transport(deployment_id),
+            fetch_schema_from_transport=True,
+        ) as session:
+            query = gql(queries.GET_INSTANCES_QUERY)
+            result = await session.execute(query)
+            logger.info(result)
+            payload = w.GetInstancePayload(**result['getInstances'])
+
+            return [
+                instance_info.iid
+                for instance_info in payload.iid_list
+            ]
 
     @validate_arguments
     def __init__(self, workflow: e.Workflow) -> None:
