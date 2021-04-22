@@ -2,8 +2,8 @@
 
 
 START_WORKFLOW_MUTATION = '''
-mutation StartWorkflow($deploymentId: WorkflowDeployment!) {
-  createInstance(did: $deploymentId) {
+mutation StartWorkflow($createWorkflow: CreateWorkflowInstanceInput!) {
+  createInstance(input: $createWorkflow) {
     did
     iid
     status

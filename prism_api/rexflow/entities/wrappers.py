@@ -23,6 +23,10 @@ class TaskChange(BaseModel):
 
 # GraphQL input types
 
+class CreateWorkflowInstanceInput(BaseModel):
+    graphqlUri: str
+
+
 class TaskMutationFormInput(BaseModel):
     iid: e.WorkflowInstanceId
     tid: e.TaskId
@@ -61,6 +65,7 @@ class Payload(BaseModel):
 class CreateInstancePayload(Payload):
     did: e.WorkflowDeploymentId
     iid: e.WorkflowInstanceId
+    status: e.OperationStatus
     tasks: List[e.TaskId]
 
 

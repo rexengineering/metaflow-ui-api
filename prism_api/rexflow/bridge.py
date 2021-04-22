@@ -12,7 +12,6 @@ from prism_api import settings
 from . import queries
 from .entities import types as e
 from .entities import wrappers as w
-from .schema import schema
 
 
 logger = logging.getLogger(__name__)
@@ -80,11 +79,13 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> e.Workflow:
         async with Client(
             transport=cls.get_transport(deployment_id),
-            schema=schema,
+            fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.START_WORKFLOW_MUTATION)
             params = {
-                'deploymentId': deployment_id,
+                'createWorkflow': w.CreateWorkflowInstanceInput(
+                    graphqlUri=settings.REXUI_CALLBACK_HOST
+                ).dict(),
             }
 
             result = await session.execute(query, variable_values=params)
@@ -110,7 +111,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> List[e.Task]:
         async with Client(
             transport=self.transport,
-            schema=schema,
+            fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.GET_TASK_DATA_QUERY)
 
@@ -162,7 +163,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> List[e.Task]:
         async with Client(
             transport=self.transport,
-            schema=schema,
+            fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.VALIDATE_TASK_DATA_MUTATION)
 
@@ -202,7 +203,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> List[e.Task]:
         async with Client(
             transport=self.transport,
-            schema=schema,
+            fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.SAVE_TASK_DATA_MUTATION)
 
@@ -242,7 +243,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> List[e.Task]:
         async with Client(
             transport=self.transport,
-            schema=schema,
+            fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.COMPLETE_TASK_MUTATION)
 
