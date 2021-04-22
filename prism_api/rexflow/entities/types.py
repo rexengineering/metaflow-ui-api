@@ -88,3 +88,8 @@ class Workflow(BaseModel):
             task.id: task
             for task in self.tasks
         }
+
+
+class WorkflowDeployment(BaseModel):
+    name: str
+    deployments: List[WorkflowDeploymentId]

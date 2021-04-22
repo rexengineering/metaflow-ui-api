@@ -42,7 +42,7 @@ input UpdateStateInput {
 
 input StartWorkflowInput {
     """Id of workflow deployment"""
-    did: WorkflowDeployment!
+    did: WorkflowDeploymentId!
 }
 
 input ValidateTaskInput {
@@ -56,7 +56,7 @@ input SaveTasksInput {
 }
 
 input TaskInput {
-    iid: WorkflowInstance!
+    iid: WorkflowInstanceId!
     tid: TaskId!
     """Data to be saved"""
     data: [TaskDataInput!]!
@@ -96,7 +96,7 @@ type CloseSessionPayload {
 
 type StartWorkflowPayload {
     status: OperationStatus!
-    iid: WorkflowInstance
+    iid: WorkflowInstanceId
     workflow: Workflow
     errors: [WorkflowProblems!]
     query: Query

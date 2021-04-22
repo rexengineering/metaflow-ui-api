@@ -6,14 +6,22 @@ from typing import List
 
 from pydantic import validate_arguments
 
+from .bridge import get_deployments
 from .bridge import REXFlowBridgeGQL as REXFlowBridge
 from .entities import types as e
 from .entities import wrappers as w
 from .store import Store
 
 
-async def get_available_workflows() -> List[e.WorkflowDeploymentId]:
-    return ['123']
+async def get_available_workflows() -> List[e.WorkflowDeployment]:
+    deployments = await get_deployments()
+    return [
+        e.WorkflowDeployment(
+            name=name,
+            deployments=deployments,
+        )
+        for name, deployments in deployments.items()
+    ]
 
 
 async def start_workflow(
