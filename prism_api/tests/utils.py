@@ -48,9 +48,11 @@ class FakeStore(StoreABC):
 class FakeREXFlowBridge(REXFlowBridgeABC):
     sleep_time = 0.2
 
+    test_iid = 'process-123-456'
+
     @classmethod
-    def get_deployments(cls):
-        pass
+    async def get_instances(cls, deployment_id):
+        return [cls.test_iid]
 
     @classmethod
     @validate_arguments
@@ -61,7 +63,7 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         await asyncio.sleep(cls.sleep_time)
         return e.Workflow(
             did=deployment_id,
-            iid='123',
+            iid=cls.test_iid,
             status=e.WorkflowStatus.RUNNING,
         )
 

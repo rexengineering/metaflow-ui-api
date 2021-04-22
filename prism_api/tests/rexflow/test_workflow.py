@@ -10,14 +10,25 @@ from prism_api.rexflow.entities import types as e
 
 FakeREXFlowBridge.sleep_time = 0.1
 
+test_did = 'process-123'
+
+
+async def get_deployments():
+    return {
+        'test': [
+            test_did,
+        ]
+    }
+
 
 @pytest.mark.ci
 class TestWorkflow(unittest.TestCase):
     @run_async
     @mock.patch('prism_api.rexflow.api.REXFlowBridge', FakeREXFlowBridge)
+    @mock.patch('prism_api.rexflow.api.get_deployments', get_deployments)
     async def test_happy_workflow(self):
         # Instance a new workflow
-        workflow = await api.start_workflow(deployment_id='123')
+        workflow = await api.start_workflow(deployment_id=test_did)
         self.assertIsNotNone(workflow)
         self.assertEqual(len(workflow.tasks), 0)
         self.assertIn(workflow, await api.get_active_workflows())
@@ -43,6 +54,7 @@ class TestWorkflow(unittest.TestCase):
 
         created = await api.start_tasks([new_task])
         self.assertIn(new_task, created)
+        workflow = api.Store.get_workflow(workflow.iid)
         self.assertIn(new_task, workflow.tasks)
 
         await api.refresh_workflows()
