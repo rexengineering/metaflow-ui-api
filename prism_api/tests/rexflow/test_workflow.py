@@ -52,7 +52,8 @@ class TestWorkflow(unittest.TestCase):
             ]
         )
 
-        created = await api.start_tasks([new_task])
+        api.Store.add_task(new_task)
+        created = await api.start_tasks(workflow.iid, [new_task.tid])
         self.assertIn(new_task, created)
         workflow = api.Store.get_workflow(workflow.iid)
         self.assertIn(new_task, workflow.tasks)
