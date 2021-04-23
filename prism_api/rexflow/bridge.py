@@ -51,7 +51,7 @@ class REXFlowBridgeABC(abc.ABC):
     @abc.abstractmethod
     async def get_task_data(
         self,
-        task_ids: List[e.TaskId],
+        task_ids: List[e.TaskId] = [],
     ) -> List[e.Task]:
         raise NotImplementedError
 
@@ -135,20 +135,27 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[e.TaskId],
+        task_ids: List[e.TaskId] = [],
     ) -> List[e.Task]:
         async with Client(
             transport=self.transport,
             fetch_schema_from_transport=True,
         ) as session:
+            if len(task_ids) == 0:
+                query = gql(queries.GET_TASK_LIST_QUERY)
+                results = await session.execute(query)
+                task_ids = results['getInstances']['tasks']
+
             query = gql(queries.GET_TASK_DATA_QUERY)
 
             async_tasks = []
             for task_id in task_ids:
-                params = w.TaskMutationFormInput(
-                    iid=self.workflow.iid,
-                    tid=task_id,
-                )
+                params = {
+                    'formInput': w.TaskMutationFormInput(
+                        iid=self.workflow.iid,
+                        tid=task_id,
+                    ).dict(),
+                }
                 async_tasks.append(session.execute(
                     query,
                     variable_values=params,

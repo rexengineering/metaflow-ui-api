@@ -23,8 +23,16 @@ query GetInstances{
 }
 '''
 
+GET_TASK_LIST_QUERY = '''
+query GetTaskList {
+  getInstances {
+    tasks
+  }
+}
+'''
+
 GET_TASK_DATA_QUERY = '''
-mutation GetTaskData($formInput: TaskMutationFormInput) {
+mutation GetTaskData($formInput: TaskMutationFormInput!) {
   tasks {
     form(input: $formInput) {
       iid
