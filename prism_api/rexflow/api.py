@@ -88,7 +88,7 @@ async def complete_workflow(
 
 @validate_arguments
 async def start_tasks(
-    iid: e.WorkflowInstanceId, 
+    iid: e.WorkflowInstanceId,
     tasks: List[e.TaskId]
 ) -> List[e.Task]:
     created_tasks = []
