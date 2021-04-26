@@ -2,7 +2,7 @@
 
 scalar WorkflowInstanceId
 
-scalar WorkflowDeploymentId
+scalar WorkflowDeployemntId
 
 scalar TaskId
 
@@ -69,12 +69,27 @@ type Validator {
 """Used to communicate specific validator results"""
 type ValidatorResult {
     validator: Validator!
+    passed: Boolean!
     result: String
 }
 
+type FieldValidationResult {
+    field: DataId!
+    passed: Boolean!
+    results: [ValidatorResult!]!
+}
+
 # Inputs
+input GetInstanceInput {
+    iid: WorkflowInstanceId!
+}
+
+input CreateWorkflowInstanceInput {
+    graphqlUri: String!
+}
+
 input TaskMutationFormInput {
-    iid:WorkflowInstanceId!
+    iid:WorkflowInstanceId
     tid:TaskId!
 }
 
@@ -105,14 +120,25 @@ input TaskMutationCompleteInput {
 # Payloads
 
 type CreateInstancePayload {
-    did: WorkflowDeploymentId!
+    did: WorkflowDeployemntId!
     iid: WorkflowInstanceId!
     status: OperationStatus!
     tasks: [TaskId!]!
 }
 
-type TaskFormPayload {
+type WorkflowInstanceInfo {
     iid: WorkflowInstanceId!
+    graphqlUri: String
+}
+
+type GetInstancePayload {
+    did: WorkflowDeployemntId!
+    iid_list: [WorkflowInstanceInfo!]!
+    tasks: [TaskId!]!
+}
+
+type TaskFormPayload {
+    iid: WorkflowInstanceId
     tid: TaskId!
     status: OperationStatus!
     fields: [TaskFieldData!]!
@@ -122,14 +148,16 @@ type TaskValidatePayload {
     iid: WorkflowInstanceId!
     tid: TaskId!
     status: OperationStatus!
-    validatorResults: [ValidatorResult!]!
+    passed: Boolean!
+    results: [FieldValidationResult!]!
 }
 
 type TaskSavePayload {
     iid: WorkflowInstanceId!
     tid: TaskId!
     status: OperationStatus!
-    validatorResults: [ValidatorResult!]!
+    passed: Boolean!
+    results: [FieldValidationResult!]!
 }
 
 type TaskCompletePayload {
@@ -142,10 +170,11 @@ type TaskCompletePayload {
 
 type Query {
     version: String
+    getInstances(input: GetInstanceInput) : GetInstancePayload
 }
 
 type Mutation {
-    createInstance(did: WorkflowDeploymentId!) : CreateInstancePayload
+    createInstance(input: CreateWorkflowInstanceInput!) : CreateInstancePayload
     tasks: TaskMutation
 }
 
