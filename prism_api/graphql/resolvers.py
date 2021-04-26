@@ -104,16 +104,10 @@ class TasksMutations:
 
     @validate_arguments
     async def validate(self, info, input: w.ValidateTaskInput):
-        # TODO add validation query
+        tasks = await rexflow.validate_tasks(input.tasks)
         return w.ValidateTasksPayload(
             status=e.OperationStatus.SUCCESS,
-            tasks=[
-                e.Task(
-                    iid='123',
-                    id='123',
-                    status=e.TaskStatus.UP,
-                )
-            ]
+            tasks=tasks,
         )
 
     @validate_arguments
