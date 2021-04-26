@@ -82,13 +82,21 @@ class TaskFormPayload(Payload):
 
 class ValidatorResults(BaseModel):
     validator: e.Validator
+    passed: bool
     result: Optional[str]
+
+
+class FieldValidationResult(BaseModel):
+    field: e.DataId
+    passed: bool
+    result: Optional[ValidatorResults]
 
 
 class TaskValidatePayload(Payload):
     iid: e.WorkflowInstanceId
     tid: e.TaskId
-    validator_results: List[ValidatorResults]
+    passed: bool
+    results: List[FieldValidationResult]
 
     class Config:
         alias_generator = to_camel
@@ -97,7 +105,8 @@ class TaskValidatePayload(Payload):
 class TaskSavePayload(Payload):
     iid: e.WorkflowInstanceId
     tid: e.TaskId
-    validator_results: List[ValidatorResults]
+    passed: bool
+    results: List[FieldValidationResult]
 
     class Config:
         alias_generator = to_camel

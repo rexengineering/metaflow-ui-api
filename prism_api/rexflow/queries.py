@@ -49,18 +49,24 @@ mutation GetTaskData($formInput: TaskMutationFormInput) {
 
 
 VALIDATE_TASK_DATA_MUTATION = '''
-mutation ValidateTaskData($validateTaskInput: TaskMutationValidateInput) {
+mutation ValidateTaskData($validateTaskInput: TaskMutationValidateInput!) {
   tasks {
     validate(input: $validateTaskInput) {
       iid
       tid
       status
-      validatorResults {
-        validator {
-          type
-          constraint
+      passed
+      results {
+        field
+        passed
+        results {
+          validator {
+            type
+            constraint
+          }
+          passed
+          result
         }
-        result
       }
     }
   }
@@ -75,12 +81,18 @@ mutation SaveTaskData($saveTaskInput: TaskMutationSaveInput!) {
       iid
       tid
       status
-      validatorResults {
-        validator {
-          type
-          constraint
+      passed
+      results {
+        field
+        passed
+        results {
+          validator {
+            type
+            constraint
+          }
+          passed
+          result
         }
-        result
       }
     }
   }
@@ -88,7 +100,7 @@ mutation SaveTaskData($saveTaskInput: TaskMutationSaveInput!) {
 '''
 
 COMPLETE_TASK_MUTATION = '''
-mutation CompleteTask($completeTasksInput: TaskMutationCompleteInput!) {
+mutation CompleteTask($completeTaskInput: TaskMutationCompleteInput!) {
   tasks {
     complete(input: $completeTaskInput) {
       iid
