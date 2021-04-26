@@ -1,8 +1,10 @@
 import logging
 
 from ariadne import QueryType, MutationType
+from graphql.type.definition import GraphQLResolveInfo
 
 from prism_api.rexflow import entities as rxen
+from prism_api.state_manager import store
 
 logger = logging.getLogger(__name__)
 
@@ -10,11 +12,13 @@ query = QueryType()
 
 
 @query.field('session')
-async def resolve_session(*_):
+async def resolve_session(_, info: GraphQLResolveInfo):
     # TODO add model for Session
+    request = info.context["request"]
+    client_id = request.headers.get('client-id', 'anon')
     return {
-        'id': '',
-        'state': '',
+        'id': client_id,
+        'state': store.read_state(client_id),
     }
 
 
