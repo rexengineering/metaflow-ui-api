@@ -18,7 +18,7 @@ async def resolve_session(_, info: GraphQLResolveInfo):
     client_id = request.headers.get('client-id', 'anon')
     return {
         'id': client_id,
-        'state': store.read_state(client_id),
+        'state': await store.read_state(client_id),
     }
 
 
@@ -52,10 +52,13 @@ mutation = MutationType()
 
 
 class StateMutations:
-    async def update(*_, input):
+    async def update(_, info, input):
+        request = info.context["request"]
+        client_id = request.headers.get('client-id', 'anon')
+        await store.save_state(client_id, input['state'])
         return {
             'status': rxen.OperationStatus.SUCCESS,
-            'state': ''
+            'state': await store.read_state(client_id)
         }
 
 
