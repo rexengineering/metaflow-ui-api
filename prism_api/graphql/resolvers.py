@@ -6,6 +6,7 @@ from graphql.type.definition import GraphQLResolveInfo
 from pydantic.decorator import validate_arguments
 
 from .entities import wrappers as w
+from .entities.types import Session
 from prism_api.rexflow import api as rexflow
 from prism_api.rexflow.entities import types as e
 from prism_api.state_manager import store
@@ -21,10 +22,11 @@ async def resolve_session(_, info: GraphQLResolveInfo):
     # TODO add model for Session
     request = info.context["request"]
     client_id = request.headers.get('client-id', 'anon')
-    return {
-        'id': client_id,
-        'state': await store.read_state(client_id),
-    }
+    state = await store.read_raw_state(client_id)
+    return Session(
+        id=client_id,
+        state=state,
+    )
 
 
 class WorkflowResolver:
@@ -73,14 +75,15 @@ mutation = MutationType()
 
 
 class StateMutations:
-    async def update(_, info, input):
+    @validate_arguments
+    async def update(self, info, input: w.UpdateStateInput):
         request = info.context["request"]
         client_id = request.headers.get('client-id', 'anon')
-        await store.save_state(client_id, input['state'])
-        return {
-            'status': e.OperationStatus.SUCCESS,
-            'state': await store.read_state(client_id)
-        }
+        state = await store.save_raw_state(client_id, input.state)
+        return w.UpdateStatePayload(
+            status=e.OperationStatus.SUCCESS,
+            state=state,
+        )
 
 
 class SessionMutations:

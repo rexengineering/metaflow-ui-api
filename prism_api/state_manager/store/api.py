@@ -25,3 +25,14 @@ async def save_state(client_id, state: dict) -> dict:
 async def read_state(client_id) -> dict:
     store = Store(client_id)
     return deserialize_state(await store.read())
+
+
+async def save_raw_state(client_id, state: str) -> str:
+    store = Store(client_id)
+    await store.save(state)
+    return await store.read()
+
+
+async def read_raw_state(client_id) -> str:
+    store = Store(client_id)
+    return await store.read()
