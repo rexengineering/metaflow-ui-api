@@ -20,15 +20,11 @@ type StateMutations {
 type WorkflowMutations {
     """Start a new workflow"""
     start(input: StartWorkflowInput!): StartWorkflowPayload
-    """Mark a workflow as completed"""
-    complete(input: CompleteWorkflowInput!): CompleteWorkflowPayload
     """Interact with workflow tasks"""
     tasks: TasksMutations
 }
 
 type TasksMutations {
-    """Start a new task"""
-    start(input: StartTasksInput): StartTasksPayload
     """Validate data without saving (might not be used)"""
     validate(input: ValidateTaskInput): ValidateTaskPayload
     """Save and validate collected task's data"""
@@ -46,37 +42,7 @@ input UpdateStateInput {
 
 input StartWorkflowInput {
     """Id of workflow deployment"""
-    did: WorkflowDeployment!
-}
-
-input CompleteWorkflowInput {
-    """Id of workflow instance"""
-    iid: WorkflowInstance!
-}
-
-input StartTasksInput {
-    tasks: [TaskStartInput!]!
-}
-
-input TaskStartInput {
-    iid: WorkflowInstance!
-    id: TaskId!
-    data: [TaskDataStartInput!]!
-}
-
-input TaskDataStartInput {
-    id: DataId!
-    type: DataType!
-    order: Int!
-    label: String
-    data: String
-    encrypted: Boolean!
-    validators: [ValidatorInput!]!
-}
-
-input ValidatorInput {
-    type: ValidationType!
-    constraint: String
+    did: WorkflowDeploymentId!
 }
 
 input ValidateTaskInput {
@@ -90,7 +56,8 @@ input SaveTasksInput {
 }
 
 input TaskInput {
-    id: TaskId!
+    iid: WorkflowInstanceId!
+    tid: TaskId!
     """Data to be saved"""
     data: [TaskDataInput!]!
 }
@@ -102,7 +69,7 @@ input TaskDataInput {
 
 input CompleteTasksInput {
     """Ids of task to be completed"""
-    ids: [TaskId!]!
+    tasks: [TaskInput!]!
 }
 
 # Response payloads
@@ -129,23 +96,9 @@ type CloseSessionPayload {
 
 type StartWorkflowPayload {
     status: OperationStatus!
-    iid: WorkflowInstance
+    iid: WorkflowInstanceId
     workflow: Workflow
     errors: [WorkflowProblems!]
-    query: Query
-}
-
-type CompleteWorkflowPayload {
-    status: OperationStatus!
-    iid: WorkflowInstance
-    errors: [WorkflowProblems!]
-    query: Query
-}
-
-type StartTasksPayload {
-    status: OperationStatus!
-    tasks: [Task!]
-    errors: [TaskProblems!]
     query: Query
 }
 
