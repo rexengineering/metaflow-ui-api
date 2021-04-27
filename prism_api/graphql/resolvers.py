@@ -20,7 +20,7 @@ query = QueryType()
 @query.field('session')
 async def resolve_session(_, info: GraphQLResolveInfo):
     # TODO add model for Session
-    request = info.context["request"]
+    request = info.context['request']
     client_id = request.headers.get('client-id', 'anon')
     state = await store.read_raw_state(client_id)
     return Session(
@@ -77,7 +77,7 @@ mutation = MutationType()
 class StateMutations:
     @validate_arguments
     async def update(self, info, input: w.UpdateStateInput):
-        request = info.context["request"]
+        request = info.context['request']
         client_id = request.headers.get('client-id', 'anon')
         state = await store.save_raw_state(client_id, input.state)
         return w.UpdateStatePayload(
