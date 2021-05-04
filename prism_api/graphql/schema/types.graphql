@@ -77,7 +77,7 @@ type Task {
 
 """Individual data element that will map to a component on the UI"""
 type TaskFieldData {
-    id: DataId!
+    dataId: DataId!
     type: DataType!
     order: Int!
     label: String

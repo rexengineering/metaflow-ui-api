@@ -164,7 +164,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     status=e.TaskStatus.UP,
                     data=[
                         e.TaskFieldData(
-                            id=field['id'],
+                            dataId=field['id'],
                             type=field['type'],
                             order=field['order'],
                             label=field['label'],

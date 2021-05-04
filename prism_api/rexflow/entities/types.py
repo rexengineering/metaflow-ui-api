@@ -55,7 +55,7 @@ class Validator(BaseModel):
 
 
 class TaskFieldData(BaseModel):
-    id: DataId
+    dataId: DataId
     type: DataType
     order: int
     label: Optional[str]
