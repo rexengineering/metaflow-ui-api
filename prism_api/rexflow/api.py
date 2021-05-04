@@ -117,7 +117,7 @@ async def _validate_tasks(
         task = Store.get_task(iid, task_input.tid)
         task_data = task.get_data_dict()
         for task_data_input in task_input.data:
-            task_data[task_data_input.id].data = task_data_input.data
+            task_data[task_data_input.dataId].data = task_data_input.data
         updated_tasks.append(task)
     return await bridge.validate_task_data(updated_tasks)
 
