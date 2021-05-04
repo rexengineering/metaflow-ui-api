@@ -3,6 +3,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from prism_api.utils import to_camel
+
 
 class WorkflowDeploymentId(str):
     """Identifier for a workflow deployment"""
@@ -55,13 +57,16 @@ class Validator(BaseModel):
 
 
 class TaskFieldData(BaseModel):
-    dataId: DataId
+    data_id: DataId
     type: DataType
     order: int
     label: Optional[str]
     data: Optional[str]
     encrypted: bool = False
     validators: List[Validator] = []
+
+    class Config:
+        alias_generator = to_camel
 
 
 class Task(BaseModel):
@@ -72,7 +77,7 @@ class Task(BaseModel):
 
     def get_data_dict(self):
         return {
-            d.id: d
+            d.data_id: d
             for d in self.data
         }
 
@@ -85,7 +90,7 @@ class Workflow(BaseModel):
 
     def get_task_dict(self):
         return {
-            task.id: task
+            task.tid: task
             for task in self.tasks
         }
 

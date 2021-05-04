@@ -3,16 +3,16 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from . import types as e
-
-
-def to_camel(string: str) -> str:
-    words = string.split('_')
-    return words[0] + ''.join(word.capitalize() for word in words[1:])
+from prism_api.utils import to_camel
 
 
 class TaskDataChange(BaseModel):
-    id: e.DataId
+    data_id: e.DataId
     data: str
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
 
 
 class TaskChange(BaseModel):
@@ -33,7 +33,7 @@ class TaskMutationFormInput(BaseModel):
 
 
 class TaskFieldInput(BaseModel):
-    id: e.DataId
+    id: e.DataId  # TODO need to change this
     type: e.DataType
     data: Optional[str]
     encrypted: bool
@@ -98,18 +98,12 @@ class TaskValidatePayload(Payload):
     passed: bool
     results: List[FieldValidationResult]
 
-    class Config:
-        alias_generator = to_camel
-
 
 class TaskSavePayload(Payload):
     iid: e.WorkflowInstanceId
     tid: e.TaskId
     passed: bool
     results: List[FieldValidationResult]
-
-    class Config:
-        alias_generator = to_camel
 
 
 class TaskCompletePayload(Payload):

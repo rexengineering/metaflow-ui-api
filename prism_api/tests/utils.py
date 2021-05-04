@@ -88,7 +88,7 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
                     tid=tid,
                     data=[
                         e.TaskFieldData(
-                            id='fname',
+                            dataId='fname',
                             type=e.DataType.TEXT,
                             order=1,
                             label='First Name',
