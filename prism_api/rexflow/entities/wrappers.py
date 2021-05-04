@@ -3,16 +3,11 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from . import types as e
-from prism_api.utils import to_camel
 
 
 class TaskDataChange(BaseModel):
-    data_id: e.DataId
+    dataId: e.DataId
     data: str
-
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True
 
 
 class TaskChange(BaseModel):

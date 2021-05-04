@@ -3,7 +3,6 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from prism_api.utils import to_camel
 from prism_api.rexflow.entities import types as e
 
 
@@ -57,7 +56,7 @@ class TaskStartInput(BaseModel):
     def to_task(self):
         return e.Task(
             iid=self.iid,
-            id=self.id,
+            tid=self.tid,
             data=[e.TaskFieldData(**d.dict()) for d in self.data],
         )
 
@@ -67,11 +66,8 @@ class StartTasksInput(BaseModel):
 
 
 class TaskDataInput(BaseModel):
-    data_id: e.DataId
+    dataId: e.DataId
     data: str
-
-    class Config:
-        alias_generator = to_camel
 
 
 class TaskInput(BaseModel):
