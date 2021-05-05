@@ -14,7 +14,6 @@ class WorkflowFilter(BaseModel):
 
 class TaskFilter(BaseModel):
     ids: List[e.TaskId] = []
-    status: Optional[e.TaskStatus]
 
 
 # GraphQL input types

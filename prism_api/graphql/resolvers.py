@@ -58,8 +58,8 @@ async def resolve_workflow_tasks(
         return [
             task
             for task in workflow.tasks
-            if (len(filter.ids) == 0 or task.id in filter.ids)
-            and (filter.status is None or task.status == filter.status)
+            if task.tid in filter.ids
+            or filter.ids == []
         ]
     else:
         return workflow.tasks
