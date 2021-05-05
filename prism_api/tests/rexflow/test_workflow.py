@@ -31,7 +31,7 @@ class TestWorkflow(unittest.TestCase):
         workflow = await api.start_workflow(deployment_id=test_did)
         self.assertIsNotNone(workflow)
         self.assertEqual(len(workflow.tasks), 0)
-        self.assertIn(workflow, await api.get_active_workflows())
+        self.assertIn(workflow, await api.get_active_workflows([]))
 
         created = await api.start_tasks(workflow.iid, ['t123'])
         new_task = created.pop()
@@ -64,4 +64,4 @@ class TestWorkflow(unittest.TestCase):
 
         # Finish workflow
         await api.complete_workflow(workflow.iid)
-        self.assertNotIn(workflow, await api.get_active_workflows())
+        self.assertNotIn(workflow, await api.get_active_workflows([]))
