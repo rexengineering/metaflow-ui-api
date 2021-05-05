@@ -128,11 +128,13 @@ type CreateInstancePayload {
 
 type WorkflowInstanceInfo {
     iid: WorkflowInstanceId!
+    iid_status: WorkflowStatus!
     graphqlUri: String
 }
 
 type GetInstancePayload {
     did: WorkflowDeployemntId!
+    did_status: WorkflowStatus!
     iid_list: [WorkflowInstanceInfo!]!
     tasks: [TaskId!]!
 }
