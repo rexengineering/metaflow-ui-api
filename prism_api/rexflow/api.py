@@ -75,9 +75,11 @@ async def refresh_workflows() -> None:
     ])
 
 
-async def get_active_workflows() -> List[e.Workflow]:
+async def get_active_workflows(
+    iids: List[e.WorkflowInstanceId],
+) -> List[e.Workflow]:
     await refresh_workflows()
-    return Store.get_workflow_list()
+    return Store.get_workflow_list(iids)
 
 
 async def complete_workflow(

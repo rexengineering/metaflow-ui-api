@@ -97,7 +97,6 @@ type Validator {
 """Filter for the active workflows"""
 input WorkflowFilter {
     ids: [WorkflowInstanceId!]!
-    status: WorkflowStatus
 }
 
 input TaskFilter {

@@ -26,13 +26,14 @@ class WorkflowResolver:
     def __init__(self, *_):
         pass
 
+    @validate_arguments
     async def active(
         self,
-        *_,
+        info,
         filter: w.WorkflowFilter = None
     ):
-        # TODO add filters to api
-        workflows = await rexflow.get_active_workflows()
+        iids = [] if filter is None else filter.ids
+        workflows = await rexflow.get_active_workflows(iids)
         return workflows
 
     async def available(self, *_):

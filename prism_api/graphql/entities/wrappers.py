@@ -10,7 +10,6 @@ from prism_api.rexflow.entities import types as e
 
 class WorkflowFilter(BaseModel):
     ids: List[e.WorkflowInstanceId]
-    status: Optional[e.WorkflowStatus]
 
 
 class TaskFilter(BaseModel):
