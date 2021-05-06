@@ -31,7 +31,7 @@ mutation GetTaskData($formInput: TaskMutationFormInput) {
       tid
       status
       fields {
-        id
+        dataId
         type
         order
         label
