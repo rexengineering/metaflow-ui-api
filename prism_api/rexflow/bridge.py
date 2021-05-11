@@ -73,8 +73,7 @@ class REXFlowBridgeABC(abc.ABC):
 class REXFlowBridgeGQL(REXFlowBridgeABC):
     @staticmethod
     def get_transport(deployment_id):
-        deployment_hash = deployment_id.split('-')[-1]
-        host = settings.REXFLOW_HOST.format(deployment_id=deployment_hash)
+        host = settings.REXFLOW_HOST.format(deployment_id=deployment_id)
         transport = AIOHTTPTransport(
             url=host,
         )
