@@ -9,7 +9,7 @@ from prism_api.callback.app import app as callback_app
 from prism_api.graphql.app import app as graphql_app
 from prism_api.state_manager.router import router as state_router
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=settings.LOG_LEVEL)
 
 app = FastAPI()
 
