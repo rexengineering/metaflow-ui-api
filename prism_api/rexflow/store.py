@@ -23,10 +23,15 @@ class Store:
         return cls.data[workflow_id]['workflow']
 
     @classmethod
-    def get_workflow_list(cls) -> List[e.Workflow]:
+    def get_workflow_list(
+        cls,
+        iids: List[e.WorkflowInstanceId],
+    ) -> List[e.Workflow]:
         return [
             d['workflow']
-            for d in cls.data.values()
+            for iid, d in cls.data.items()
+            if iid in iids
+            or iids == []
         ]
 
     @classmethod

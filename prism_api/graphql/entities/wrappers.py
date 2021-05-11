@@ -10,12 +10,10 @@ from prism_api.rexflow.entities import types as e
 
 class WorkflowFilter(BaseModel):
     ids: List[e.WorkflowInstanceId]
-    status: Optional[e.WorkflowStatus]
 
 
 class TaskFilter(BaseModel):
     ids: List[e.TaskId] = []
-    status: Optional[e.TaskStatus]
 
 
 # GraphQL input types
