@@ -125,6 +125,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             return [
                 instance_info.iid
                 for instance_info in payload.iid_list
+                if instance_info.iid_status == e.WorkflowStatus.RUNNING
             ]
 
     @validate_arguments
