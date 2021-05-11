@@ -46,12 +46,12 @@ input UpdateStateInput {
 
 input StartWorkflowInput {
     """Id of workflow deployment"""
-    did: WorkflowDeployment!
+    did: WorkflowDeploymentId!
 }
 
 input CompleteWorkflowInput {
     """Id of workflow instance"""
-    iid: WorkflowInstance!
+    iid: WorkflowInstanceId!
 }
 
 input StartTasksInput {
@@ -59,8 +59,8 @@ input StartTasksInput {
 }
 
 input TaskStartInput {
-    iid: WorkflowInstance!
-    id: TaskId!
+    iid: WorkflowInstanceId!
+    tid: TaskId!
     data: [TaskDataStartInput!]!
 }
 
@@ -90,8 +90,8 @@ input SaveTasksInput {
 }
 
 input TaskInput {
-    iid: WorkflowInstance!
-    id: TaskId!
+    iid: WorkflowInstanceId!
+    tid: TaskId!
     """Data to be saved"""
     data: [TaskDataInput!]!
 }
@@ -130,7 +130,7 @@ type CloseSessionPayload {
 
 type StartWorkflowPayload {
     status: OperationStatus!
-    iid: WorkflowInstance
+    iid: WorkflowInstanceId
     workflow: Workflow
     errors: [WorkflowProblems!]
     query: Query
@@ -138,7 +138,7 @@ type StartWorkflowPayload {
 
 type CompleteWorkflowPayload {
     status: OperationStatus!
-    iid: WorkflowInstance
+    iid: WorkflowInstanceId
     errors: [WorkflowProblems!]
     query: Query
 }

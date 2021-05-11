@@ -1,7 +1,7 @@
 """Store workflow information"""
 from typing import Dict, List, Union
 
-from prism_api.rexflow import entities as e
+from prism_api.rexflow.entities import types as e
 
 
 class Store:
@@ -12,7 +12,10 @@ class Store:
 
     @classmethod
     def add_workflow(cls, workflow: e.Workflow):
-        cls.data[workflow.iid] = {'workflow': workflow, 'tasks': {}}
+        if workflow.iid in cls.data:
+            cls.data[workflow.iid]['workflow'] = workflow
+        else:
+            cls.data[workflow.iid] = {'workflow': workflow, 'tasks': {}}
 
     @classmethod
     def get_workflow(cls, workflow_id: e.WorkflowInstanceId) -> e.Workflow:
@@ -31,7 +34,10 @@ class Store:
 
     @classmethod
     def add_task(cls, task: e.Task):
-        cls.data[task.iid]['tasks'][task.id] = task
+        workflow = cls.get_workflow(task.iid)
+        if task.tid not in [t.tid for t in workflow.tasks]:
+            workflow.tasks.append(task)
+        cls.data[task.iid]['tasks'][task.tid] = task
 
     @classmethod
     def get_workflow_tasks(

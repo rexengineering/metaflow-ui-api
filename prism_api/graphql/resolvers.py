@@ -4,8 +4,9 @@ from typing import Optional
 from ariadne import QueryType, MutationType, ObjectType
 from pydantic.decorator import validate_arguments
 
+from .entities import wrappers as w
 from prism_api.rexflow import api as rexflow
-from prism_api.rexflow import entities as e
+from prism_api.rexflow.entities import types as e
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class WorkflowResolver:
     async def active(
         self,
         *_,
-        filter: e.WorkflowFilter = None
+        filter: w.WorkflowFilter = None
     ):
         # TODO add filters to api
         workflows = await rexflow.get_active_workflows()
@@ -50,7 +51,7 @@ workflow_object = ObjectType('Workflow')
 async def resolve_workflow_tasks(
     workflow: e.Workflow,
     info,
-    filter: Optional[e.TaskFilter] = None,
+    filter: Optional[w.TaskFilter] = None,
 ):
     if filter:
         return [
@@ -101,20 +102,20 @@ mutation.set_field('session', SessionMutations)
 
 class TasksMutations:
     @validate_arguments
-    async def start(self, info, input: e.StartTasksInput):
+    async def start(self, info, input: w.StartTasksInput):
         tasks = await rexflow.start_tasks([
             task_input.to_task()
             for task_input in input.tasks
         ])
-        return e.StartTasksPayload(
+        return w.StartTasksPayload(
             status=e.OperationStatus.SUCCESS,
             tasks=tasks,
         )
 
     @validate_arguments
-    async def validate(self, info, input: e.ValidateTaskInput):
+    async def validate(self, info, input: w.ValidateTaskInput):
         # TODO add validation query
-        return e.ValidateTasksPayload(
+        return w.ValidateTasksPayload(
             status=e.OperationStatus.SUCCESS,
             tasks=[
                 e.Task(
@@ -126,17 +127,17 @@ class TasksMutations:
         )
 
     @validate_arguments
-    async def save(self, info, input: e.SaveTaskInput):
+    async def save(self, info, input: w.SaveTaskInput):
         tasks = await rexflow.save_tasks(input.tasks)
-        return e.SaveTasksPayload(
+        return w.SaveTasksPayload(
             status=e.OperationStatus.SUCCESS,
             tasks=tasks
         )
 
     @validate_arguments
-    async def complete(self, info, input: e.CompleteTasksInput):
+    async def complete(self, info, input: w.CompleteTasksInput):
         tasks = await rexflow.complete_tasks(input.tasks)
-        return e.CompleteTaskPayload(
+        return w.CompleteTaskPayload(
             status=e.OperationStatus.SUCCESS,
             tasks=tasks
         )
@@ -147,20 +148,20 @@ class WorkflowMutations:
         pass
 
     @validate_arguments
-    async def start(self, info, input: e.StartWorkflowInput):
+    async def start(self, info, input: w.StartWorkflowInput):
         logger.info(input)
         workflow = await rexflow.start_workflow(input.did)
-        return e.StartWorkflowPayload(
+        return w.StartWorkflowPayload(
             status=e.OperationStatus.SUCCESS,
             iid=workflow.iid,
             workflow=workflow,
         )
 
     @validate_arguments
-    async def complete(self, info, input: e.CompleteWorkflowInput):
+    async def complete(self, info, input: w.CompleteWorkflowInput):
         logger.info(input)
         await rexflow.complete_workflow(input.iid)
-        return e.CompleteWorkflowPayload(
+        return w.CompleteWorkflowPayload(
             status=e.OperationStatus.SUCCESS,
             iid=input.iid
         )

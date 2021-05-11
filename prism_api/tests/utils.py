@@ -6,8 +6,9 @@ from typing import List
 from pydantic import validate_arguments
 
 from prism_api.state_manager.store.adapters import StoreABC
-from prism_api.rexflow import entities
+from prism_api.rexflow.entities import types as e
 from prism_api.rexflow.bridge import REXFlowBridgeABC
+from prism_api.rexflow.store import Store
 
 
 def run_async(f):
@@ -47,60 +48,57 @@ class FakeStore(StoreABC):
 class FakeREXFlowBridge(REXFlowBridgeABC):
     sleep_time = 0.2
 
+    test_iid = 'process-123-456'
+
+    @classmethod
+    async def get_instances(cls, deployment_id):
+        return [cls.test_iid]
+
     @classmethod
     @validate_arguments
     async def start_workflow(
         cls,
-        deployment_id: entities.WorkflowDeploymentId,
-    ) -> entities.Workflow:
+        deployment_id: e.WorkflowDeploymentId,
+    ) -> e.Workflow:
         await asyncio.sleep(cls.sleep_time)
-        return entities.Workflow(
+        return e.Workflow(
             did=deployment_id,
-            iid='123',
-            status=entities.WorkflowStatus.RUNNING,
+            iid=cls.test_iid,
+            status=e.WorkflowStatus.RUNNING,
         )
 
     @validate_arguments
-    def __init__(self, workflow: entities.Workflow) -> None:
-        pass
+    def __init__(self, workflow: e.Workflow) -> None:
+        self.workflow = workflow
 
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[entities.TaskId] = [],
-    ) -> List[entities.Task]:
+        task_ids: List[e.TaskId] = []
+    ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
-        if len(task_ids) == 0:
-            task_ids = ['1', '2', '3']
-        return [
-            entities.Task(
-                iid='123',
-                id=task_id,
-                data=[
-                    entities.TaskData(
-                        id='name',
-                        type=entities.DataType.TEXT,
-                        order=1,
-                    )
-                ]
-            )
-            for task_id in task_ids
-        ]
+        if len(task_ids) == 0 and self.workflow.iid in Store.data:
+            return Store.data[self.workflow.iid]['tasks'].values()
+
+        tasks = []
+        for tid in task_ids:
+            tasks.append(Store.get_task(self.workflow.iid, tid))
+        return tasks
 
     @validate_arguments
     async def save_task_data(
         self,
-        tasks: List[entities.Task],
-    ) -> List[entities.Task]:
+        tasks: List[e.Task],
+    ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
         return tasks
 
     @validate_arguments
     async def complete_task(
         self,
-        tasks: List[entities.Task],
-    ) -> List[entities.Task]:
+        tasks: List[e.Task],
+    ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
         for task in tasks:
-            task.status = entities.TaskStatus.DOWN
+            task.status = e.TaskStatus.DOWN
         return tasks

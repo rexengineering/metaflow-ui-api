@@ -3,9 +3,9 @@
 
 scalar SessionId
 
-scalar WorkflowInstance
+scalar WorkflowInstanceId
 
-scalar WorkflowDeployment
+scalar WorkflowDeploymentId
 
 scalar TaskId
 
@@ -53,25 +53,30 @@ type Session {
     state: State!
 }
 
+type WorkflowDeployment {
+    name: String!
+    deployments: [WorkflowDeploymentId!]!
+}
+
 type Workflow {
     """Id for a workflow instance"""
-    iid: WorkflowInstance!
+    iid: WorkflowInstanceId!
     """Id for a workflow deployment"""
-    did: WorkflowDeployment
+    did: WorkflowDeploymentId!
     status: WorkflowStatus!
     tasks(filter: TaskFilter): [Task!]!
 }
 
 """A task will request a list of data elements"""
 type Task {
-    iid: WorkflowInstance!
-    id: TaskId!
-    data: [TaskData!]!
+    iid: WorkflowInstanceId!
+    tid: TaskId!
+    data: [TaskFieldData!]!
     status: TaskStatus!
 }
 
 """Individual data element that will map to a component on the UI"""
-type TaskData {
+type TaskFieldData {
     id: DataId!
     type: DataType!
     order: Int!
@@ -91,7 +96,7 @@ type Validator {
 
 """Filter for the active workflows"""
 input WorkflowFilter {
-    ids: [WorkflowInstance!]!
+    ids: [WorkflowInstanceId!]!
     status: WorkflowStatus
 }
 
