@@ -142,9 +142,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             fetch_schema_from_transport=True,
         ) as session:
             if len(task_ids) == 0:
-                query = gql(queries.GET_TASK_LIST_QUERY)
-                results = await session.execute(query)
-                task_ids = results['getInstances']['tasks']
+                return []
 
             query = gql(queries.GET_TASK_DATA_QUERY)
 

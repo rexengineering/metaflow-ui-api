@@ -59,3 +59,15 @@ class Store:
         task_id: e.TaskId,
     ) -> e.Task:
         return cls.data[workflow_id]['tasks'][task_id]
+
+    @classmethod
+    def delete_task(
+        cls,
+        workflow_id: e.WorkflowInstanceId,
+        task_id: e.TaskId,
+    ) -> None:
+        if cls.data.get(workflow_id):
+            workflow = cls.data[workflow_id]['workflow']
+            task = cls.data[workflow_id]['tasks'][task_id]
+            workflow.tasks.remove(task)
+            del cls.data[workflow_id]['tasks'][task_id]
