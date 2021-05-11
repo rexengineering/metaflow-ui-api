@@ -39,7 +39,7 @@ mutation GetTaskData($formInput: TaskMutationFormInput!) {
       tid
       status
       fields {
-        id
+        dataId
         type
         order
         label
@@ -65,7 +65,7 @@ mutation ValidateTaskData($validateTaskInput: TaskMutationValidateInput!) {
       status
       passed
       results {
-        field
+        dataId
         passed
         results {
           validator {
@@ -91,7 +91,7 @@ mutation SaveTaskData($saveTaskInput: TaskMutationSaveInput!) {
       status
       passed
       results {
-        field
+        dataId
         passed
         results {
           validator {

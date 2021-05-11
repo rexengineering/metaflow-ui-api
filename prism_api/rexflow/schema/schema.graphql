@@ -51,7 +51,7 @@ type Task {
 
 """Individual data element that will map to a component on the UI"""
 type TaskFieldData {
-    id: DataId!
+    dataId: DataId!
     type: DataType!
     order: Int!
     label: String
@@ -74,7 +74,7 @@ type ValidatorResult {
 }
 
 type FieldValidationResult {
-    field: DataId!
+    dataId: DataId!
     passed: Boolean!
     results: [ValidatorResult!]!
 }
@@ -94,7 +94,7 @@ input TaskMutationFormInput {
 }
 
 input TaskFieldInput {
-    id: DataId!
+    dataId: DataId!
     type: DataType!
     data: String
     encrypted: Boolean!
@@ -128,11 +128,13 @@ type CreateInstancePayload {
 
 type WorkflowInstanceInfo {
     iid: WorkflowInstanceId!
+    iid_status: WorkflowStatus!
     graphqlUri: String
 }
 
 type GetInstancePayload {
     did: WorkflowDeployemntId!
+    did_status: WorkflowStatus!
     iid_list: [WorkflowInstanceInfo!]!
     tasks: [TaskId!]!
 }
