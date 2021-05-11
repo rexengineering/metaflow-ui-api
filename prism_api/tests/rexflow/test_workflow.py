@@ -5,7 +5,6 @@ import pytest
 
 from ..utils import FakeREXFlowBridge, run_async
 from prism_api.rexflow import api
-from prism_api.rexflow.entities import types as e
 
 
 FakeREXFlowBridge.sleep_time = 0.1
