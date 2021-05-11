@@ -28,6 +28,9 @@ class Task:
     @validate_arguments
     async def start(self, info, input: w.StartTaskInput):
         try:
+            logger.info(
+                f'Starting task {input.tid} for instance {input.iid}'
+            )
             await api.start_tasks(input.iid, [input.tid])
         except Exception as ex:
             logger.exception('Error when starting task')
@@ -53,6 +56,7 @@ class Workflow:
     @validate_arguments
     async def complete(self, info, input: w.CompleteWorkflowInput):
         try:
+            logger.info(f'Complete workflow {input.iid}')
             await api.complete_workflow(input.iid)
         except Exception as ex:
             logger.exception('Error when completing workflow')

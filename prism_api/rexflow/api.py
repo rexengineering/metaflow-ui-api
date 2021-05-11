@@ -2,6 +2,7 @@
 import asyncio
 from collections import defaultdict
 import itertools
+import logging
 from typing import List
 
 from pydantic import validate_arguments
@@ -11,6 +12,8 @@ from .bridge import REXFlowBridgeGQL as REXFlowBridge
 from .entities import types as e
 from .entities import wrappers as w
 from .store import Store
+
+logger = logging.getLogger()
 
 
 async def get_available_workflows() -> List[e.WorkflowDeployment]:
@@ -183,6 +186,9 @@ async def complete_tasks(
 ) -> List[e.Task]:
     workflow_instances = defaultdict(list)
     for task in tasks:
+        logger.info(
+            f'Complete task {task.tid} on instance {task.iid}'
+        )
         workflow_instances[task.iid].append(task)
     results = await asyncio.gather(*[
         _complete_tasks(iid, tasks)
