@@ -55,7 +55,7 @@ class Validator(BaseModel):
 
 
 class TaskFieldData(BaseModel):
-    id: DataId
+    dataId: DataId
     type: DataType
     order: int
     label: Optional[str]
@@ -72,7 +72,7 @@ class Task(BaseModel):
 
     def get_data_dict(self):
         return {
-            d.id: d
+            d.dataId: d
             for d in self.data
         }
 
@@ -85,7 +85,7 @@ class Workflow(BaseModel):
 
     def get_task_dict(self):
         return {
-            task.id: task
+            task.tid: task
             for task in self.tasks
         }
 

@@ -32,7 +32,7 @@ class CompleteWorkflowInput(BaseModel):
 
 
 class TaskDataInput(BaseModel):
-    id: e.DataId
+    dataId: e.DataId
     data: str
 
 

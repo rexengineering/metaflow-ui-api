@@ -171,7 +171,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     status=e.TaskStatus.UP,
                     data=[
                         e.TaskFieldData(
-                            id=field['id'],
+                            dataId=field['id'],
                             type=field['type'],
                             order=field['order'],
                             label=field['label'],
@@ -210,6 +210,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                         tid=task.tid,
                         fields=[
                             w.TaskFieldInput(
+                                id=field.dataId,  # TODO change this
                                 **field.dict(by_alias=True)
                             )
                             for field in task.data
@@ -250,6 +251,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                         tid=task.tid,
                         fields=[
                             w.TaskFieldInput(
+                                id=field.dataId,  # TODO change this
                                 **field.dict(by_alias=True)
                             )
                             for field in task.data
