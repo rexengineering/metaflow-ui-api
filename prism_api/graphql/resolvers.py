@@ -1,8 +1,11 @@
 import logging
+from typing import Optional
 
-from ariadne import QueryType, MutationType
+from ariadne import QueryType, MutationType, ObjectType
+from pydantic.decorator import validate_arguments
 
-from prism_api.rexflow import entities as rxen
+from prism_api.rexflow import api as rexflow
+from prism_api.rexflow import entities as e
 
 logger = logging.getLogger(__name__)
 
@@ -25,23 +28,39 @@ class WorkflowResolver:
     async def active(
         self,
         *_,
-        filter: rxen.WorkflowFilter = None
+        filter: e.WorkflowFilter = None
     ):
-        return [
-            rxen.Workflow(
-                iid='test',
-                status=rxen.WorkflowStatus.IN_PROGRESS,
-            )
-        ]
+        # TODO add filters to api
+        workflows = await rexflow.get_active_workflows()
+        return workflows
 
     async def available(self, *_):
-        return [
-            '123',
-            '456',
-        ]
+        available_workflows = await rexflow.get_available_workflows()
+        return available_workflows
 
 
 query.set_field('workflows', WorkflowResolver)
+
+
+workflow_object = ObjectType('Workflow')
+
+
+@workflow_object.field('tasks')
+@validate_arguments
+async def resolve_workflow_tasks(
+    workflow: e.Workflow,
+    info,
+    filter: Optional[e.TaskFilter] = None,
+):
+    if filter:
+        return [
+            task
+            for task in workflow.tasks
+            if (len(filter.ids) == 0 or task.id in filter.ids)
+            and (filter.status is None or task.status == filter.status)
+        ]
+    else:
+        return workflow.tasks
 
 
 mutation = MutationType()
@@ -50,7 +69,7 @@ mutation = MutationType()
 class StateMutations:
     async def update(*_, input):
         return {
-            'status': rxen.OperationStatus.SUCCESS,
+            'status': e.OperationStatus.SUCCESS,
             'state': ''
         }
 
@@ -61,7 +80,7 @@ class SessionMutations:
 
     async def start(self, _):
         return {
-            'status': rxen.OperationStatus.SUCCESS,
+            'status': e.OperationStatus.SUCCESS,
             'session': {
                 'id': '',
                 'state': '',
@@ -73,7 +92,7 @@ class SessionMutations:
 
     async def close(self, _):
         return {
-            'status': rxen.OperationStatus.SUCCESS,
+            'status': e.OperationStatus.SUCCESS,
         }
 
 
@@ -81,48 +100,45 @@ mutation.set_field('session', SessionMutations)
 
 
 class TasksMutations:
-    async def start(self, info, input: rxen.StartTasksInput):
-        return rxen.StartTasksPayload(
-            status=rxen.OperationStatus.SUCCESS,
+    @validate_arguments
+    async def start(self, info, input: e.StartTasksInput):
+        tasks = await rexflow.start_tasks([
+            task_input.to_task()
+            for task_input in input.tasks
+        ])
+        return e.StartTasksPayload(
+            status=e.OperationStatus.SUCCESS,
+            tasks=tasks,
+        )
+
+    @validate_arguments
+    async def validate(self, info, input: e.ValidateTaskInput):
+        # TODO add validation query
+        return e.ValidateTasksPayload(
+            status=e.OperationStatus.SUCCESS,
             tasks=[
-                rxen.Task(
+                e.Task(
+                    iid='123',
                     id='123',
-                    status=rxen.TaskStatus.IN_PROGRESS,
+                    status=e.TaskStatus.UP,
                 )
             ]
         )
 
-    async def validate(self, info, input: rxen.ValidateTaskInput):
-        return rxen.ValidateTasksPayload(
-            status=rxen.OperationStatus.SUCCESS,
-            tasks=[
-                rxen.Task(
-                    id='123',
-                    status=rxen.TaskStatus.IN_PROGRESS,
-                )
-            ]
+    @validate_arguments
+    async def save(self, info, input: e.SaveTaskInput):
+        tasks = await rexflow.save_tasks(input.tasks)
+        return e.SaveTasksPayload(
+            status=e.OperationStatus.SUCCESS,
+            tasks=tasks
         )
 
-    async def save(self, info, input: rxen.SaveTaskInput):
-        return rxen.SaveTasksPayload(
-            status=rxen.OperationStatus.SUCCESS,
-            tasks=[
-                rxen.Task(
-                    id='123',
-                    status=rxen.TaskStatus.IN_PROGRESS,
-                )
-            ]
-        )
-
-    async def complete(self, info, input: rxen.CompleteTasksInput):
-        return rxen.CompleteTaskPayload(
-            status=rxen.OperationStatus.SUCCESS,
-            tasks=[
-                rxen.Task(
-                    id='123',
-                    status=rxen.TaskStatus.FINISHED,
-                )
-            ]
+    @validate_arguments
+    async def complete(self, info, input: e.CompleteTasksInput):
+        tasks = await rexflow.complete_tasks(input.tasks)
+        return e.CompleteTaskPayload(
+            status=e.OperationStatus.SUCCESS,
+            tasks=tasks
         )
 
 
@@ -130,18 +146,23 @@ class WorkflowMutations:
     def __init__(self, *_) -> None:
         pass
 
-    async def start(self, info, input: rxen.StartWorkflowInput):
+    @validate_arguments
+    async def start(self, info, input: e.StartWorkflowInput):
         logger.info(input)
-        return rxen.StartWorkflowPayload(
-            status=rxen.OperationStatus.SUCCESS,
-            iid='123',
+        workflow = await rexflow.start_workflow(input.did)
+        return e.StartWorkflowPayload(
+            status=e.OperationStatus.SUCCESS,
+            iid=workflow.iid,
+            workflow=workflow,
         )
 
-    async def complete(self, info, input: rxen.CompleteWorkflowInput):
+    @validate_arguments
+    async def complete(self, info, input: e.CompleteWorkflowInput):
         logger.info(input)
-        return rxen.CompleteWorkflowPayload(
-            status=rxen.OperationStatus.SUCCESS,
-            iid='123'
+        await rexflow.complete_workflow(input.iid)
+        return e.CompleteWorkflowPayload(
+            status=e.OperationStatus.SUCCESS,
+            iid=input.iid
         )
 
     async def tasks(self, info):

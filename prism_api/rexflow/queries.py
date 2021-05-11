@@ -24,17 +24,19 @@ mutation StartWorkflow($startWorkflowInput: StartWorkflowInput!) {
 '''
 
 GET_TASK_DATA_QUERY = '''
-query GetTaskData($taskFilter: TaskFilter!) {
+query GetTaskData($taskFilter: TaskFilter) {
   workflows {
     active {
+      iid
       tasks(filter: $taskFilter) {
+        id
+        status
         data {
           id
           type
           order
           label
           data
-          encrypted
           validators {
             type
             constraint

@@ -16,14 +16,18 @@ scalar State
 # Enum types
 
 enum WorkflowStatus {
-    WAITING
-    IN_PROGRESS
-    FINISHED
+    COMPLETED
+    ERROR
+    RUNNING
+    START
+    STARTING
+    STOPPED
+    STOPPING
 }
 
 enum TaskStatus {
-    IN_PROGRESS
-    FINISHED
+    UP
+    DOWN
 }
 
 enum OperationStatus {
@@ -60,6 +64,7 @@ type Workflow {
 
 """A task will request a list of data elements"""
 type Task {
+    iid: WorkflowInstance!
     id: TaskId!
     data: [TaskData!]!
     status: TaskStatus!
@@ -91,6 +96,6 @@ input WorkflowFilter {
 }
 
 input TaskFilter {
-    ids: [TaskId!]!
+    ids: [TaskId!]
     status: TaskStatus
 }

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -21,14 +21,18 @@ class DataId(str):
 
 
 class WorkflowStatus(str, Enum):
-    WAITING = 'WAITING'
-    IN_PROGRESS = 'IN_PROGRESS'
-    FINISHED = 'FINISHED'
+    COMPLETED = 'COMPLETED'
+    ERROR = 'ERROR'
+    RUNNING = 'RUNNING'
+    START = 'START'
+    STARTING = 'STARTING'
+    STOPPED = 'STOPPED'
+    STOPPING = 'STOPPING'
 
 
 class TaskStatus(str, Enum):
-    IN_PROGRESS = 'IN_PROGRESS'
-    FINISHED = 'FINISHED'
+    UP = 'UP'
+    DOWN = 'DOWN'
 
 
 class OperationStatus(str, Enum):
@@ -61,9 +65,16 @@ class TaskData(BaseModel):
 
 
 class Task(BaseModel):
+    iid: WorkflowInstanceId
     id: TaskId
     data: List[TaskData] = []
-    status: TaskStatus
+    status: TaskStatus = TaskStatus.UP
+
+    def get_data_dict(self):
+        return {
+            d.id: d
+            for d in self.data
+        }
 
 
 class Workflow(BaseModel):
@@ -71,6 +82,12 @@ class Workflow(BaseModel):
     did: Optional[WorkflowDeploymentId]
     status: WorkflowStatus
     tasks: List[Task] = []
+
+    def get_task_dict(self):
+        return {
+            task.id: task
+            for task in self.tasks
+        }
 
 
 # GraphQL filter types
@@ -81,7 +98,7 @@ class WorkflowFilter(BaseModel):
 
 
 class TaskFilter(BaseModel):
-    ids: List[TaskId]
+    ids: List[TaskId] = []
     status: Optional[TaskStatus]
 
 
@@ -115,6 +132,13 @@ class TaskStartInput(BaseModel):
     id: TaskId
     data: List[TaskDataStartInput]
 
+    def to_task(self):
+        return Task(
+            iid=self.iid,
+            id=self.id,
+            data=[TaskData(**d.dict()) for d in self.data],
+        )
+
 
 class StartTasksInput(BaseModel):
     tasks: List[TaskStartInput]
@@ -126,6 +150,7 @@ class TaskDataInput(BaseModel):
 
 
 class TaskInput(BaseModel):
+    iid: WorkflowInstanceId
     id: TaskId
     data: List[TaskDataInput]
 
@@ -139,7 +164,7 @@ class SaveTaskInput(BaseModel):
 
 
 class CompleteTasksInput(BaseModel):
-    ids: List[TaskId]
+    tasks: List[TaskInput]
 
 
 # GraphQL error types
@@ -153,6 +178,7 @@ class Problem(BaseModel):
 class Payload(BaseModel):
     status: OperationStatus
     errors: Optional[List[Problem]]
+    query: Dict = {}
 
 
 class StartWorkflowPayload(Payload):

@@ -31,7 +31,7 @@ class REXFlowBridgeABC(abc.ABC):
     @abc.abstractmethod
     async def get_task_data(
         self,
-        task_ids: List[entities.TaskId],
+        task_ids: List[entities.TaskId] = [],
     ) -> List[entities.Task]:
         raise NotImplementedError
 
@@ -45,15 +45,18 @@ class REXFlowBridgeABC(abc.ABC):
     @abc.abstractmethod
     async def complete_task(
         self,
-        task_ids: List[entities.TaskId],
+        tasks: List[entities.Task],
     ) -> List[entities.Task]:
         raise NotImplementedError
 
 
 class REXFlowBridgeGQL(REXFlowBridgeABC):
-    _transport = AIOHTTPTransport(
-        url=f'{settings.REXFLOW_HOST}/query',
-    )
+    @classmethod
+    def get_transport(cls):
+        transport = AIOHTTPTransport(
+            url=f'{settings.REXFLOW_HOST}',
+        )
+        return transport
 
     @classmethod
     @validate_arguments
@@ -62,7 +65,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         deployment_id: entities.WorkflowDeploymentId,
     ) -> entities.Workflow:
         async with Client(
-            transport=cls._transport,
+            transport=cls.get_transport(),
             fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.START_WORKFLOW_MUTATION)
@@ -89,33 +92,37 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         self.endpoint = settings.REXFLOW_HOST_INSTANCE.format(
             instance_id=workflow.iid,
         )
-        self.transport = AIOHTTPTransport(
-            url=f'{self.endpoint}/query',
-        )
+        self.transport = self.get_transport()
 
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[entities.TaskId],
+        task_ids: List[entities.TaskId] = [],
     ) -> List[entities.Task]:
         async with Client(
             transport=self.transport,
             fetch_schema_from_transport=True,
         ) as session:
             query = gql(queries.GET_TASK_DATA_QUERY)
-            params = {
-                'taskFilter': entities.TaskFilter(
-                    ids=task_ids,
-                ).dict(),
-            }
+            if task_ids:
+                params = {
+                    'taskFilter': entities.TaskFilter(
+                        ids=task_ids,
+                    ).dict(),
+                }
+            else:
+                params = {}
 
             result = await session.execute(query, variable_values=params)
             logger.info(result)
-            tasks = result['workflow']['active']['tasks']
-            return [
-                entities.Task(**task)
-                for task in tasks
-            ]
+            all_tasks = []
+            for workflow in result['workflows']['active']:
+                tasks = [
+                    entities.Task(iid=workflow['iid'], **task)
+                    for task in workflow['tasks']
+                ]
+                all_tasks.extend(tasks)
+            return all_tasks
 
     @validate_arguments
     async def save_task_data(
@@ -147,7 +154,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     @validate_arguments
     async def complete_task(
         self,
-        task_ids: List[entities.TaskId],
+        tasks: List[entities.Task],
     ) -> List[entities.Task]:
         async with Client(
             transport=self.transport,
@@ -156,7 +163,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             query = gql(queries.COMPLETE_TASK_MUTATION)
             params = {
                 'completeTasksInput': entities.CompleteTasksInput(
-                    ids=task_ids,
+                    tasks=tasks,
                 ).dict(),
             }
 
@@ -197,7 +204,7 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
             return entities.Workflow(
                 iid=data['instance_id'],
                 did=deployment_id,
-                status=entities.WorkflowStatus.WAITING,
+                status=entities.WorkflowStatus.START,
             )
 
     @validate_arguments
@@ -232,7 +239,7 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[entities.TaskId],
+        task_ids: List[entities.TaskId] = [],
     ) -> List[entities.Task]:
         results = await self._concurrent_calls(
             f'{self.endpoint}/task/form',
@@ -274,13 +281,13 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
     @validate_arguments
     async def complete_task(
         self,
-        task_ids: List[entities.TaskId],
+        tasks: List[entities.Task],
     ) -> List[entities.Task]:
         results = await self._concurrent_calls(
             f'{self.endpoint}/task/complete',
             [{
-                'task_id': task_id,
-            } for task_id in task_ids]
+                'task_id': task.id,
+            } for task in tasks]
         )
 
         tasks = [
@@ -292,6 +299,3 @@ class REXFlowBridgeHTTP(REXFlowBridgeABC):
         ]
 
         return tasks
-
-
-REXFlowBridge = REXFlowBridgeGQL
