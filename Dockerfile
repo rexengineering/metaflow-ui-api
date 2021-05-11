@@ -28,7 +28,6 @@ FROM req as build
 COPY prism_api /code/prism_api
 COPY setup.py /code/setup.py
 COPY scripts /code/scripts
-COPY schema /code/schema
 
 FROM build as lint
 

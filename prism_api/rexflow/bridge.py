@@ -168,7 +168,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                 task = e.Task(
                     iid=result['tasks']['form']['iid'],
                     tid=result['tasks']['form']['tid'],
-                    status=result['tasks']['form']['status'],
+                    status=e.TaskStatus.UP,
                     data=[
                         e.TaskFieldData(
                             id=field['id'],
@@ -205,7 +205,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             async_tasks = []
             for task in tasks:
                 params = {
-                    'saveTasksInput': w.TaskMutationValidateInput(
+                    'validateTaskInput': w.TaskMutationValidateInput(
                         iid=self.workflow.iid,
                         tid=task.tid,
                         fields=[
@@ -245,7 +245,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             async_tasks = []
             for task in tasks:
                 params = {
-                    'saveTasksInput': w.TaskMutationSaveInput(
+                    'saveTaskInput': w.TaskMutationSaveInput(
                         iid=self.workflow.iid,
                         tid=task.tid,
                         fields=[
@@ -285,7 +285,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             async_tasks = []
             for task in tasks:
                 params = {
-                    'saveTasksInput': w.TaskMutationCompleteInput(
+                    'completeTaskInput': w.TaskMutationCompleteInput(
                         iid=self.workflow.iid,
                         tid=task.tid,
                     ).dict(),

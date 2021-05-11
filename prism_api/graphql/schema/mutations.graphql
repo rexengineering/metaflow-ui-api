@@ -20,15 +20,11 @@ type StateMutations {
 type WorkflowMutations {
     """Start a new workflow"""
     start(input: StartWorkflowInput!): StartWorkflowPayload
-    """Mark a workflow as completed"""
-    complete(input: CompleteWorkflowInput!): CompleteWorkflowPayload
     """Interact with workflow tasks"""
     tasks: TasksMutations
 }
 
 type TasksMutations {
-    """Start a new task"""
-    start(input: StartTasksInput): StartTasksPayload
     """Validate data without saving (might not be used)"""
     validate(input: ValidateTaskInput): ValidateTaskPayload
     """Save and validate collected task's data"""
@@ -47,36 +43,6 @@ input UpdateStateInput {
 input StartWorkflowInput {
     """Id of workflow deployment"""
     did: WorkflowDeploymentId!
-}
-
-input CompleteWorkflowInput {
-    """Id of workflow instance"""
-    iid: WorkflowInstanceId!
-}
-
-input StartTasksInput {
-    tasks: [TaskStartInput!]!
-}
-
-input TaskStartInput {
-    iid: WorkflowInstanceId!
-    tid: TaskId!
-    data: [TaskDataStartInput!]!
-}
-
-input TaskDataStartInput {
-    id: DataId!
-    type: DataType!
-    order: Int!
-    label: String
-    data: String
-    encrypted: Boolean!
-    validators: [ValidatorInput!]!
-}
-
-input ValidatorInput {
-    type: ValidationType!
-    constraint: String
 }
 
 input ValidateTaskInput {
@@ -133,20 +99,6 @@ type StartWorkflowPayload {
     iid: WorkflowInstanceId
     workflow: Workflow
     errors: [WorkflowProblems!]
-    query: Query
-}
-
-type CompleteWorkflowPayload {
-    status: OperationStatus!
-    iid: WorkflowInstanceId
-    errors: [WorkflowProblems!]
-    query: Query
-}
-
-type StartTasksPayload {
-    status: OperationStatus!
-    tasks: [Task!]
-    errors: [TaskProblems!]
     query: Query
 }
 

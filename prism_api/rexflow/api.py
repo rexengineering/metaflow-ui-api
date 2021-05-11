@@ -85,12 +85,52 @@ async def complete_workflow(
 
 
 @validate_arguments
-async def start_tasks(tasks: List[e.Task]) -> List[e.Task]:
+async def start_tasks(
+    iid: e.WorkflowInstanceId,
+    tasks: List[e.TaskId]
+) -> List[e.Task]:
     created_tasks = []
-    for task in tasks:
+    for tid in tasks:
+        task = await get_task(iid, tid)
         Store.add_task(task)
         created_tasks.append(task)
     return created_tasks
+
+
+@validate_arguments
+async def get_task(iid: e.WorkflowInstanceId, tid: e.TaskId):
+    bridge = REXFlowBridge(Store.get_workflow(iid))
+    task = (await bridge.get_task_data([tid])).pop()
+    Store.add_task(task)
+    return task
+
+
+async def _validate_tasks(
+    iid: e.WorkflowInstanceId,
+    tasks: List[w.TaskChange],
+) -> List[e.Task]:
+    bridge = REXFlowBridge(Store.get_workflow(iid))
+    updated_tasks = []
+    for task_input in tasks:
+        task = Store.get_task(iid, task_input.tid)
+        task_data = task.get_data_dict()
+        for task_data_input in task_input.data:
+            task_data[task_data_input.id].data = task_data_input.data
+        updated_tasks.append(task)
+    return await bridge.validate_task_data(updated_tasks)
+
+
+@validate_arguments
+async def validate_tasks(tasks: List[w.TaskChange]) -> List[e.Task]:
+    workflow_instances = defaultdict(list)
+    for task in tasks:
+        workflow_instances[task.iid].append(task)
+    results = await asyncio.gather(*[
+        _validate_tasks(iid, tasks)
+        for iid, tasks in workflow_instances.items()
+    ])
+
+    return list(itertools.chain(*results))
 
 
 async def _save_tasks(
@@ -106,14 +146,6 @@ async def _save_tasks(
             task_data[task_data_input.id].data = task_data_input.data
         updated_tasks.append(task)
     return await bridge.save_task_data(updated_tasks)
-
-
-@validate_arguments
-async def get_task(iid: e.WorkflowInstanceId, tid: e.TaskId):
-    bridge = REXFlowBridge(Store.get_workflow(iid))
-    task = (await bridge.get_task_data([tid])).pop()
-    Store.add_task(task)
-    return task
 
 
 @validate_arguments

@@ -33,27 +33,8 @@ class TestWorkflow(unittest.TestCase):
         self.assertEqual(len(workflow.tasks), 0)
         self.assertIn(workflow, await api.get_active_workflows())
 
-        new_task = e.Task(
-            iid=workflow.iid,
-            tid='t123',
-            data=[
-                e.TaskFieldData(
-                    id='fname',
-                    type=e.DataType.TEXT,
-                    order=1,
-                    label='First Name',
-                    validators=[
-                        e.Validator(
-                            type=e.ValidatorEnum.REGEX,
-                            constraint=r'.*'
-                        )
-                    ]
-                )
-            ]
-        )
-
-        created = await api.start_tasks([new_task])
-        self.assertIn(new_task, created)
+        created = await api.start_tasks(workflow.iid, ['t123'])
+        new_task = created.pop()
         workflow = api.Store.get_workflow(workflow.iid)
         self.assertIn(new_task, workflow.tasks)
 

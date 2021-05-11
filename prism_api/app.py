@@ -5,6 +5,7 @@ from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from prism_api import services, settings
+from prism_api.callback.app import app as callback_app
 from prism_api.graphql.app import app as graphql_app
 from prism_api.state_manager.router import router as state_router
 
@@ -44,5 +45,6 @@ async def liveness():
     )
 
 
+app.mount('/callback', callback_app)
 app.mount('/query', graphql_app)
 app.include_router(state_router)
