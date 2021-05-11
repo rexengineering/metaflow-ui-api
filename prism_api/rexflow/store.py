@@ -46,6 +46,12 @@ class Store:
         cls.data[task.iid]['tasks'][task.tid] = task
 
     @classmethod
+    def update_task(cls, task: e.Task):
+        workflow_data = cls.data.get(task.iid)
+        if workflow_data and workflow_data['tasks'].get(task.tid):
+            cls.data[task.iid]['tasks'][task.tid] = task
+
+    @classmethod
     def get_workflow_tasks(
         cls,
         workflow_id: e.WorkflowInstanceId,

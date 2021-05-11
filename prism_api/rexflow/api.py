@@ -97,6 +97,7 @@ async def start_tasks(
     for tid in tasks:
         task = await get_task(iid, tid)
         created_tasks.append(task)
+        Store.add_task(task)
     return created_tasks
 
 
@@ -104,7 +105,7 @@ async def start_tasks(
 async def get_task(iid: e.WorkflowInstanceId, tid: e.TaskId):
     bridge = REXFlowBridge(Store.get_workflow(iid))
     task = (await bridge.get_task_data([tid])).pop()
-    Store.add_task(task)
+    Store.update_task(task)
     return task
 
 
