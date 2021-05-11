@@ -28,7 +28,7 @@ class TaskMutationFormInput(BaseModel):
 
 
 class TaskFieldInput(BaseModel):
-    id: e.DataId  # TODO need to change this
+    dataId: e.DataId
     type: e.DataType
     data: Optional[str]
     encrypted: bool
@@ -82,7 +82,7 @@ class ValidatorResults(BaseModel):
 
 
 class FieldValidationResult(BaseModel):
-    field: e.DataId
+    dataId: e.DataId
     passed: bool
     result: Optional[ValidatorResults]
 

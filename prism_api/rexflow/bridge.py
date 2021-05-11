@@ -203,7 +203,6 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                         tid=task.tid,
                         fields=[
                             w.TaskFieldInput(
-                                dataId=field.dataId,
                                 **field.dict(by_alias=True)
                             )
                             for field in task.data
@@ -244,7 +243,6 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                         tid=task.tid,
                         fields=[
                             w.TaskFieldInput(
-                                dataId=field.dataId,
                                 **field.dict(by_alias=True)
                             )
                             for field in task.data

@@ -57,7 +57,7 @@ mutation ValidateTaskData($validateTaskInput: TaskMutationValidateInput!) {
       status
       passed
       results {
-        field
+        dataId
         passed
         results {
           validator {
@@ -83,7 +83,7 @@ mutation SaveTaskData($saveTaskInput: TaskMutationSaveInput!) {
       status
       passed
       results {
-        field
+        dataId
         passed
         results {
           validator {
