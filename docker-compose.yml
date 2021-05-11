@@ -14,6 +14,7 @@ services:
       - 8000:8000
     volumes:
       - ./prism_api:/code/prism_api
+      - ./schema:/code/schema
     environment: 
       UVICORN_ARGS: --reload
   redis:

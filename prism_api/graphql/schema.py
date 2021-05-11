@@ -1,13 +1,6 @@
 import ariadne
 
-from .resolvers import query
 
+typedefs = ariadne.load_schema_from_path('./schema/')
 
-typedefs = ariadne.gql("""
-    type Query {
-        hello(name: String): String
-    }
-""")
-
-
-schema = ariadne.make_executable_schema(typedefs, [query])
+schema = ariadne.make_executable_schema(typedefs)
