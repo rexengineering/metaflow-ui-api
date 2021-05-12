@@ -18,6 +18,7 @@ query GetInstances{
     did
     iid_list {
       iid
+      iid_status
     }
   }
 }

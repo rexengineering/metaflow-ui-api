@@ -120,6 +120,4 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         tasks: List[e.Task],
     ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
-        for task in tasks:
-            task.status = e.TaskStatus.DOWN
         return tasks

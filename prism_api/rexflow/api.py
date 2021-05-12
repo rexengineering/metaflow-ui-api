@@ -2,6 +2,7 @@
 import asyncio
 from collections import defaultdict
 import itertools
+import logging
 from typing import List
 
 from pydantic import validate_arguments
@@ -11,6 +12,8 @@ from .bridge import REXFlowBridgeGQL as REXFlowBridge
 from .entities import types as e
 from .entities import wrappers as w
 from .store import Store
+
+logger = logging.getLogger()
 
 
 async def get_available_workflows() -> List[e.WorkflowDeployment]:
@@ -58,7 +61,9 @@ async def _refresh_instances():
 async def _refresh_workflow(workflow: e.Workflow):
     """Refresh a single workflow task"""
     bridge = REXFlowBridge(workflow)
-    tasks = await bridge.get_task_data()
+    tasks = await bridge.get_task_data([
+        task.tid for task in workflow.tasks
+    ])
     workflow.tasks = []
     for task in tasks:
         Store.add_task(task)
@@ -94,8 +99,8 @@ async def start_tasks(
     created_tasks = []
     for tid in tasks:
         task = await get_task(iid, tid)
-        Store.add_task(task)
         created_tasks.append(task)
+        Store.add_task(task)
     return created_tasks
 
 
@@ -103,7 +108,7 @@ async def start_tasks(
 async def get_task(iid: e.WorkflowInstanceId, tid: e.TaskId):
     bridge = REXFlowBridge(Store.get_workflow(iid))
     task = (await bridge.get_task_data([tid])).pop()
-    Store.add_task(task)
+    Store.update_task(task)
     return task
 
 
@@ -171,7 +176,7 @@ async def _complete_tasks(
     bridge = REXFlowBridge(Store.get_workflow(iid))
     completed_tasks = await bridge.complete_task(updated_tasks)
     for task in completed_tasks:
-        Store.add_task(task)
+        Store.delete_task(iid, task.tid)
     return completed_tasks
 
 
@@ -181,6 +186,9 @@ async def complete_tasks(
 ) -> List[e.Task]:
     workflow_instances = defaultdict(list)
     for task in tasks:
+        logger.info(
+            f'Complete task {task.tid} on instance {task.iid}'
+        )
         workflow_instances[task.iid].append(task)
     results = await asyncio.gather(*[
         _complete_tasks(iid, tasks)

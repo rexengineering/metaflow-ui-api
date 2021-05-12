@@ -97,4 +97,5 @@ class WorkflowDeployment(BaseModel):
 
 class WorkflowInstanceInfo(BaseModel):
     iid: WorkflowInstanceId
+    iid_status: WorkflowStatus
     graphqlUri: Optional[str]
