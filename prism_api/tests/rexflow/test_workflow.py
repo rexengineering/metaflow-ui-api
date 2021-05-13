@@ -3,7 +3,8 @@ from unittest import mock
 
 import pytest
 
-from ..utils import FakeREXFlowBridge, run_async
+from ..mocks.rexflow_bridge import FakeREXFlowBridge
+from ..utils import run_async
 from prism_api.rexflow import api
 
 

@@ -7,7 +7,7 @@ import pytest
 from rexredis import RexRedis
 
 from prism_api.state_manager.store import api as store
-from ..utils import FakeStore
+from ..mocks.state_store import FakeStore
 
 
 FakeStore.sleep_time = 0.1
