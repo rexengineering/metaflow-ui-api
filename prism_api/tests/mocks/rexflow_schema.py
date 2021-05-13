@@ -38,6 +38,7 @@ query.bind_to_schema(schema)
 
 
 mutation = MutationType()
+mutation.set_field('tasks', lambda *_: {})
 task_mutation = ObjectType('TaskMutation')
 
 
@@ -45,7 +46,7 @@ task_mutation = ObjectType('TaskMutation')
 def resolve_create_instance(*_, input):
     return {
         'did': MOCK_DID,
-        'iid': input['iid'],
+        'iid': MOCK_IID,
         'status': 'SUCCESS',
         'tasks': [],
     }
