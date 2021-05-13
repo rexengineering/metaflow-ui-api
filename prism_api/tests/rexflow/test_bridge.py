@@ -2,7 +2,7 @@ import unittest
 
 from gql import Client, gql
 
-from ..mocks.schema import schema
+from ..mocks.rexflow_schema import schema
 
 
 class TestGraphQLSchema(unittest.TestCase):
