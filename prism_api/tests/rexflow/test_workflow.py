@@ -51,6 +51,11 @@ class TestWorkflow(unittest.TestCase):
         for field in task.data:
             field.data = answer
 
+        # Validate the form
+        validated_tasks = await api.validate_tasks([task])
+        self.assertIn(task, validated_tasks)
+        self.assertEqual(answer, validated_tasks[0].data[0].data)
+
         # Save the form
         saved_task = await api.save_tasks([task])
         self.assertIn(task, saved_task)

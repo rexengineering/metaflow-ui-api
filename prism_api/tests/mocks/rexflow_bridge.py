@@ -70,6 +70,14 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         return tasks
 
     @validate_arguments
+    async def validate_task_data(
+        self,
+        tasks: List[e.Task],
+    ) -> List[e.Task]:
+        await asyncio.sleep(self.sleep_time)
+        return tasks
+
+    @validate_arguments
     async def save_task_data(
         self,
         tasks: List[e.Task],
