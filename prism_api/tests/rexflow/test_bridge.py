@@ -1,6 +1,7 @@
 import unittest
 from unittest import mock
 
+import pytest
 from gql import Client, gql
 
 from prism_api import settings
@@ -16,6 +17,7 @@ from ..utils import run_async
 settings.REXUI_CALLBACK_HOST = 'http://test/callback'
 
 
+@pytest.mark.ci
 class TestGraphQLSchema(unittest.TestCase):
     def test_graphql_schema(self):
         client = Client(schema=schema)
@@ -45,6 +47,7 @@ def mock_get_client(*_):
     return Client(schema=schema)
 
 
+@pytest.mark.ci
 @mock.patch(
     'prism_api.rexflow.bridge.REXFlowBridgeGQL.get_client',
     mock_get_client,
