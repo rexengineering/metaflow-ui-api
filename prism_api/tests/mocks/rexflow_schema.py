@@ -2,10 +2,11 @@ from ariadne import QueryType, MutationType, ObjectType
 
 from prism_api.rexflow.schema import schema
 
-
-MOCK_DID = 'process-123-abc'
-MOCK_IID = 'process-123-abc-12345678'
-MOCK_TID = 'Activity_abcde'
+from . import (
+    MOCK_DID,
+    MOCK_IID,
+    MOCK_TID,
+)
 
 
 query = QueryType()

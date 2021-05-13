@@ -3,6 +3,7 @@ from unittest import mock
 
 import pytest
 
+from ..mocks import MOCK_DID, MOCK_TID
 from ..mocks.rexflow_bridge import FakeREXFlowBridge
 from ..utils import run_async
 from prism_api.rexflow import api
@@ -10,13 +11,11 @@ from prism_api.rexflow import api
 
 FakeREXFlowBridge.sleep_time = 0.1
 
-test_did = 'process-123'
-
 
 async def get_deployments():
     return {
         'test': [
-            test_did,
+            MOCK_DID,
         ]
     }
 
@@ -28,12 +27,12 @@ class TestWorkflow(unittest.TestCase):
     @mock.patch('prism_api.rexflow.api.get_deployments', get_deployments)
     async def test_happy_workflow(self):
         # Instance a new workflow
-        workflow = await api.start_workflow(deployment_id=test_did)
+        workflow = await api.start_workflow(deployment_id=MOCK_DID)
         self.assertIsNotNone(workflow)
         self.assertEqual(len(workflow.tasks), 0)
         self.assertIn(workflow, await api.get_active_workflows([]))
 
-        created = await api.start_tasks(workflow.iid, ['t123'])
+        created = await api.start_tasks(workflow.iid, [MOCK_TID])
         new_task = created.pop()
         workflow = api.Store.get_workflow(workflow.iid)
         self.assertIn(new_task, workflow.tasks)

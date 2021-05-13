@@ -3,6 +3,7 @@ from typing import List
 
 from pydantic import validate_arguments
 
+from . import MOCK_IID
 from prism_api.rexflow.entities import types as e
 from prism_api.rexflow.bridge import REXFlowBridgeABC
 from prism_api.rexflow.store import Store
@@ -11,11 +12,9 @@ from prism_api.rexflow.store import Store
 class FakeREXFlowBridge(REXFlowBridgeABC):
     sleep_time = 0.2
 
-    test_iid = 'process-123-456'
-
     @classmethod
     async def get_instances(cls, deployment_id):
-        return [cls.test_iid]
+        return [MOCK_IID]
 
     @classmethod
     @validate_arguments
@@ -26,9 +25,9 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         await asyncio.sleep(cls.sleep_time)
         return e.Workflow(
             did=deployment_id,
-            iid=cls.test_iid,
+            iid=MOCK_IID,
             status=e.WorkflowStatus.RUNNING,
-            data=Store.data.get(cls.test_iid, {}).get('tasks', [])
+            data=Store.data.get(MOCK_IID, {}).get('tasks', [])
         )
 
     @validate_arguments

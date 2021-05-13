@@ -4,15 +4,15 @@ from unittest import mock
 import pytest
 from gql import Client, gql
 
-from prism_api import settings
-from prism_api.rexflow import bridge
-from ..mocks.rexflow_schema import (
+from ..mocks import (
     MOCK_DID,
     MOCK_IID,
     MOCK_TID,
-    schema,
 )
+from ..mocks.rexflow_schema import schema
 from ..utils import run_async
+from prism_api import settings
+from prism_api.rexflow import bridge
 
 settings.REXUI_CALLBACK_HOST = 'http://test/callback'
 
