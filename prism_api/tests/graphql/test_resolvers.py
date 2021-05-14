@@ -11,6 +11,16 @@ from ..mocks import (
     rexflow_api,
 )
 from ..utils import run_async
+from prism_api.callback.resolvers import (
+    TaskMutations as TaskCallbackMutations,
+    WorkflowMutations as WorflowCallbackMutations,
+)
+from prism_api.callback.entities import (
+    CompleteWorkflowInput,
+    CompleteWorkflowPayload,
+    StartTaskInput,
+    StartTaskPayload,
+)
 from prism_api.graphql.resolvers import (
     resolve_session,
     WorkflowResolver,
@@ -142,4 +152,36 @@ class TestRexflowResolvers(unittest.TestCase):
             )
         )
         self.assertIsInstance(response, CompleteTaskPayload)
+        self.assertEqual(response.status, OperationStatus.SUCCESS)
+
+
+@pytest.mark.ci
+@mock.patch(
+    'prism_api.callback.resolvers.api',
+    rexflow_api,
+)
+class TestCallBackResolvers(unittest.TestCase):
+    @run_async
+    async def test_start_task_callback(self):
+        mutations = TaskCallbackMutations()
+        response = await mutations.start(
+            mock_info(),
+            input=StartTaskInput(
+                iid=MOCK_IID,
+                tid=MOCK_TID,
+            ),
+        )
+        self.assertIsInstance(response, StartTaskPayload)
+        self.assertEqual(response.status, OperationStatus.SUCCESS)
+
+    @run_async
+    async def test_complete_workflow_callback(self):
+        mutations = WorflowCallbackMutations()
+        response = await mutations.complete(
+            mock_info(),
+            input=CompleteWorkflowInput(
+                iid=MOCK_IID,
+            ),
+        )
+        self.assertIsInstance(response, CompleteWorkflowPayload)
         self.assertEqual(response.status, OperationStatus.SUCCESS)
