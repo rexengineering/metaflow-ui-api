@@ -3,42 +3,50 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from prism_api.rexflow.entities import types as e
+from prism_api.rexflow.entities.types import (
+    DataId,
+    OperationStatus,
+    Task,
+    Workflow,
+    WorkflowInstanceId,
+    WorkflowDeploymentId,
+    TaskId,
+)
 
 
 # GraphQL filter types
 
 class WorkflowFilter(BaseModel):
-    ids: List[e.WorkflowInstanceId]
+    ids: List[WorkflowInstanceId]
 
 
 class TaskFilter(BaseModel):
-    ids: List[e.TaskId] = []
+    ids: List[TaskId] = []
 
 
 # GraphQL input types
 
 class StartWorkflowInput(BaseModel):
-    did: e.WorkflowDeploymentId  # deployment id
+    did: WorkflowDeploymentId  # deployment id
 
 
 class StartWorkflowInputBridge(BaseModel):
-    did: e.WorkflowDeploymentId
+    did: WorkflowDeploymentId
     callback: str
 
 
 class CompleteWorkflowInput(BaseModel):
-    iid: e.WorkflowInstanceId
+    iid: WorkflowInstanceId
 
 
 class TaskDataInput(BaseModel):
-    dataId: e.DataId
+    dataId: DataId
     data: str
 
 
 class TaskInput(BaseModel):
-    iid: e.WorkflowInstanceId
-    tid: e.TaskId
+    iid: WorkflowInstanceId
+    tid: TaskId
     data: List[TaskDataInput]
 
 
@@ -63,31 +71,31 @@ class Problem(BaseModel):
 # GraphQL payload types
 
 class Payload(BaseModel):
-    status: e.OperationStatus
+    status: OperationStatus
     errors: Optional[List[Problem]]
     query: Dict = {}
 
 
 class StartWorkflowPayload(Payload):
-    iid: Optional[e.WorkflowInstanceId]  # instance id
-    workflow: Optional[e.Workflow]
+    iid: Optional[WorkflowInstanceId]  # instance id
+    workflow: Optional[Workflow]
 
 
 class CompleteWorkflowPayload(Payload):
-    iid: Optional[e.WorkflowInstanceId]
+    iid: Optional[WorkflowInstanceId]
 
 
 class StartTasksPayload(Payload):
-    tasks: Optional[List[e.Task]]
+    tasks: Optional[List[Task]]
 
 
 class ValidateTasksPayload(Payload):
-    tasks: Optional[List[e.Task]]
+    tasks: Optional[List[Task]]
 
 
 class SaveTasksPayload(Payload):
-    tasks: Optional[List[e.Task]]
+    tasks: Optional[List[Task]]
 
 
 class CompleteTaskPayload(Payload):
-    tasks: Optional[List[e.Task]]
+    tasks: Optional[List[Task]]
