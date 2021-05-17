@@ -42,7 +42,8 @@ RUN source activate prism-api && pytest -m 'ci' --cov prism_api
 
 FROM req as debugger
 
-RUN pip install debugpy -t /tmp --upgrade
+SHELL ["/bin/bash", "-c"]
+RUN source activate prism-api && pip install debugpy -t /tmp --upgrade
 
 FROM build as debug
 
