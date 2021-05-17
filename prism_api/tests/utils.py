@@ -75,9 +75,12 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[e.TaskId]
+        task_ids: List[e.TaskId] = []
     ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
+        if len(task_ids) == 0 and self.workflow.iid in Store.data:
+            return Store.data[self.workflow.iid]['tasks'].values()
+
         tasks = []
         for tid in task_ids:
             if tid in Store.data[self.workflow.iid]['tasks']:
@@ -88,7 +91,7 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
                     tid=tid,
                     data=[
                         e.TaskFieldData(
-                            id='fname',
+                            dataId='fname',
                             type=e.DataType.TEXT,
                             order=1,
                             label='First Name',
@@ -117,6 +120,4 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         tasks: List[e.Task],
     ) -> List[e.Task]:
         await asyncio.sleep(self.sleep_time)
-        for task in tasks:
-            task.status = e.TaskStatus.DOWN
         return tasks

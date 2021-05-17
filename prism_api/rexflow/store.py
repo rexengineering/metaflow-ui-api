@@ -23,10 +23,15 @@ class Store:
         return cls.data[workflow_id]['workflow']
 
     @classmethod
-    def get_workflow_list(cls) -> List[e.Workflow]:
+    def get_workflow_list(
+        cls,
+        iids: List[e.WorkflowInstanceId],
+    ) -> List[e.Workflow]:
         return [
             d['workflow']
-            for d in cls.data.values()
+            for iid, d in cls.data.items()
+            if iid in iids
+            or iids == []
         ]
 
     @classmethod
@@ -39,6 +44,12 @@ class Store:
         if task.tid not in [t.tid for t in workflow.tasks]:
             workflow.tasks.append(task)
         cls.data[task.iid]['tasks'][task.tid] = task
+
+    @classmethod
+    def update_task(cls, task: e.Task):
+        workflow_data = cls.data.get(task.iid)
+        if workflow_data and workflow_data['tasks'].get(task.tid):
+            cls.data[task.iid]['tasks'][task.tid] = task
 
     @classmethod
     def get_workflow_tasks(
@@ -54,3 +65,15 @@ class Store:
         task_id: e.TaskId,
     ) -> e.Task:
         return cls.data[workflow_id]['tasks'][task_id]
+
+    @classmethod
+    def delete_task(
+        cls,
+        workflow_id: e.WorkflowInstanceId,
+        task_id: e.TaskId,
+    ) -> None:
+        if cls.data.get(workflow_id):
+            workflow = cls.data[workflow_id]['workflow']
+            task = cls.data[workflow_id]['tasks'][task_id]
+            workflow.tasks.remove(task)
+            del cls.data[workflow_id]['tasks'][task_id]

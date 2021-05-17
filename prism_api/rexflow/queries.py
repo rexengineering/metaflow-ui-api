@@ -18,20 +18,29 @@ query GetInstances{
     did
     iid_list {
       iid
+      iid_status
     }
   }
 }
 '''
 
+GET_TASK_LIST_QUERY = '''
+query GetTaskList {
+  getInstances {
+    tasks
+  }
+}
+'''
+
 GET_TASK_DATA_QUERY = '''
-mutation GetTaskData($formInput: TaskMutationFormInput) {
+mutation GetTaskData($formInput: TaskMutationFormInput!) {
   tasks {
     form(input: $formInput) {
       iid
       tid
       status
       fields {
-        id
+        dataId
         type
         order
         label
@@ -57,7 +66,7 @@ mutation ValidateTaskData($validateTaskInput: TaskMutationValidateInput!) {
       status
       passed
       results {
-        field
+        dataId
         passed
         results {
           validator {
@@ -83,7 +92,7 @@ mutation SaveTaskData($saveTaskInput: TaskMutationSaveInput!) {
       status
       passed
       results {
-        field
+        dataId
         passed
         results {
           validator {

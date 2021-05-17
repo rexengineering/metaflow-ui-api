@@ -63,7 +63,7 @@ input TaskInput {
 }
 
 input TaskDataInput {
-    id: DataId!
+    dataId: DataId!
     data: String!
 }
 

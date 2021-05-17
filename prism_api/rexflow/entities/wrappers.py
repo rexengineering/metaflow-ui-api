@@ -5,13 +5,8 @@ from pydantic import BaseModel
 from . import types as e
 
 
-def to_camel(string: str) -> str:
-    words = string.split('_')
-    return words[0] + ''.join(word.capitalize() for word in words[1:])
-
-
 class TaskDataChange(BaseModel):
-    id: e.DataId
+    dataId: e.DataId
     data: str
 
 
@@ -33,7 +28,7 @@ class TaskMutationFormInput(BaseModel):
 
 
 class TaskFieldInput(BaseModel):
-    id: e.DataId
+    dataId: e.DataId
     type: e.DataType
     data: Optional[str]
     encrypted: bool
@@ -87,7 +82,7 @@ class ValidatorResults(BaseModel):
 
 
 class FieldValidationResult(BaseModel):
-    field: e.DataId
+    dataId: e.DataId
     passed: bool
     result: Optional[ValidatorResults]
 
@@ -98,18 +93,12 @@ class TaskValidatePayload(Payload):
     passed: bool
     results: List[FieldValidationResult]
 
-    class Config:
-        alias_generator = to_camel
-
 
 class TaskSavePayload(Payload):
     iid: e.WorkflowInstanceId
     tid: e.TaskId
     passed: bool
     results: List[FieldValidationResult]
-
-    class Config:
-        alias_generator = to_camel
 
 
 class TaskCompletePayload(Payload):

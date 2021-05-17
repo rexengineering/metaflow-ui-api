@@ -11,12 +11,10 @@ from prism_api.rexflow.entities import types as e
 
 class WorkflowFilter(BaseModel):
     ids: List[e.WorkflowInstanceId]
-    status: Optional[e.WorkflowStatus]
 
 
 class TaskFilter(BaseModel):
     ids: List[e.TaskId] = []
-    status: Optional[e.TaskStatus]
 
 
 # GraphQL input types
@@ -38,40 +36,8 @@ class CompleteWorkflowInput(BaseModel):
     iid: e.WorkflowInstanceId
 
 
-class ValidatorInput(BaseModel):
-    type: e.ValidatorEnum
-    constraint: Optional[str]
-
-
-class TaskDataStartInput(BaseModel):
-    id: e.DataId
-    type: e.DataType
-    order: int
-    label: Optional[str]
-    data: Optional[str]
-    encrypted: bool = False
-    validators: List[ValidatorInput] = []
-
-
-class TaskStartInput(BaseModel):
-    iid: e.WorkflowInstanceId
-    tid: e.TaskId
-    data: List[TaskDataStartInput]
-
-    def to_task(self):
-        return e.Task(
-            iid=self.iid,
-            id=self.id,
-            data=[e.TaskFieldData(**d.dict()) for d in self.data],
-        )
-
-
-class StartTasksInput(BaseModel):
-    tasks: List[TaskStartInput]
-
-
 class TaskDataInput(BaseModel):
-    id: e.DataId
+    dataId: e.DataId
     data: str
 
 
