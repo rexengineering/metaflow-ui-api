@@ -105,7 +105,7 @@ async def start_tasks(
 
 
 @validate_arguments
-async def get_task(iid: e.WorkflowInstanceId, tid: e.TaskId):
+async def get_task(iid: e.WorkflowInstanceId, tid: e.TaskId) -> e.Task:
     bridge = REXFlowBridge(Store.get_workflow(iid))
     task = (await bridge.get_task_data([tid])).pop()
     Store.update_task(task)
