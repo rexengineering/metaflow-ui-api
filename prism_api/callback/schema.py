@@ -2,7 +2,7 @@ from os import path
 
 import ariadne
 
-from . import resolvers as res
+from . import resolvers
 
 
 basepath = path.dirname(__file__)
@@ -14,6 +14,6 @@ typedefs = ariadne.load_schema_from_path(schemapath)
 
 schema = ariadne.make_executable_schema(
     typedefs,
-    res.query,
-    res.mutation,
+    resolvers.query,
+    resolvers.mutation,
 )

@@ -31,7 +31,7 @@ class TestGraphQLSchema(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-mock_task_data = bridge.e.TaskFieldData(
+mock_task_data = bridge.TaskFieldData(
     dataId='uname',
     type='TEXT',
     order=1,
@@ -58,15 +58,15 @@ class TestBridgeIntegration(unittest.TestCase):
         workflow = await bridge.REXFlowBridgeGQL.start_workflow(
             deployment_id=MOCK_DID,
         )
-        self.assertIsInstance(workflow, bridge.e.Workflow)
+        self.assertIsInstance(workflow, bridge.Workflow)
         self.assertEqual(MOCK_DID, workflow.did)
 
     @run_async
     async def test_task_get_data(self):
-        workflow = bridge.e.Workflow(
+        workflow = bridge.Workflow(
             iid=MOCK_IID,
             did=MOCK_DID,
-            status=bridge.e.WorkflowStatus.RUNNING,
+            status=bridge.WorkflowStatus.RUNNING,
         )
         rexflow = bridge.REXFlowBridgeGQL(workflow)
 
@@ -74,68 +74,68 @@ class TestBridgeIntegration(unittest.TestCase):
         tasks = await rexflow.get_task_data(task_ids)
         self.assertGreater(len(tasks), 0)
         for task in tasks:
-            self.assertIsInstance(task, bridge.e.Task)
+            self.assertIsInstance(task, bridge.Task)
             self.assertIn(task.tid, task_ids)
 
     @run_async
     async def test_task_validate_data(self):
-        workflow = bridge.e.Workflow(
+        workflow = bridge.Workflow(
             iid=MOCK_IID,
             did=MOCK_DID,
-            status=bridge.e.WorkflowStatus.RUNNING,
+            status=bridge.WorkflowStatus.RUNNING,
         )
         rexflow = bridge.REXFlowBridgeGQL(workflow)
 
         tasks = await rexflow.validate_task_data([
-            bridge.e.Task(
+            bridge.Task(
                 iid=MOCK_IID,
                 tid=MOCK_TID,
                 data=[mock_task_data],
-                status=bridge.e.TaskStatus.UP,
+                status=bridge.TaskStatus.UP,
             ),
         ])
         self.assertGreater(len(tasks), 0)
         for task in tasks:
-            self.assertIsInstance(task, bridge.e.Task)
+            self.assertIsInstance(task, bridge.Task)
 
     @run_async
     async def test_task_save_data(self):
-        workflow = bridge.e.Workflow(
+        workflow = bridge.Workflow(
             iid=MOCK_IID,
             did=MOCK_DID,
-            status=bridge.e.WorkflowStatus.RUNNING,
+            status=bridge.WorkflowStatus.RUNNING,
         )
         rexflow = bridge.REXFlowBridgeGQL(workflow)
 
         tasks = await rexflow.save_task_data([
-            bridge.e.Task(
+            bridge.Task(
                 iid=MOCK_IID,
                 tid=MOCK_TID,
                 data=[mock_task_data],
-                status=bridge.e.TaskStatus.UP,
+                status=bridge.TaskStatus.UP,
             ),
         ])
         self.assertGreater(len(tasks), 0)
         for task in tasks:
-            self.assertIsInstance(task, bridge.e.Task)
+            self.assertIsInstance(task, bridge.Task)
 
     @run_async
     async def test_task_complete(self):
-        workflow = bridge.e.Workflow(
+        workflow = bridge.Workflow(
             iid=MOCK_IID,
             did=MOCK_DID,
-            status=bridge.e.WorkflowStatus.RUNNING,
+            status=bridge.WorkflowStatus.RUNNING,
         )
         rexflow = bridge.REXFlowBridgeGQL(workflow)
 
         tasks = await rexflow.complete_task([
-            bridge.e.Task(
+            bridge.Task(
                 iid=MOCK_IID,
                 tid=MOCK_TID,
                 data=[mock_task_data],
-                status=bridge.e.TaskStatus.UP,
+                status=bridge.TaskStatus.UP,
             ),
         ])
         self.assertGreater(len(tasks), 0)
         for task in tasks:
-            self.assertIsInstance(task, bridge.e.Task)
+            self.assertIsInstance(task, bridge.Task)
