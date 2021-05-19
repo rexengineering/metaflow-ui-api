@@ -5,12 +5,27 @@ from ariadne import QueryType, MutationType, ObjectType
 from graphql.type.definition import GraphQLResolveInfo
 from pydantic.decorator import validate_arguments
 
-from .entities import wrappers as w
 from .entities.types import Session
+from .entities.wrappers import (
+    CompleteTaskPayload,
+    CompleteTasksInput,
+    SaveTaskInput,
+    SaveTasksPayload,
+    StartWorkflowInput,
+    StartWorkflowPayload,
+    TaskFilter,
+    UpdateStateInput,
+    UpdateStatePayload,
+    ValidateTaskInput,
+    ValidateTasksPayload,
+    WorkflowFilter,
+)
 from prism_api.rexflow import api as rexflow
-from prism_api.rexflow.entities import types as e
+from prism_api.rexflow.entities.types import (
+    OperationStatus,
+    Workflow,
+)
 from prism_api.state_manager import store
-
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +52,7 @@ class WorkflowResolver:
     async def active(
         self,
         info,
-        filter: w.WorkflowFilter = None
+        filter: WorkflowFilter = None
     ):
         iids = [] if filter is None else filter.ids
         workflows = await rexflow.get_active_workflows(iids)
@@ -57,9 +72,9 @@ workflow_object = ObjectType('Workflow')
 @workflow_object.field('tasks')
 @validate_arguments
 async def resolve_workflow_tasks(
-    workflow: e.Workflow,
+    workflow: Workflow,
     info,
-    filter: Optional[w.TaskFilter] = None,
+    filter: Optional[TaskFilter] = None,
 ):
     if filter:
         return [
@@ -77,12 +92,12 @@ mutation = MutationType()
 
 class StateMutations:
     @validate_arguments
-    async def update(self, info, input: w.UpdateStateInput):
+    async def update(self, info, input: UpdateStateInput):
         request = info.context['request']
         client_id = request.headers.get('client-id', 'anon')
         state = await store.save_raw_state(client_id, input.state)
-        return w.UpdateStatePayload(
-            status=e.OperationStatus.SUCCESS,
+        return UpdateStatePayload(
+            status=OperationStatus.SUCCESS,
             state=state,
         )
 
@@ -93,7 +108,7 @@ class SessionMutations:
 
     async def start(self, _):
         return {
-            'status': e.OperationStatus.SUCCESS,
+            'status': OperationStatus.SUCCESS,
             'session': {
                 'id': '',
                 'state': '',
@@ -105,7 +120,7 @@ class SessionMutations:
 
     async def close(self, _):
         return {
-            'status': e.OperationStatus.SUCCESS,
+            'status': OperationStatus.SUCCESS,
         }
 
 
@@ -115,26 +130,26 @@ mutation.set_field('session', SessionMutations)
 class TasksMutations:
 
     @validate_arguments
-    async def validate(self, info, input: w.ValidateTaskInput):
+    async def validate(self, info, input: ValidateTaskInput):
         tasks = await rexflow.validate_tasks(input.tasks)
-        return w.ValidateTasksPayload(
-            status=e.OperationStatus.SUCCESS,
+        return ValidateTasksPayload(
+            status=OperationStatus.SUCCESS,
             tasks=tasks,
         )
 
     @validate_arguments
-    async def save(self, info, input: w.SaveTaskInput):
+    async def save(self, info, input: SaveTaskInput):
         tasks = await rexflow.save_tasks(input.tasks)
-        return w.SaveTasksPayload(
-            status=e.OperationStatus.SUCCESS,
+        return SaveTasksPayload(
+            status=OperationStatus.SUCCESS,
             tasks=tasks
         )
 
     @validate_arguments
-    async def complete(self, info, input: w.CompleteTasksInput):
+    async def complete(self, info, input: CompleteTasksInput):
         tasks = await rexflow.complete_tasks(input.tasks)
-        return w.CompleteTaskPayload(
-            status=e.OperationStatus.SUCCESS,
+        return CompleteTaskPayload(
+            status=OperationStatus.SUCCESS,
             tasks=tasks
         )
 
@@ -144,11 +159,11 @@ class WorkflowMutations:
         pass
 
     @validate_arguments
-    async def start(self, info, input: w.StartWorkflowInput):
+    async def start(self, info, input: StartWorkflowInput):
         logger.info(input)
         workflow = await rexflow.start_workflow(input.did)
-        return w.StartWorkflowPayload(
-            status=e.OperationStatus.SUCCESS,
+        return StartWorkflowPayload(
+            status=OperationStatus.SUCCESS,
             iid=workflow.iid,
             workflow=workflow,
         )

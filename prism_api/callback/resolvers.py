@@ -3,9 +3,17 @@ import logging
 from ariadne import QueryType, MutationType
 from pydantic import validate_arguments
 
-from . import entities as w
+from .entities import (
+    CompleteWorkflowInput,
+    CompleteWorkflowPayload,
+    Problem,
+    StartTaskInput,
+    StartTaskPayload,
+)
 from prism_api.rexflow import api
-from prism_api.rexflow.entities import types as e
+from prism_api.rexflow.entities.types import (
+    OperationStatus,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -21,12 +29,12 @@ def query_health(*_):
 mutation = MutationType()
 
 
-class Task:
+class TaskMutations:
     def __init__(self, *_) -> None:
         pass
 
     @validate_arguments
-    async def start(self, info, input: w.StartTaskInput):
+    async def start(self, info, input: StartTaskInput):
         try:
             logger.info(
                 f'Starting task {input.tid} for instance {input.iid}'
@@ -34,42 +42,42 @@ class Task:
             await api.start_tasks(input.iid, [input.tid])
         except Exception as ex:
             logger.exception('Error when starting task')
-            return w.StartTaskPayload(
-                status=e.OperationStatus.FAILURE,
+            return StartTaskPayload(
+                status=OperationStatus.FAILURE,
                 errors=[
-                    w.Problem(message=str(ex))
+                    Problem(message=str(ex))
                 ]
             )
 
-        return w.StartTaskPayload(
-            status=e.OperationStatus.SUCCESS,
+        return StartTaskPayload(
+            status=OperationStatus.SUCCESS,
         )
 
 
-mutation.set_field('task', Task)
+mutation.set_field('task', TaskMutations)
 
 
-class Workflow:
+class WorkflowMutations:
     def __init__(self, *_) -> None:
         pass
 
     @validate_arguments
-    async def complete(self, info, input: w.CompleteWorkflowInput):
+    async def complete(self, info, input: CompleteWorkflowInput):
         try:
             logger.info(f'Complete workflow {input.iid}')
             await api.complete_workflow(input.iid)
         except Exception as ex:
             logger.exception('Error when completing workflow')
-            return w.CompleteWorkflowPayload(
-                status=e.OperationStatus.FAILURE,
+            return CompleteWorkflowPayload(
+                status=OperationStatus.FAILURE,
                 errors=[
-                    w.Problem(message=str(ex))
+                    Problem(message=str(ex))
                 ]
             )
 
-        return w.CompleteWorkflowPayload(
-            status=e.OperationStatus.SUCCESS,
+        return CompleteWorkflowPayload(
+            status=OperationStatus.SUCCESS,
         )
 
 
-mutation.set_field('workflow', Workflow)
+mutation.set_field('workflow', WorkflowMutations)

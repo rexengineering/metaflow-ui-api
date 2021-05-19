@@ -4,8 +4,8 @@ from unittest import mock
 from fastapi.testclient import TestClient
 import pytest
 
+from ..mocks.state_store import FakeStore
 from prism_api.app import app
-from ..utils import FakeStore
 
 
 FakeStore.sleep_time = 0.1
