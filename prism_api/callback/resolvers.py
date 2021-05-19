@@ -29,7 +29,7 @@ def query_health(*_):
 mutation = MutationType()
 
 
-class Task:
+class TaskMutations:
     def __init__(self, *_) -> None:
         pass
 
@@ -54,10 +54,10 @@ class Task:
         )
 
 
-mutation.set_field('task', Task)
+mutation.set_field('task', TaskMutations)
 
 
-class Workflow:
+class WorkflowMutations:
     def __init__(self, *_) -> None:
         pass
 
@@ -80,4 +80,4 @@ class Workflow:
         )
 
 
-mutation.set_field('workflow', Workflow)
+mutation.set_field('workflow', WorkflowMutations)

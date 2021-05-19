@@ -6,7 +6,7 @@ from unittest import mock
 import pytest
 from rexredis import RexRedis
 
-from ..utils import FakeStore
+from ..mocks.state_store import FakeStore
 from prism_api.state_manager.store import api as store
 
 

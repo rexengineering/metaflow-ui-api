@@ -107,15 +107,19 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         return transport
 
     @classmethod
+    def get_client(cls, deployment_id):
+        return Client(
+            transport=cls.get_transport(deployment_id),
+            fetch_schema_from_transport=True,
+        )
+
+    @classmethod
     @validate_arguments
     async def start_workflow(
         cls,
         deployment_id: WorkflowDeploymentId,
     ) -> Workflow:
-        async with Client(
-            transport=cls.get_transport(deployment_id),
-            fetch_schema_from_transport=True,
-        ) as session:
+        async with cls.get_client(deployment_id) as session:
             query = gql(queries.START_WORKFLOW_MUTATION)
             params = {
                 'createWorkflow': CreateWorkflowInstanceInput(
@@ -140,10 +144,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         cls,
         deployment_id: WorkflowDeploymentId,
     ) -> List[WorkflowInstanceId]:
-        async with Client(
-            transport=cls.get_transport(deployment_id),
-            fetch_schema_from_transport=True,
-        ) as session:
+        async with cls.get_client(deployment_id) as session:
             query = gql(queries.GET_INSTANCES_QUERY)
             result = await session.execute(query)
             logger.debug(result)
@@ -158,17 +159,13 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     @validate_arguments
     def __init__(self, workflow: Workflow) -> None:
         self.workflow = workflow
-        self.transport = self.get_transport(workflow.did)
 
     @validate_arguments
     async def get_task_data(
         self,
         task_ids: List[TaskId] = [],
     ) -> List[Task]:
-        async with Client(
-            transport=self.transport,
-            fetch_schema_from_transport=True,
-        ) as session:
+        async with self.get_client(self.workflow.did) as session:
             if len(task_ids) == 0:
                 return []
 
@@ -222,10 +219,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         self,
         tasks: List[Task],
     ) -> List[Task]:
-        async with Client(
-            transport=self.transport,
-            fetch_schema_from_transport=True,
-        ) as session:
+        async with self.get_client(self.workflow.did) as session:
             query = gql(queries.VALIDATE_TASK_DATA_MUTATION)
 
             async_tasks = []
@@ -262,10 +256,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         self,
         tasks: List[Task],
     ) -> List[Task]:
-        async with Client(
-            transport=self.transport,
-            fetch_schema_from_transport=True,
-        ) as session:
+        async with self.get_client(self.workflow.did) as session:
             query = gql(queries.SAVE_TASK_DATA_MUTATION)
 
             async_tasks = []
@@ -302,10 +293,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         self,
         tasks: List[Task],
     ) -> List[Task]:
-        async with Client(
-            transport=self.transport,
-            fetch_schema_from_transport=True,
-        ) as session:
+        async with self.get_client(self.workflow.did) as session:
             query = gql(queries.COMPLETE_TASK_MUTATION)
 
             async_tasks = []

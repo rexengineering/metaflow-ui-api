@@ -4,7 +4,7 @@ from unittest import mock
 from fastapi.testclient import TestClient
 import pytest
 
-from ..utils import FakeStore
+from ..mocks.state_store import FakeStore
 from prism_api.app import app
 
 
