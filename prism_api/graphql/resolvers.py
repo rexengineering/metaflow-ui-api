@@ -34,7 +34,6 @@ query = QueryType()
 
 @query.field('session')
 async def resolve_session(_, info: GraphQLResolveInfo):
-    # TODO add model for Session
     request = info.context['request']
     client_id = request.headers.get('client-id', 'anon')
     state = await store.read_raw_state(client_id)
