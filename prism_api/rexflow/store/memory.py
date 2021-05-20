@@ -1,6 +1,7 @@
 """Store workflow information"""
 from typing import Dict, List, Union
 
+from .base import StoreABC
 from prism_api.rexflow.entities.types import (
     Task,
     TaskId,
@@ -9,7 +10,7 @@ from prism_api.rexflow.entities.types import (
 )
 
 
-class Store:
+class Store(StoreABC):
     data: Dict[
         WorkflowInstanceId,
         Dict[str, Union[Workflow, Dict[TaskId, Task]]]
