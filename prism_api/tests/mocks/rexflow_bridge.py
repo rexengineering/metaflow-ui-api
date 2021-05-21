@@ -22,6 +22,8 @@ from prism_api.rexflow.store import Store, TaskNotFoundError
 class FakeREXFlowBridge(REXFlowBridgeABC):
     sleep_time = 0.2
 
+    Store = Store
+
     @classmethod
     async def get_instances(cls, deployment_id):
         return [MOCK_IID]
@@ -51,14 +53,14 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     ) -> List[Task]:
         await asyncio.sleep(self.sleep_time)
         if len(task_ids) == 0:
-            tasks_dict = Store.get_workflow_tasks(self.workflow.iid)
+            tasks_dict = self.Store.get_workflow_tasks(self.workflow.iid)
             if tasks_dict:
                 return tasks_dict.values()
 
         tasks = []
         for tid in task_ids:
             try:
-                task = Store.get_task(self.workflow.iid, tid)
+                task = self.Store.get_task(self.workflow.iid, tid)
             except TaskNotFoundError:
                 task = Task(
                     iid=self.workflow.iid,

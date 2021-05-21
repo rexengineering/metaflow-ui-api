@@ -7,9 +7,11 @@ from ..mocks import MOCK_DID, MOCK_TID
 from ..mocks.rexflow_bridge import FakeREXFlowBridge
 from ..utils import run_async
 from prism_api.rexflow import api
+from prism_api.rexflow.store.memory import Store
 
 
 FakeREXFlowBridge.sleep_time = 0.1
+FakeREXFlowBridge.Store = Store
 
 
 async def get_deployments():
@@ -23,6 +25,7 @@ async def get_deployments():
 @pytest.mark.ci
 class TestWorkflow(unittest.TestCase):
     @run_async
+    @mock.patch('prism_api.rexflow.api.Store', Store)
     @mock.patch('prism_api.rexflow.api.REXFlowBridge', FakeREXFlowBridge)
     @mock.patch('prism_api.rexflow.api.get_deployments', get_deployments)
     async def test_happy_workflow(self):
