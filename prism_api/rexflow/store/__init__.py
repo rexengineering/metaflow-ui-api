@@ -4,4 +4,4 @@ from .errors import (  # noqa FQ401
     TaskNotFoundError,
 )
 
-from .memory import Store  # noqa FQ401
+from .redis import Store  # noqa FQ401
