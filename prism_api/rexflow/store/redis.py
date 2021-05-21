@@ -45,7 +45,7 @@ class Store(StoreABC):
         else:
             raise WorkflowNotFoundError
         tasks = cls.get_workflow_tasks(workflow.iid)
-        workflow.tasks = tasks.values()
+        workflow.tasks = list(tasks.values())
         return workflow
 
     @classmethod

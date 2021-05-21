@@ -19,6 +19,7 @@ from .entities.types import (
     Workflow,
     WorkflowDeploymentId,
     WorkflowInstanceId,
+    WorkflowInstanceInfo,
     WorkflowStatus,
 )
 from .entities.wrappers import (
@@ -143,18 +144,14 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     async def get_instances(
         cls,
         deployment_id: WorkflowDeploymentId,
-    ) -> List[WorkflowInstanceId]:
+    ) -> List[WorkflowInstanceInfo]:
         async with cls.get_client(deployment_id) as session:
             query = gql(queries.GET_INSTANCES_QUERY)
             result = await session.execute(query)
             logger.debug(result)
             payload = GetInstancePayload(**result['getInstances'])
 
-            return [
-                instance_info.iid
-                for instance_info in payload.iid_list
-                if instance_info.iid_status == WorkflowStatus.RUNNING
-            ]
+            return payload.iid_list
 
     @validate_arguments
     def __init__(self, workflow: Workflow) -> None:

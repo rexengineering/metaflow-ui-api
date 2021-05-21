@@ -72,4 +72,4 @@ class TestWorkflow(unittest.TestCase):
 
         # Finish workflow
         await api.complete_workflow(workflow.iid)
-        self.assertNotIn(workflow, api.Store.get_workflow_list([]))
+        self.assertNotIn(workflow, await api.get_active_workflows([]))

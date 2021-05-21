@@ -13,6 +13,7 @@ from prism_api.rexflow.entities.types import (
     ValidatorEnum,
     Workflow,
     WorkflowDeploymentId,
+    WorkflowInstanceInfo,
     WorkflowStatus,
 )
 from prism_api.rexflow.bridge import REXFlowBridgeABC
@@ -25,8 +26,11 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     Store = Store
 
     @classmethod
-    async def get_instances(cls, deployment_id):
-        return [MOCK_IID]
+    async def get_instances(cls, deployment_id) -> List[WorkflowInstanceInfo]:
+        return [WorkflowInstanceInfo(
+            iid=MOCK_IID,
+            iid_status=WorkflowStatus.RUNNING,
+        )]
 
     @classmethod
     @validate_arguments

@@ -18,7 +18,7 @@ from .entities.types import (
     WorkflowDeployment,
     WorkflowDeploymentId,
     WorkflowInstanceId,
-    WorkflowStatus
+    WorkflowStatus,
 )
 from .entities.wrappers import (
     TaskChange
@@ -51,11 +51,11 @@ async def start_workflow(
 
 async def _refresh_instance(did: WorkflowDeploymentId):
     instances = await REXFlowBridge.get_instances(did)
-    for iid in instances:
+    for instance in instances:
         workflow = Workflow(
             did=did,
-            iid=iid,
-            status=WorkflowStatus.RUNNING,
+            iid=instance.iid,
+            status=instance.iid_status,
         )
         Store.add_workflow(workflow)
 
@@ -94,13 +94,19 @@ async def get_active_workflows(
     iids: List[WorkflowInstanceId],
 ) -> List[Workflow]:
     await refresh_workflows()
-    return Store.get_workflow_list(iids)
+    return [
+        workflow
+        for workflow in Store.get_workflow_list(iids)
+        if workflow.status == WorkflowStatus.RUNNING
+    ]
 
 
 async def complete_workflow(
     instance_id: WorkflowInstanceId,
 ) -> None:
-    Store.delete_workflow(instance_id)
+    workflow = Store.get_workflow(instance_id)
+    workflow.status = WorkflowStatus.COMPLETED
+    Store.add_workflow(workflow)
 
 
 @validate_arguments
