@@ -25,7 +25,7 @@ class StoreABC(abc.ABC):
     @abc.abstractmethod
     def get_workflow_list(
         cls,
-        iids: List[WorkflowInstanceId],
+        iids: List[WorkflowInstanceId] = [],
     ) -> List[Workflow]:
         raise NotImplementedError
 
@@ -42,6 +42,11 @@ class StoreABC(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def update_task(cls, task: Task):
+        """Updates an existing task
+
+        Updates task information if it already exists in storage, but if it
+        doesn't exists it does nothing.
+        """
         raise NotImplementedError
 
     @classmethod

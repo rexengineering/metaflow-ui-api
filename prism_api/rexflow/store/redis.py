@@ -41,7 +41,7 @@ class Store(StoreABC):
     @classmethod
     def get_workflow_list(
         cls,
-        iids: List[WorkflowInstanceId],
+        iids: List[WorkflowInstanceId] = [],
     ) -> List[Workflow]:
         redis = cls._get_redis()
         if len(iids) == 0:

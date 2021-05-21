@@ -16,7 +16,7 @@ from prism_api.rexflow.entities.types import (
     WorkflowStatus,
 )
 from prism_api.rexflow.bridge import REXFlowBridgeABC
-from prism_api.rexflow.store import Store
+from prism_api.rexflow.store import Store, TaskNotFoundError
 
 
 class FakeREXFlowBridge(REXFlowBridgeABC):
@@ -37,7 +37,7 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
             did=deployment_id,
             iid=MOCK_IID,
             status=WorkflowStatus.RUNNING,
-            data=Store.data.get(MOCK_IID, {}).get('tasks', [])
+            data=[],
         )
 
     @validate_arguments
@@ -50,15 +50,17 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         task_ids: List[TaskId] = []
     ) -> List[Task]:
         await asyncio.sleep(self.sleep_time)
-        if len(task_ids) == 0 and self.workflow.iid in Store.data:
-            return Store.data[self.workflow.iid]['tasks'].values()
+        if len(task_ids) == 0:
+            tasks_dict = Store.get_workflow_tasks(self.workflow.iid)
+            if tasks_dict:
+                return tasks_dict.values()
 
         tasks = []
         for tid in task_ids:
-            if tid in Store.data[self.workflow.iid]['tasks']:
-                tasks.append(Store.data[self.workflow.iid]['tasks'][tid])
-            else:
-                tasks.append(Task(
+            try:
+                task = Store.get_task(self.workflow.iid, tid)
+            except TaskNotFoundError:
+                task = Task(
                     iid=self.workflow.iid,
                     tid=tid,
                     data=[
@@ -75,7 +77,8 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
                             ]
                         )
                     ],
-                ))
+                )
+            tasks.append(task)
         return tasks
 
     @validate_arguments

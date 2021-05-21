@@ -85,8 +85,8 @@ async def refresh_workflows() -> None:
     """Asyncrhonously refresh all workflows tasks"""
     await _refresh_instances()
     await asyncio.gather(*[
-        _refresh_workflow(d['workflow'])
-        for d in Store.data.values()
+        _refresh_workflow(workflow)
+        for workflow in Store.get_workflow_list()
     ])
 
 
