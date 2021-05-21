@@ -1,14 +1,21 @@
+import logging
 from typing import Dict, List
 
 from rexredis import RexRedis
 
 from .base import StoreABC
+from .errors import (
+    WorkflowNotFoundError,
+    TaskNotFoundError,
+)
 from prism_api.rexflow.entities.types import (
     Task,
     TaskId,
     Workflow,
     WorkflowInstanceId,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class Store(StoreABC):
@@ -30,12 +37,20 @@ class Store(StoreABC):
         redis.set_json(cls.WORKFLOW_PREFIX + workflow.iid, workflow.dict())
 
     @classmethod
-    def get_workflow(cls, workflow_id: WorkflowInstanceId) -> Workflow:
+    def _get_workflow(cls, workflow_key):
         redis = cls._get_redis()
-        workflow_data = redis.get_from_json(cls.WORKFLOW_PREFIX + workflow_id)
-        workflow = Workflow(**workflow_data)
-        tasks = cls.get_workflow_tasks(workflow_id)
+        workflow_data = redis.get_from_json(workflow_key)
+        if workflow_data:
+            workflow = Workflow(**workflow_data)
+        else:
+            raise WorkflowNotFoundError
+        tasks = cls.get_workflow_tasks(workflow.iid)
         workflow.tasks = tasks.values()
+        return workflow
+
+    @classmethod
+    def get_workflow(cls, workflow_id: WorkflowInstanceId) -> Workflow:
+        workflow = cls._get_workflow(cls.WORKFLOW_PREFIX + workflow_id)
         return workflow
 
     @classmethod
@@ -43,21 +58,30 @@ class Store(StoreABC):
         cls,
         iids: List[WorkflowInstanceId] = [],
     ) -> List[Workflow]:
-        redis = cls._get_redis()
         if len(iids) == 0:
-            iids = redis.find_keys(cls.WORKFLOW_PREFIX)
+            redis = cls._get_redis()
+            workflow_keys = redis.find_keys(cls.WORKFLOW_PREFIX)
+        else:
+            workflow_keys = [
+                cls.WORKFLOW_PREFIX + iid
+                for iid in iids
+            ]
 
         workflows = []
-        for iid in iids:
-            workflow = cls.get_workflow(iid)
-            workflows.append(workflow)
+        for workflow_key in workflow_keys:
+            try:
+                workflow = cls._get_workflow(workflow_key)
+            except WorkflowNotFoundError:
+                logger.exception(f'Data for {workflow_key} not found')
+            else:
+                workflows.append(workflow)
 
         return workflows
 
     @classmethod
     def delete_workflow(cls, workflow_id: WorkflowInstanceId):
         redis = cls._get_redis()
-        redis.delete_keys([workflow_id])
+        redis.delete_keys(workflow_id)
 
     @classmethod
     def _get_task_key(cls, iid: WorkflowInstanceId, tid: TaskId) -> str:
@@ -81,12 +105,15 @@ class Store(StoreABC):
         workflow_id: WorkflowInstanceId,
     ) -> Dict[TaskId, Task]:
         redis = cls._get_redis()
+        if not redis.exists(cls.WORKFLOW_PREFIX + workflow_id):
+            raise WorkflowNotFoundError
         task_keys = redis.find_keys(cls.TASK_PREFIX + workflow_id)
         tasks = {}
         for task_key in task_keys:
             task_data = redis.get_from_json(task_key)
-            task = Task(**task_data)
-            tasks[task.tid] = task
+            if task_data:
+                task = Task(**task_data)
+                tasks[task.tid] = task
         return tasks
 
     @classmethod
@@ -98,6 +125,8 @@ class Store(StoreABC):
         task_key = cls._get_task_key(workflow_id, task_id)
         redis = cls._get_redis()
         task_data = redis.get_from_json(task_key)
+        if task_data is None:
+            raise TaskNotFoundError
         return Task(**task_data)
 
     @classmethod
@@ -106,6 +135,8 @@ class Store(StoreABC):
         workflow_id: WorkflowInstanceId,
         task_id: TaskId,
     ) -> None:
-        task_key = cls._get_task_key(workflow_id, task_id)
         redis = cls._get_redis()
-        redis.delete_keys([task_key])
+        if not redis.exists(cls.WORKFLOW_PREFIX + workflow_id):
+            raise WorkflowNotFoundError
+        task_key = cls._get_task_key(workflow_id, task_id)
+        redis.delete_keys(task_key)
