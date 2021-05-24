@@ -51,7 +51,10 @@ async def get_deployments() -> Dict[str, List[WorkflowDeploymentId]]:
         )
         result.raise_for_status()
         data = result.json()['wf_map']
-        return data
+        return {
+            name: list(deployment_ids.keys())
+            for name, deployment_ids in data.items()
+        }
 
 
 class REXFlowBridgeABC(abc.ABC):

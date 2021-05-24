@@ -33,9 +33,9 @@ async def get_available_workflows() -> List[WorkflowDeployment]:
     return [
         WorkflowDeployment(
             name=name,
-            deployments=deployments,
+            deployments=deployment_ids,
         )
-        for name, deployments in deployments.items()
+        for name, deployment_ids in deployments.items()
     ]
 
 
