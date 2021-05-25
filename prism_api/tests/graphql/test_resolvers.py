@@ -10,6 +10,8 @@ from ..mocks import (
     MOCK_TID,
     rexflow_api,
 )
+from ..mocks.graphql_info import MockInfo
+from ..mocks.state_store import FakeStore
 from ..utils import run_async
 from prism_api.callback.resolvers import (
     TaskMutations as TaskCallbackMutations,
@@ -46,10 +48,6 @@ from prism_api.rexflow.entities.types import (
 )
 
 
-def mock_info():
-    return {}
-
-
 async def mock_get_deployments():
     return {
         'test_workflow': [
@@ -71,10 +69,17 @@ def get_task_input():
     )
 
 
+@mock.patch(
+    'prism_api.state_manager.store.api.Store',
+    FakeStore,
+)
 class TestSessionResolvers(unittest.TestCase):
     @run_async
     async def test_session_resolver(self):
-        response = await resolve_session()
+        response = await resolve_session(
+            {},
+            MockInfo(),
+        )
         self.assertTrue(response)
 
 
@@ -88,7 +93,7 @@ class TestRexflowResolvers(unittest.TestCase):
     async def test_active_workflows(self):
         resolver = WorkflowResolver()
         response = await resolver.active(
-            mock_info(),
+            MockInfo(),
         )
         self.assertIsInstance(response, List)
         for workflow in response:
@@ -106,7 +111,7 @@ class TestRexflowResolvers(unittest.TestCase):
     async def test_start_workflow(self):
         mutations = WorkflowMutations()
         response = await mutations.start(
-            mock_info(),
+            MockInfo(),
             input=StartWorkflowInput(
                 did=MOCK_DID,
             )
@@ -118,7 +123,7 @@ class TestRexflowResolvers(unittest.TestCase):
     async def test_validate_tasks(self):
         mutations = TasksMutations()
         response = await mutations.validate(
-            mock_info(),
+            MockInfo(),
             input=ValidateTaskInput(
                 tasks=[
                     get_task_input(),
@@ -132,7 +137,7 @@ class TestRexflowResolvers(unittest.TestCase):
     async def test_save_tasks(self):
         mutations = TasksMutations()
         response = await mutations.save(
-            mock_info(),
+            MockInfo(),
             input=SaveTaskInput(
                 tasks=[
                     get_task_input(),
@@ -146,7 +151,7 @@ class TestRexflowResolvers(unittest.TestCase):
     async def test_complete_tasks(self):
         mutations = TasksMutations()
         response = await mutations.complete(
-            mock_info(),
+            MockInfo(),
             input=CompleteTasksInput(
                 tasks=[get_task_input()]
             )
@@ -165,7 +170,7 @@ class TestCallBackResolvers(unittest.TestCase):
     async def test_start_task_callback(self):
         mutations = TaskCallbackMutations()
         response = await mutations.start(
-            mock_info(),
+            MockInfo(),
             input=StartTaskInput(
                 iid=MOCK_IID,
                 tid=MOCK_TID,
@@ -178,7 +183,7 @@ class TestCallBackResolvers(unittest.TestCase):
     async def test_complete_workflow_callback(self):
         mutations = WorflowCallbackMutations()
         response = await mutations.complete(
-            mock_info(),
+            MockInfo(),
             input=CompleteWorkflowInput(
                 iid=MOCK_IID,
             ),

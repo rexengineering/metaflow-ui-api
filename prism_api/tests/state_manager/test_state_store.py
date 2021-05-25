@@ -45,6 +45,17 @@ class TestStateStore(unittest.TestCase):
         state = asyncio.run(store.read_state(client_id))
         self.assertEqual(state, FakeStore.default)
 
+    @mock.patch('prism_api.state_manager.store.api.Store', FakeStore)
+    def test_save_raw_state(self):
+        raw_state = json.dumps(fake_state)
+        state = asyncio.run(store.save_raw_state(client_id, raw_state))
+        self.assertEqual(state, raw_state)
+
+    @mock.patch('prism_api.state_manager.store.api.Store', FakeStore)
+    def test_read_raw_state(self):
+        state = asyncio.run(store.read_raw_state(client_id))
+        self.assertEqual(state, json.dumps(FakeStore.default))
+
 
 @pytest.mark.ci
 class TestRedisStore(unittest.TestCase):

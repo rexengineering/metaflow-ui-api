@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
+from .types import State
 from prism_api.rexflow.entities.types import (
     DataId,
     OperationStatus,
@@ -25,6 +26,10 @@ class TaskFilter(BaseModel):
 
 
 # GraphQL input types
+
+class UpdateStateInput(BaseModel):
+    state: State
+
 
 class StartWorkflowInput(BaseModel):
     did: WorkflowDeploymentId  # deployment id
@@ -74,6 +79,10 @@ class Payload(BaseModel):
     status: OperationStatus
     errors: Optional[List[Problem]]
     query: Dict = {}
+
+
+class UpdateStatePayload(Payload):
+    state: State
 
 
 class StartWorkflowPayload(Payload):

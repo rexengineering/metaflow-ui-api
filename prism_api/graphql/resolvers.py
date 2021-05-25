@@ -2,8 +2,10 @@ import logging
 from typing import Optional
 
 from ariadne import QueryType, MutationType, ObjectType
+from graphql.type.definition import GraphQLResolveInfo
 from pydantic.decorator import validate_arguments
 
+from .entities.types import Session
 from .entities.wrappers import (
     CompleteTaskPayload,
     CompleteTasksInput,
@@ -12,6 +14,8 @@ from .entities.wrappers import (
     StartWorkflowInput,
     StartWorkflowPayload,
     TaskFilter,
+    UpdateStateInput,
+    UpdateStatePayload,
     ValidateTaskInput,
     ValidateTasksPayload,
     WorkflowFilter,
@@ -21,6 +25,7 @@ from prism_api.rexflow.entities.types import (
     OperationStatus,
     Workflow,
 )
+from prism_api.state_manager import store
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +33,14 @@ query = QueryType()
 
 
 @query.field('session')
-async def resolve_session(*_):
-    # TODO add model for Session
-    return {
-        'id': '',
-        'state': '',
-    }
+async def resolve_session(_, info: GraphQLResolveInfo):
+    request = info.context['request']
+    client_id = request.headers.get('client-id', 'anon')
+    state = await store.read_raw_state(client_id)
+    return Session(
+        id=client_id,
+        state=state,
+    )
 
 
 class WorkflowResolver:
@@ -83,11 +90,15 @@ mutation = MutationType()
 
 
 class StateMutations:
-    async def update(*_, input):
-        return {
-            'status': OperationStatus.SUCCESS,
-            'state': ''
-        }
+    @validate_arguments
+    async def update(self, info, input: UpdateStateInput):
+        request = info.context['request']
+        client_id = request.headers.get('client-id', 'anon')
+        state = await store.save_raw_state(client_id, input.state)
+        return UpdateStatePayload(
+            status=OperationStatus.SUCCESS,
+            state=state,
+        )
 
 
 class SessionMutations:
