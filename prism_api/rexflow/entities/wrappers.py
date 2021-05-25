@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 from .types import (
     DataId,
-    DataType,
     OperationStatus,
     TaskFieldData,
     TaskId,
@@ -39,9 +38,7 @@ class TaskMutationFormInput(BaseModel):
 
 class TaskFieldInput(BaseModel):
     dataId: DataId
-    type: DataType
     data: Optional[str]
-    encrypted: bool
 
 
 class TaskMutationValidateInput(BaseModel):
@@ -88,7 +85,7 @@ class TaskFormPayload(Payload):
 class ValidatorResults(BaseModel):
     validator: Validator
     passed: bool
-    result: Optional[str]
+    message: Optional[str]
 
 
 class FieldValidationResult(BaseModel):

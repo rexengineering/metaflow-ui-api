@@ -69,12 +69,8 @@ mutation ValidateTaskData($validateTaskInput: TaskMutationValidateInput!) {
         dataId
         passed
         results {
-          validator {
-            type
-            constraint
-          }
           passed
-          result
+          message
         }
       }
     }
@@ -95,12 +91,8 @@ mutation SaveTaskData($saveTaskInput: TaskMutationSaveInput!) {
         dataId
         passed
         results {
-          validator {
-            type
-            constraint
-          }
           passed
-          result
+          message
         }
       }
     }

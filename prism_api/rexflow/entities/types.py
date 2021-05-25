@@ -43,10 +43,19 @@ class OperationStatus(str, Enum):
 class ValidatorEnum(str, Enum):
     REQUIRED = 'REQUIRED'
     REGEX = 'REGEX'
+    BOOLEAN = 'BOOLEAN'
+    REQUIRED_IF = 'REQUIRED_IF'
+    PERCENTAGE = 'PERCENTAGE'
+    POSITIVE = 'POSITIVE'
 
 
 class DataType(str, Enum):
     TEXT = 'TEXT'
+    CURRENCY = 'CURRENCY'
+    INTEGER = 'INTEGER'
+    FLOAT = 'FLOAT'
+    BOOLEAN = 'BOOLEAN'
+    PERCENTAGE = 'PERCENTAGE'
 
 
 class Validator(BaseModel):
