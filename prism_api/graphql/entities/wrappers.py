@@ -8,6 +8,7 @@ from prism_api.rexflow.entities.types import (
     DataId,
     OperationStatus,
     Task,
+    Validator,
     Workflow,
     WorkflowInstanceId,
     WorkflowDeploymentId,
@@ -71,6 +72,25 @@ class CompleteTasksInput(BaseModel):
 
 class Problem(BaseModel):
     message: str
+
+    def resolve_type(self):
+        pass
+
+
+class ValidationProblem(Problem):
+    iid: WorkflowInstanceId
+    tid: TaskId
+    dataId: DataId
+    validator: Validator
+
+    def resolve_type(self):
+        return 'ValidationProblem'
+
+    def is_type_of(self, type):
+        if type == 'TaskProblems':
+            return True
+
+        return False
 
 
 # GraphQL payload types

@@ -18,9 +18,11 @@ from .entities.wrappers import (
     UpdateStatePayload,
     ValidateTaskInput,
     ValidateTasksPayload,
+    ValidationProblem,
     WorkflowFilter,
 )
 from prism_api.rexflow import api as rexflow
+from prism_api.rexflow.bridge import ValidationError
 from prism_api.rexflow.entities.types import (
     OperationStatus,
     Workflow,
@@ -130,7 +132,22 @@ class TasksMutations:
 
     @validate_arguments
     async def validate(self, info, input: ValidateTaskInput):
-        tasks = await rexflow.validate_tasks(input.tasks)
+        try:
+            tasks = await rexflow.validate_tasks(input.tasks)
+        except ValidationError as e:
+            errors = []
+            for dataId, error in e.errors.items():
+                errors.append(ValidationProblem(
+                    message=error['message'],
+                    iid=e.iid,
+                    tid=e.tid,
+                    dataId=dataId,
+                    validator=error['validator'],
+                ))
+            return ValidateTasksPayload(
+                status=OperationStatus.FAILURE,
+                errors=errors,
+            )
         return ValidateTasksPayload(
             status=OperationStatus.SUCCESS,
             tasks=tasks,
@@ -138,7 +155,22 @@ class TasksMutations:
 
     @validate_arguments
     async def save(self, info, input: SaveTaskInput):
-        tasks = await rexflow.save_tasks(input.tasks)
+        try:
+            tasks = await rexflow.save_tasks(input.tasks)
+        except ValidationError as e:
+            errors = []
+            for dataId, error in e.errors.items():
+                errors.append(ValidationProblem(
+                    message=error['message'],
+                    iid=e.iid,
+                    tid=e.tid,
+                    dataId=dataId,
+                    validator=error['validator'],
+                ))
+            return SaveTasksPayload(
+                status=OperationStatus.FAILURE,
+                errors=errors,
+            )
         return SaveTasksPayload(
             status=OperationStatus.SUCCESS,
             tasks=tasks

@@ -18,6 +18,9 @@ type ParsingProblem implements ProblemInterface {
 
 type ValidationProblem implements ProblemInterface {
     message: String!
+    iid: WorkflowInstanceId!
+    tid: TaskId!
+    dataId: DataId!
     validator: Validator!
 }
 

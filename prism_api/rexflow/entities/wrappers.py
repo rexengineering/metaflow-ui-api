@@ -7,7 +7,6 @@ from .types import (
     OperationStatus,
     TaskFieldData,
     TaskId,
-    Validator,
     WorkflowDeploymentId,
     WorkflowInstanceId,
     WorkflowInstanceInfo,
@@ -83,7 +82,6 @@ class TaskFormPayload(Payload):
 
 
 class ValidatorResults(BaseModel):
-    validator: Validator
     passed: bool
     message: Optional[str]
 
@@ -91,7 +89,7 @@ class ValidatorResults(BaseModel):
 class FieldValidationResult(BaseModel):
     dataId: DataId
     passed: bool
-    result: Optional[ValidatorResults]
+    results: List[ValidatorResults]
 
 
 class TaskValidatePayload(Payload):
