@@ -178,7 +178,22 @@ class TasksMutations:
 
     @validate_arguments
     async def complete(self, info, input: CompleteTasksInput):
-        tasks = await rexflow.complete_tasks(input.tasks)
+        try:
+            tasks = await rexflow.complete_tasks(input.tasks)
+        except ValidationError as e:
+            errors = []
+            for dataId, error in e.errors.items():
+                errors.append(ValidationProblem(
+                    message=error['message'],
+                    iid=e.iid,
+                    tid=e.tid,
+                    dataId=dataId,
+                    validator=error['validator'],
+                ))
+            return SaveTasksPayload(
+                status=OperationStatus.FAILURE,
+                errors=errors,
+            )
         return CompleteTaskPayload(
             status=OperationStatus.SUCCESS,
             tasks=tasks
