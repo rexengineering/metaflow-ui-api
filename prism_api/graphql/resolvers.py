@@ -22,7 +22,7 @@ from .entities.wrappers import (
     WorkflowFilter,
 )
 from prism_api.rexflow import api as rexflow
-from prism_api.rexflow.bridge import ValidationError
+from prism_api.rexflow.errors import ValidationError
 from prism_api.rexflow.entities.types import (
     OperationStatus,
     Workflow,

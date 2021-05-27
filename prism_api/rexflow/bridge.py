@@ -1,7 +1,7 @@
 import abc
 import asyncio
 import logging
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from gql import Client, gql
 from gql.transport import aiohttp
@@ -10,14 +10,12 @@ from pydantic import validate_arguments
 
 from . import queries
 from .entities.types import (
-    DataId,
     OperationStatus,
     Task,
     TaskFieldData,
     TaskId,
     TaskStatus,
     Validator,
-    ValidatorEnum,
     Workflow,
     WorkflowDeploymentId,
     WorkflowInstanceId,
@@ -36,6 +34,7 @@ from .entities.wrappers import (
     TaskSavePayload,
     TaskValidatePayload,
 )
+from .errors import REXFlowError, ValidationError
 from prism_api import settings
 
 
@@ -44,31 +43,6 @@ logger = logging.getLogger(__name__)
 # aiohttp info logs are too verbose, forcing them to debug level
 if settings.LOG_LEVEL != 'DEBUG':
     aiohttp.log.setLevel(logging.WARNING)
-
-
-class ValidationError(Exception):
-    """Triggers when a validator fails on the bridge"""
-    iid: WorkflowInstanceId
-    tid: TaskId
-    errors: Dict[DataId, Dict[str, Union[str, Validator]]]
-
-    def __init__(
-        self,
-        *args,
-        iid: WorkflowInstanceId,
-        tid: TaskId,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, **kwargs)
-        self.iid = iid
-        self.tid = tid
-        self.errors = {}
-
-    def add_error(self, data_id: DataId, message: str, validator: Validator):
-        self.errors[data_id] = {
-            'message': message,
-            'validator': validator,
-        }
 
 
 async def get_deployments() -> Dict[str, List[WorkflowDeploymentId]]:
@@ -278,25 +252,11 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     **result['tasks']['validate'],
                 )
                 if payload.status != OperationStatus.SUCCESS:
-                    raise Exception(results)
+                    raise REXFlowError(results)
 
                 if not payload.passed:
-                    validation_ex = ValidationError(
-                        iid=payload.iid,
-                        tid=payload.tid,
-                    )
-                    for field in payload.results:
-                        if not field.passed:
-                            for validator in field.results:
-                                if not validator.passed:
-                                    validation_ex.add_error(
-                                        data_id=field.dataId,
-                                        message=validator.message,
-                                        validator=Validator(
-                                            type=ValidatorEnum.REGEX,
-                                        )
-                                    )
-                    raise validation_ex
+                    raise ValidationError(payload=payload)
+
             return tasks
 
     @validate_arguments
@@ -333,25 +293,11 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     **result['tasks']['save'],
                 )
                 if payload.status != OperationStatus.SUCCESS:
-                    raise Exception(results)
+                    raise REXFlowError(results)
 
                 if not payload.passed:
-                    validation_ex = ValidationError(
-                        iid=payload.iid,
-                        tid=payload.tid,
-                    )
-                    for field in payload.results:
-                        if not field.passed:
-                            for validator in field.results:
-                                if not validator.passed:
-                                    validation_ex.add_error(
-                                        data_id=field.dataId,
-                                        message=validator.message,
-                                        validator=Validator(
-                                            type=ValidatorEnum.REGEX,
-                                        )
-                                    )
-                    raise validation_ex
+                    raise ValidationError(payload=payload)
+
             return tasks
 
     @validate_arguments
@@ -382,5 +328,5 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     **result['tasks']['complete'],
                 )
                 if payload.status != OperationStatus.SUCCESS:
-                    raise Exception
+                    raise REXFlowError
             return tasks

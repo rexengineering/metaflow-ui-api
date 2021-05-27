@@ -92,18 +92,19 @@ class FieldValidationResult(BaseModel):
     results: List[ValidatorResults]
 
 
-class TaskValidatePayload(Payload):
+class ValidatedPayload(Payload):
     iid: WorkflowInstanceId
     tid: TaskId
     passed: bool
     results: List[FieldValidationResult]
 
 
-class TaskSavePayload(Payload):
-    iid: WorkflowInstanceId
-    tid: TaskId
-    passed: bool
-    results: List[FieldValidationResult]
+class TaskValidatePayload(ValidatedPayload):
+    pass
+
+
+class TaskSavePayload(ValidatedPayload):
+    pass
 
 
 class TaskCompletePayload(Payload):
