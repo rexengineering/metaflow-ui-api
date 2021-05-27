@@ -86,12 +86,6 @@ class ValidationProblem(Problem):
     def resolve_type(self):
         return 'ValidationProblem'
 
-    def is_type_of(self, type):
-        if type == 'TaskProblems':
-            return True
-
-        return False
-
 
 # GraphQL payload types
 

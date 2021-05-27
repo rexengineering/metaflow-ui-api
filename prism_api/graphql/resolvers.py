@@ -1,7 +1,13 @@
 import logging
 from typing import Optional
 
-from ariadne import QueryType, MutationType, ObjectType
+from ariadne import (
+    InterfaceType,
+    MutationType,
+    ObjectType,
+    QueryType,
+    UnionType,
+)
 from graphql.type.definition import GraphQLResolveInfo
 from pydantic.decorator import validate_arguments
 
@@ -9,6 +15,7 @@ from .entities.types import Session
 from .entities.wrappers import (
     CompleteTaskPayload,
     CompleteTasksInput,
+    Problem,
     SaveTaskInput,
     SaveTasksPayload,
     StartWorkflowInput,
@@ -30,6 +37,22 @@ from prism_api.rexflow.entities.types import (
 from prism_api.state_manager import store
 
 logger = logging.getLogger(__name__)
+
+
+def resolve_problem_interface_type(obj: Problem, *_):
+    return obj.resolve_type()
+
+
+problem_interface = InterfaceType(
+    'ProblemInterface',
+    resolve_problem_interface_type,
+)
+
+task_problems_union = UnionType(
+    'TaskProblems',
+    resolve_problem_interface_type,
+)
+
 
 query = QueryType()
 
