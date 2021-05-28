@@ -38,6 +38,7 @@ class TaskStatus(str, Enum):
 class OperationStatus(str, Enum):
     SUCCESS = 'SUCCESS'
     FAILURE = 'FAILURE'
+    WITH_ERRORS = 'WITH_ERRORS'
 
 
 class ValidatorEnum(str, Enum):
@@ -56,6 +57,13 @@ class DataType(str, Enum):
     FLOAT = 'FLOAT'
     BOOLEAN = 'BOOLEAN'
     PERCENTAGE = 'PERCENTAGE'
+
+
+class ErrorDetails(BaseModel):
+    message: str
+
+    def __str__(self) -> str:
+        return self.message
 
 
 class Validator(BaseModel):

@@ -86,7 +86,7 @@ class TestBridgeIntegration(unittest.TestCase):
         )
         rexflow = bridge.REXFlowBridgeGQL(workflow)
 
-        tasks = await rexflow.validate_task_data([
+        result = await rexflow.validate_task_data([
             bridge.Task(
                 iid=MOCK_IID,
                 tid=MOCK_TID,
@@ -94,8 +94,8 @@ class TestBridgeIntegration(unittest.TestCase):
                 status=bridge.TaskStatus.UP,
             ),
         ])
-        self.assertGreater(len(tasks), 0)
-        for task in tasks:
+        self.assertGreater(len(result.successful), 0)
+        for task in result.successful:
             self.assertIsInstance(task, bridge.Task)
 
     @run_async
@@ -107,7 +107,7 @@ class TestBridgeIntegration(unittest.TestCase):
         )
         rexflow = bridge.REXFlowBridgeGQL(workflow)
 
-        tasks = await rexflow.save_task_data([
+        result = await rexflow.save_task_data([
             bridge.Task(
                 iid=MOCK_IID,
                 tid=MOCK_TID,
@@ -115,8 +115,8 @@ class TestBridgeIntegration(unittest.TestCase):
                 status=bridge.TaskStatus.UP,
             ),
         ])
-        self.assertGreater(len(tasks), 0)
-        for task in tasks:
+        self.assertGreater(len(result.successful), 0)
+        for task in result.successful:
             self.assertIsInstance(task, bridge.Task)
 
     @run_async
@@ -128,7 +128,7 @@ class TestBridgeIntegration(unittest.TestCase):
         )
         rexflow = bridge.REXFlowBridgeGQL(workflow)
 
-        tasks = await rexflow.complete_task([
+        result = await rexflow.complete_task([
             bridge.Task(
                 iid=MOCK_IID,
                 tid=MOCK_TID,
@@ -136,6 +136,6 @@ class TestBridgeIntegration(unittest.TestCase):
                 status=bridge.TaskStatus.UP,
             ),
         ])
-        self.assertGreater(len(tasks), 0)
-        for task in tasks:
+        self.assertGreater(len(result.successful), 0)
+        for task in result.successful:
             self.assertIsInstance(task, bridge.Task)

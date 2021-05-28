@@ -1,4 +1,5 @@
 import asyncio
+from prism_api.rexflow.entities.wrappers import TaskOperationResults
 from typing import List
 
 from pydantic import validate_arguments
@@ -82,22 +83,28 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     async def validate_task_data(
         self,
         tasks: List[Task],
-    ) -> List[Task]:
+    ) -> TaskOperationResults:
         await asyncio.sleep(self.sleep_time)
-        return tasks
+        result = TaskOperationResults()
+        result.successful = tasks
+        return result
 
     @validate_arguments
     async def save_task_data(
         self,
         tasks: List[Task],
-    ) -> List[Task]:
+    ) -> TaskOperationResults:
         await asyncio.sleep(self.sleep_time)
-        return tasks
+        result = TaskOperationResults()
+        result.successful = tasks
+        return result
 
     @validate_arguments
     async def complete_task(
         self,
         tasks: List[Task],
-    ) -> List[Task]:
+    ) -> TaskOperationResults:
         await asyncio.sleep(self.sleep_time)
-        return tasks
+        result = TaskOperationResults()
+        result.successful = tasks
+        return result

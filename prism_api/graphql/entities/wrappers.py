@@ -77,6 +77,11 @@ class Problem(BaseModel):
         pass
 
 
+class GenericProblem(Problem):
+    def resolve_type(self):
+        return 'GenericProblem'
+
+
 class ValidationProblem(Problem):
     iid: WorkflowInstanceId
     tid: TaskId

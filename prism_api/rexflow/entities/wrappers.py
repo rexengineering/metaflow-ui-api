@@ -4,9 +4,11 @@ from pydantic import BaseModel
 
 from .types import (
     DataId,
+    ErrorDetails,
     OperationStatus,
     TaskFieldData,
     TaskId,
+    Task,
     WorkflowDeploymentId,
     WorkflowInstanceId,
     WorkflowInstanceInfo,
@@ -22,6 +24,11 @@ class TaskChange(BaseModel):
     iid: WorkflowInstanceId
     tid: TaskId
     data: List[TaskDataChange]
+
+
+class TaskOperationResults(BaseModel):
+    successful: List[Task] = []
+    errors: List[ErrorDetails] = []
 
 
 # GraphQL input types

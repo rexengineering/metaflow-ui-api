@@ -15,6 +15,7 @@ from .entities.types import Session
 from .entities.wrappers import (
     CompleteTaskPayload,
     CompleteTasksInput,
+    GenericProblem,
     Problem,
     SaveTaskInput,
     SaveTasksPayload,
@@ -29,7 +30,7 @@ from .entities.wrappers import (
     WorkflowFilter,
 )
 from prism_api.rexflow import api as rexflow
-from prism_api.rexflow.errors import ValidationError
+from prism_api.rexflow.errors import REXFlowError, ValidationErrorDetails
 from prism_api.rexflow.entities.types import (
     OperationStatus,
     Workflow,
@@ -156,70 +157,106 @@ class TasksMutations:
     @validate_arguments
     async def validate(self, info, input: ValidateTaskInput):
         try:
-            tasks = await rexflow.validate_tasks(input.tasks)
-        except ValidationError as e:
-            errors = []
-            for dataId, error in e.errors.items():
-                errors.append(ValidationProblem(
-                    message=error['message'],
-                    iid=e.iid,
-                    tid=e.tid,
-                    dataId=dataId,
-                    validator=error['validator'],
-                ))
-            return ValidateTasksPayload(
+            result = await rexflow.validate_tasks(input.tasks)
+        except REXFlowError as e:
+            return SaveTasksPayload(
                 status=OperationStatus.FAILURE,
-                errors=errors,
+                errors=[GenericProblem(message=e)],
             )
+
+        errors = []
+        for error in result.errors:
+            if isinstance(error, ValidationErrorDetails):
+                for dataId, validation_error in error.errors.items():
+                    errors.append(ValidationProblem(
+                        message=validation_error['message'],
+                        iid=error.iid,
+                        tid=error.tid,
+                        dataId=dataId,
+                        validator=validation_error['validator'],
+                    ))
+            else:
+                errors.append(GenericProblem(str(error)))
+
+        if errors:
+            status = OperationStatus.FAILURE
+        else:
+            status = OperationStatus.SUCCESS
+
         return ValidateTasksPayload(
-            status=OperationStatus.SUCCESS,
-            tasks=tasks,
+            status=status,
+            tasks=result.successful,
+            errors=errors
         )
 
     @validate_arguments
     async def save(self, info, input: SaveTaskInput):
         try:
-            tasks = await rexflow.save_tasks(input.tasks)
-        except ValidationError as e:
-            errors = []
-            for dataId, error in e.errors.items():
-                errors.append(ValidationProblem(
-                    message=error['message'],
-                    iid=e.iid,
-                    tid=e.tid,
-                    dataId=dataId,
-                    validator=error['validator'],
-                ))
+            result = await rexflow.save_tasks(input.tasks)
+        except REXFlowError as e:
             return SaveTasksPayload(
                 status=OperationStatus.FAILURE,
-                errors=errors,
+                errors=[GenericProblem(message=e)],
             )
+
+        errors = []
+        for error in result.errors:
+            if isinstance(error, ValidationErrorDetails):
+                for dataId, validation_error in error.errors.items():
+                    errors.append(ValidationProblem(
+                        message=validation_error['message'],
+                        iid=error.iid,
+                        tid=error.tid,
+                        dataId=dataId,
+                        validator=validation_error['validator'],
+                    ))
+            else:
+                errors.append(GenericProblem(str(error)))
+
+        if errors:
+            status = OperationStatus.FAILURE
+        else:
+            status = OperationStatus.SUCCESS
+
         return SaveTasksPayload(
-            status=OperationStatus.SUCCESS,
-            tasks=tasks
+            status=status,
+            tasks=result.successful,
+            errors=errors,
         )
 
     @validate_arguments
     async def complete(self, info, input: CompleteTasksInput):
         try:
-            tasks = await rexflow.complete_tasks(input.tasks)
-        except ValidationError as e:
-            errors = []
-            for dataId, error in e.errors.items():
-                errors.append(ValidationProblem(
-                    message=error['message'],
-                    iid=e.iid,
-                    tid=e.tid,
-                    dataId=dataId,
-                    validator=error['validator'],
-                ))
+            result = await rexflow.complete_tasks(input.tasks)
+        except REXFlowError as e:
             return SaveTasksPayload(
                 status=OperationStatus.FAILURE,
-                errors=errors,
+                errors=[GenericProblem(message=e)],
             )
+
+        errors = []
+        for error in result.errors:
+            if isinstance(error, ValidationErrorDetails):
+                for dataId, validation_error in error.errors.items():
+                    errors.append(ValidationProblem(
+                        message=validation_error['message'],
+                        iid=error.iid,
+                        tid=error.tid,
+                        dataId=dataId,
+                        validator=validation_error['validator'],
+                    ))
+            else:
+                errors.append(GenericProblem(str(error)))
+
+        if errors:
+            status = OperationStatus.FAILURE
+        else:
+            status = OperationStatus.SUCCESS
+
         return CompleteTaskPayload(
-            status=OperationStatus.SUCCESS,
-            tasks=tasks
+            status=status,
+            tasks=result.successful,
+            errors=errors
         )
 
 

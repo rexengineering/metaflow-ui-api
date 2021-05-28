@@ -14,19 +14,17 @@ class REXFlowError(Exception):
     """Base exception for REXFlow package"""
 
 
-class ValidationError(REXFlowError):
+class ValidationErrorDetails:
     """Triggers when a validator fails on the bridge"""
     iid: WorkflowInstanceId
     tid: TaskId
     errors: Dict[DataId, Dict[str, Union[str, Validator]]]
+    message: str
 
     def __init__(
         self,
-        *args,
         payload: ValidatedPayload,
-        **kwargs,
     ) -> None:
-        super().__init__(*args, **kwargs)
         self.iid = payload.iid
         self.tid = payload.tid
         self.errors = {}
@@ -41,6 +39,7 @@ class ValidationError(REXFlowError):
                                 type=ValidatorEnum.REGEX,
                             )
                         )
+        self.message = 'validation errors'
 
     def add_error(self, data_id: DataId, message: str, validator: Validator):
         self.errors[data_id] = {

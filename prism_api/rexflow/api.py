@@ -1,7 +1,6 @@
 """Interface to interact with REXFlow"""
 import asyncio
 from collections import defaultdict
-import itertools
 import logging
 from typing import List
 
@@ -21,7 +20,8 @@ from .entities.types import (
     WorkflowStatus
 )
 from .entities.wrappers import (
-    TaskChange
+    TaskChange,
+    TaskOperationResults
 )
 from .store import Store
 
@@ -127,7 +127,7 @@ async def get_task(iid: WorkflowInstanceId, tid: TaskId) -> Task:
 async def _validate_tasks(
     iid: WorkflowInstanceId,
     tasks: List[TaskChange],
-) -> List[Task]:
+) -> TaskOperationResults:
     bridge = REXFlowBridge(Store.get_workflow(iid))
     updated_tasks = []
     for task_input in tasks:
@@ -140,7 +140,7 @@ async def _validate_tasks(
 
 
 @validate_arguments
-async def validate_tasks(tasks: List[TaskChange]) -> List[Task]:
+async def validate_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     workflow_instances = defaultdict(list)
     for task in tasks:
         workflow_instances[task.iid].append(task)
@@ -149,13 +149,18 @@ async def validate_tasks(tasks: List[TaskChange]) -> List[Task]:
         for iid, tasks in workflow_instances.items()
     ])
 
-    return list(itertools.chain(*results))
+    final_result = TaskOperationResults()
+    for result in results:
+        final_result.successful.extend(result.successful)
+        final_result.errors.extend(result.errors)
+
+    return final_result
 
 
 async def _save_tasks(
     iid: WorkflowInstanceId,
     tasks: List[TaskChange],
-) -> List[Task]:
+) -> TaskOperationResults:
     bridge = REXFlowBridge(Store.get_workflow(iid))
     updated_tasks = []
     for task_input in tasks:
@@ -168,7 +173,7 @@ async def _save_tasks(
 
 
 @validate_arguments
-async def save_tasks(tasks: List[TaskChange]) -> List[Task]:
+async def save_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     workflow_instances = defaultdict(list)
     for task in tasks:
         workflow_instances[task.iid].append(task)
@@ -177,25 +182,31 @@ async def save_tasks(tasks: List[TaskChange]) -> List[Task]:
         for iid, tasks in workflow_instances.items()
     ])
 
-    return list(itertools.chain(*results))
+    final_result = TaskOperationResults()
+    for result in results:
+        final_result.successful.extend(result.successful)
+        final_result.errors.extend(result.errors)
+
+    return final_result
 
 
 async def _complete_tasks(
     iid: WorkflowInstanceId,
     tasks: List[TaskChange],
-) -> List[Task]:
+) -> TaskOperationResults:
     updated_tasks = await _save_tasks(iid, tasks)
     bridge = REXFlowBridge(Store.get_workflow(iid))
-    completed_tasks = await bridge.complete_task(updated_tasks)
-    for task in completed_tasks:
+    result = await bridge.complete_task(updated_tasks.successful)
+    result.errors.extend(updated_tasks.errors)
+    for task in result.successful:
         Store.delete_task(iid, task.tid)
-    return completed_tasks
+    return result
 
 
 @validate_arguments
 async def complete_tasks(
     tasks: List[TaskChange],
-) -> List[Task]:
+) -> TaskOperationResults:
     workflow_instances = defaultdict(list)
     for task in tasks:
         logger.info(
@@ -207,4 +218,9 @@ async def complete_tasks(
         for iid, tasks in workflow_instances.items()
     ])
 
-    return list(itertools.chain(*results))
+    final_result = TaskOperationResults()
+    for result in results:
+        final_result.successful.extend(result.successful)
+        final_result.errors.extend(result.errors)
+
+    return final_result

@@ -33,6 +33,7 @@ enum TaskStatus {
 enum OperationStatus {
     SUCCESS
     FAILURE
+    WITH_ERRORS
 }
 
 """Client side constraints for user input"""
