@@ -7,7 +7,7 @@ RUN mkdir -p /code
 WORKDIR /code
 
 RUN apt-get update && \
-    apt-get -y install gcc mono-mcs && \
+    apt-get -y install gcc mono-mcs curl && \
     rm -rf /var/lib/apt/lists/*
 
 FROM base as req
