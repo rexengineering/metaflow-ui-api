@@ -1,6 +1,7 @@
 import unittest
 from unittest import mock
 
+import pytest
 from rexredis import RexRedis
 
 from ..mocks.rexflow_entities import mock_task, mock_workflow
@@ -15,6 +16,7 @@ def mock_redis_client():
     return mock.MagicMock(spec=RexRedis)
 
 
+@pytest.mark.ci
 class TestREXFlowStore(unittest.TestCase):
     def setUp(self):
         self.mock_redis = mock_redis_client()
