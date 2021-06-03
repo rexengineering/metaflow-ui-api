@@ -114,6 +114,7 @@ async def start_tasks(
     iid: WorkflowInstanceId,
     tasks: List[TaskId]
 ) -> List[Task]:
+    await refresh_workflows()
     created_tasks = []
     for tid in tasks:
         task = await get_task(iid, tid)
