@@ -80,8 +80,9 @@ class Store(StoreABC):
 
     @classmethod
     def delete_workflow(cls, workflow_id: WorkflowInstanceId):
+        workflow_key = cls.WORKFLOW_PREFIX + workflow_id
         redis = cls._get_redis()
-        redis.delete_keys(workflow_id)
+        redis.delete_keys(workflow_key)
 
     @classmethod
     def _get_task_key(cls, iid: WorkflowInstanceId, tid: TaskId) -> str:
