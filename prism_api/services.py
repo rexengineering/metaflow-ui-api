@@ -12,11 +12,11 @@ def _check_redis_service():
 
 
 def _check_rexflow_service():
-    if not settings.REXFLOW_HOST:
+    if not settings.REXFLOW_FLOWD_HOST:
         return 'Not Configured'
 
     try:
-        res = httpx.get(settings.REXFLOW_HOST)
+        res = httpx.get(settings.REXFLOW_FLOWD_HOST + '/health')
         return res.status_code == 200
     except httpx.ConnectError:
         return False
