@@ -38,15 +38,32 @@ class TaskStatus(str, Enum):
 class OperationStatus(str, Enum):
     SUCCESS = 'SUCCESS'
     FAILURE = 'FAILURE'
+    WITH_ERRORS = 'WITH_ERRORS'
 
 
 class ValidatorEnum(str, Enum):
     REQUIRED = 'REQUIRED'
     REGEX = 'REGEX'
+    BOOLEAN = 'BOOLEAN'
+    REQUIRED_IF = 'REQUIRED_IF'
+    PERCENTAGE = 'PERCENTAGE'
+    POSITIVE = 'POSITIVE'
 
 
 class DataType(str, Enum):
     TEXT = 'TEXT'
+    CURRENCY = 'CURRENCY'
+    INTEGER = 'INTEGER'
+    FLOAT = 'FLOAT'
+    BOOLEAN = 'BOOLEAN'
+    PERCENTAGE = 'PERCENTAGE'
+
+
+class ErrorDetails(BaseModel):
+    message: str
+
+    def __str__(self) -> str:
+        return self.message
 
 
 class Validator(BaseModel):

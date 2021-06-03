@@ -4,11 +4,11 @@ from pydantic import BaseModel
 
 from .types import (
     DataId,
-    DataType,
+    ErrorDetails,
     OperationStatus,
     TaskFieldData,
     TaskId,
-    Validator,
+    Task,
     WorkflowDeploymentId,
     WorkflowInstanceId,
     WorkflowInstanceInfo,
@@ -26,6 +26,11 @@ class TaskChange(BaseModel):
     data: List[TaskDataChange]
 
 
+class TaskOperationResults(BaseModel):
+    successful: List[Task] = []
+    errors: List[ErrorDetails] = []
+
+
 # GraphQL input types
 
 class CreateWorkflowInstanceInput(BaseModel):
@@ -39,9 +44,7 @@ class TaskMutationFormInput(BaseModel):
 
 class TaskFieldInput(BaseModel):
     dataId: DataId
-    type: DataType
     data: Optional[str]
-    encrypted: bool
 
 
 class TaskMutationValidateInput(BaseModel):
@@ -86,29 +89,29 @@ class TaskFormPayload(Payload):
 
 
 class ValidatorResults(BaseModel):
-    validator: Validator
     passed: bool
-    result: Optional[str]
+    message: Optional[str]
 
 
 class FieldValidationResult(BaseModel):
     dataId: DataId
     passed: bool
-    result: Optional[ValidatorResults]
+    results: List[ValidatorResults]
 
 
-class TaskValidatePayload(Payload):
+class ValidatedPayload(Payload):
     iid: WorkflowInstanceId
     tid: TaskId
     passed: bool
     results: List[FieldValidationResult]
 
 
-class TaskSavePayload(Payload):
-    iid: WorkflowInstanceId
-    tid: TaskId
-    passed: bool
-    results: List[FieldValidationResult]
+class TaskValidatePayload(ValidatedPayload):
+    pass
+
+
+class TaskSavePayload(ValidatedPayload):
+    pass
 
 
 class TaskCompletePayload(Payload):

@@ -3,14 +3,18 @@ interface ProblemInterface {
     message: String!
 }
 
-union UpdateStateProblems = ParsingProblem | ServiceNotAvailableProblem
+union UpdateStateProblems = ParsingProblem | GenericProblem | ServiceNotAvailableProblem
 
-union TaskProblems = ValidationProblem | ServiceNotAvailableProblem
+union TaskProblems = ValidationProblem | GenericProblem | ServiceNotAvailableProblem
 
-union SessionProblems = ServiceNotAvailableProblem
+union SessionProblems = GenericProblem | ServiceNotAvailableProblem
 
-union WorkflowProblems = ServiceNotAvailableProblem
+union WorkflowProblems = GenericProblem | ServiceNotAvailableProblem
 
+
+type GenericProblem implements ProblemInterface {
+    message: String!
+}
 
 type ParsingProblem implements ProblemInterface {
     message: String!
@@ -18,6 +22,9 @@ type ParsingProblem implements ProblemInterface {
 
 type ValidationProblem implements ProblemInterface {
     message: String!
+    iid: WorkflowInstanceId!
+    tid: TaskId!
+    dataId: DataId!
     validator: Validator!
 }
 

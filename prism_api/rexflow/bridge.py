@@ -10,6 +10,7 @@ from pydantic import validate_arguments
 
 from . import queries
 from .entities.types import (
+    ErrorDetails,
     OperationStatus,
     Task,
     TaskFieldData,
@@ -32,9 +33,11 @@ from .entities.wrappers import (
     TaskMutationFormInput,
     TaskMutationSaveInput,
     TaskMutationValidateInput,
+    TaskOperationResults,
     TaskSavePayload,
     TaskValidatePayload,
 )
+from .errors import ValidationErrorDetails
 from prism_api import settings
 
 
@@ -218,7 +221,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     async def validate_task_data(
         self,
         tasks: List[Task],
-    ) -> List[Task]:
+    ) -> TaskOperationResults:
         async with self.get_client(self.workflow.did) as session:
             query = gql(queries.VALIDATE_TASK_DATA_MUTATION)
 
@@ -241,21 +244,30 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     variable_values=params,
                 ))
 
-            results = await asyncio.gather(*async_tasks)
-            logger.debug(results)
-            for result in results:
+            async_results = await asyncio.gather(*async_tasks)
+            logger.debug(async_results)
+            tasks_dict = {task.tid: task for task in tasks}
+            results = TaskOperationResults()
+            for result in async_results:
                 payload = TaskValidatePayload(
                     **result['tasks']['validate'],
                 )
                 if payload.status != OperationStatus.SUCCESS:
-                    raise Exception(str(payload.validator_results))
-            return tasks
+                    results.errors.append(ErrorDetails(message=str(payload)))
+                elif not payload.passed:
+                    results.errors.append(
+                        ValidationErrorDetails(payload=payload)
+                    )
+                else:
+                    results.successful.append(tasks_dict[payload.tid])
+
+            return results
 
     @validate_arguments
     async def save_task_data(
         self,
         tasks: List[Task],
-    ) -> List[Task]:
+    ) -> TaskOperationResults:
         async with self.get_client(self.workflow.did) as session:
             query = gql(queries.SAVE_TASK_DATA_MUTATION)
 
@@ -278,21 +290,31 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     variable_values=params,
                 ))
 
-            results = await asyncio.gather(*async_tasks)
-            logger.debug(results)
-            for result in results:
+            async_results = await asyncio.gather(*async_tasks)
+            logger.debug(async_results)
+
+            tasks_dict = {task.tid: task for task in tasks}
+            results = TaskOperationResults()
+            for result in async_results:
                 payload = TaskSavePayload(
                     **result['tasks']['save'],
                 )
                 if payload.status != OperationStatus.SUCCESS:
-                    raise Exception(str(payload.validator_results))
-            return tasks
+                    results.errors.append(ErrorDetails(message=str(payload)))
+                elif not payload.passed:
+                    results.errors.append(
+                        ValidationErrorDetails(payload=payload)
+                    )
+                else:
+                    results.successful.append(tasks_dict[payload.tid])
+
+            return results
 
     @validate_arguments
     async def complete_task(
         self,
         tasks: List[Task],
-    ) -> List[Task]:
+    ) -> TaskOperationResults:
         async with self.get_client(self.workflow.did) as session:
             query = gql(queries.COMPLETE_TASK_MUTATION)
 
@@ -309,12 +331,17 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     variable_values=params,
                 ))
 
-            results = await asyncio.gather(*async_tasks)
-            logger.debug(results)
-            for result in results:
+            async_results = await asyncio.gather(*async_tasks)
+            logger.debug(async_results)
+            tasks_dict = {task.tid: task for task in tasks}
+            results = TaskOperationResults()
+            for result in async_results:
                 payload = TaskCompletePayload(
                     **result['tasks']['complete'],
                 )
                 if payload.status != OperationStatus.SUCCESS:
-                    raise Exception
-            return tasks
+                    results.errors.append(ErrorDetails(message=str(payload)))
+                else:
+                    results.successful.append(tasks_dict[payload.tid])
+
+            return results

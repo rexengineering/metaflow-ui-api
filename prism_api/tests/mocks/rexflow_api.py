@@ -13,7 +13,10 @@ from prism_api.rexflow.entities.types import (
     WorkflowInstanceId,
     WorkflowStatus
 )
-from prism_api.rexflow.entities.wrappers import TaskChange
+from prism_api.rexflow.entities.wrappers import (
+    TaskChange,
+    TaskOperationResults,
+)
 
 
 def _mock_task():
@@ -92,15 +95,21 @@ async def get_task(iid: WorkflowInstanceId, tid: TaskId) -> Task:
 
 
 @validate_arguments
-async def validate_tasks(tasks: List[TaskChange]) -> List[Task]:
-    return [_mock_task()]
+async def validate_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
+    result = TaskOperationResults()
+    result.successful = [_mock_task()]
+    return result
 
 
 @validate_arguments
-async def save_tasks(tasks: List[TaskChange]) -> List[Task]:
-    return [_mock_task()]
+async def save_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
+    result = TaskOperationResults()
+    result.successful = [_mock_task()]
+    return result
 
 
 @validate_arguments
-async def complete_tasks(tasks: List[TaskChange]) -> List[Task]:
-    return [_mock_task()]
+async def complete_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
+    result = TaskOperationResults()
+    result.successful = [_mock_task()]
+    return result
