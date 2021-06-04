@@ -40,6 +40,7 @@ class CreateWorkflowInstanceInput(BaseModel):
 class TaskMutationFormInput(BaseModel):
     iid: WorkflowInstanceId
     tid: TaskId
+    reset: bool = False
 
 
 class TaskFieldInput(BaseModel):

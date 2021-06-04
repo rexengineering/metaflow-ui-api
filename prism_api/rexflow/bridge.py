@@ -167,6 +167,8 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     async def get_task_data(
         self,
         task_ids: List[TaskId] = [],
+        *,
+        reset_values: bool = False
     ) -> List[Task]:
         async with self.get_client(self.workflow.did) as session:
             if len(task_ids) == 0:
@@ -180,6 +182,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                     'formInput': TaskMutationFormInput(
                         iid=self.workflow.iid,
                         tid=task_id,
+                        reset=reset_values,
                     ).dict(),
                 }
                 async_tasks.append(session.execute(

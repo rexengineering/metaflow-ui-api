@@ -54,7 +54,9 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     @validate_arguments
     async def get_task_data(
         self,
-        task_ids: List[TaskId] = []
+        task_ids: List[TaskId] = [],
+        *,
+        reset_values: bool = False,
     ) -> List[Task]:
         await asyncio.sleep(self.sleep_time)
         if len(task_ids) == 0:
@@ -67,24 +69,25 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
             try:
                 task = self.Store.get_task(self.workflow.iid, tid)
             except TaskNotFoundError:
-                task = Task(
-                    iid=self.workflow.iid,
-                    tid=tid,
-                    data=[
-                        TaskFieldData(
-                            dataId='fname',
-                            type=DataType.TEXT,
-                            order=1,
-                            label='First Name',
-                            validators=[
-                                Validator(
-                                    type=ValidatorEnum.REGEX,
-                                    constraint=r'.*',
-                                )
-                            ]
-                        )
-                    ],
-                )
+                if reset_values:
+                    task = Task(
+                        iid=self.workflow.iid,
+                        tid=tid,
+                        data=[
+                            TaskFieldData(
+                                dataId='fname',
+                                type=DataType.TEXT,
+                                order=1,
+                                label='First Name',
+                                validators=[
+                                    Validator(
+                                        type=ValidatorEnum.REGEX,
+                                        constraint=r'.*',
+                                    )
+                                ]
+                            )
+                        ],
+                    )
             tasks.append(task)
         return tasks
 
