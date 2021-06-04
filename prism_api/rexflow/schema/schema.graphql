@@ -18,6 +18,7 @@ enum WorkflowStatus {
     STARTING
     STOPPED
     STOPPING
+    UNKNOWN
 }
 
 enum TaskStatus {
@@ -50,6 +51,12 @@ enum DataType {
     PERCENTAGE
 }
 
+"""Types of methods to initialize a field's default"""
+enum FieldInitializerType {
+    TEXT
+    EVAL
+}
+
 """A task will request a list of data elements"""
 type Task {
     iid: WorkflowInstanceId
@@ -65,6 +72,7 @@ type TaskFieldData {
     order: Int!
     label: String
     data: String
+    default: FieldInitializer
     encrypted: Boolean!
     validators: [Validator!]!
 }
@@ -72,6 +80,11 @@ type TaskFieldData {
 type Validator {
     type: ValidationType!
     constraint: String
+}
+
+type FieldInitializer {
+    type: FieldInitializerType!
+    value: String!
 }
 
 """Used to communicate specific validator results"""
@@ -99,6 +112,7 @@ input CreateWorkflowInstanceInput {
 input TaskMutationFormInput {
     iid:WorkflowInstanceId
     tid:TaskId!
+    reset: Boolean
 }
 
 input TaskFieldInput {

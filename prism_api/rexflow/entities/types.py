@@ -28,6 +28,7 @@ class WorkflowStatus(str, Enum):
     STARTING = 'STARTING'
     STOPPED = 'STOPPED'
     STOPPING = 'STOPPING'
+    UNKNOWN = 'UNKNOWN'
 
 
 class TaskStatus(str, Enum):
