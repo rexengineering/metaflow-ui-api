@@ -115,10 +115,13 @@ async def start_tasks(
     tasks: List[TaskId]
 ) -> List[Task]:
     await refresh_workflows()
+    bridge = REXFlowBridge(Store.get_workflow(iid))
     created_tasks = []
-    for tid in tasks:
-        task = await get_task(iid, tid)
-        created_tasks.append(task)
+    # Get tasks with initial values
+    created_tasks = await bridge.get_task_data(tasks, reset_values=True)
+    # Save initial values
+    await bridge.save_task_data(created_tasks)
+    for task in created_tasks:
         Store.add_task(task)
     return created_tasks
 
