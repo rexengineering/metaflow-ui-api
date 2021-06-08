@@ -50,7 +50,7 @@ spec:
         - name: APP_CORS_ORIGIN_REGEX
           value: "https?://.*\\.rex\\.sh"
         - name: REX_DS_REDIS_HOST
-          value: dc2-qa-redis.internal.rexchange.com
+          value: redis
         - name: REX_DS_REDIS_PORT
           value: "6379"
         - name: REX_REXFLOW_HOST

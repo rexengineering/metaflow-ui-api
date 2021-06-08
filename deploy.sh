@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+kubectl apply -n default -f charts/redis.yaml
+
 kubectl delete deployment prism-api
 
 docker build . -t prism-api:latest \
