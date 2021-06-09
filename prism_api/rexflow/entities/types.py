@@ -59,6 +59,7 @@ class DataType(str, Enum):
     BOOLEAN = 'BOOLEAN'
     PERCENTAGE = 'PERCENTAGE'
     TABLE = 'TABLE'
+    COPY = 'COPY'
 
 
 class TextVariant(str, Enum):

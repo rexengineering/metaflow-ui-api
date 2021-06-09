@@ -55,6 +55,7 @@ enum DataType {
     BOOLEAN
     PERCENTAGE
     TABLE
+    COPY
 }
 
 enum TextVariant {
