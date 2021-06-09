@@ -4,6 +4,7 @@ from collections import defaultdict
 import logging
 from typing import List
 
+from graphql.error.graphql_error import GraphQLError
 from pydantic import validate_arguments
 
 from .bridge import (
@@ -72,13 +73,17 @@ async def _refresh_instances():
 
 async def _refresh_workflow(workflow: Workflow):
     """Refresh a single workflow task"""
-    bridge = REXFlowBridge(workflow)
-    tasks = await bridge.get_task_data([
-        task.tid for task in workflow.tasks
-    ])
-    workflow.tasks = []
-    for task in tasks:
-        Store.add_task(task)
+    try:
+        bridge = REXFlowBridge(workflow)
+        tasks = await bridge.get_task_data([
+            task.tid for task in workflow.tasks
+        ])
+    except GraphQLError:
+        Store.delete_workflow(workflow.iid)
+    else:
+        workflow.tasks = []
+        for task in tasks:
+            Store.add_task(task)
 
 
 async def refresh_workflows() -> None:
