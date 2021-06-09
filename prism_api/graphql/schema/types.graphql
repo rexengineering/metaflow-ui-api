@@ -57,6 +57,19 @@ enum DataType {
     TABLE
 }
 
+enum TextVariant {
+    BODY1
+    BODY2
+    H1
+    H2
+    H3
+    H4
+    H5
+    H6
+    SUBTITLE1
+    SUBTITLE2
+}
+
 # Data structures
 
 type Session {
@@ -93,6 +106,8 @@ type TaskFieldData {
     order: Int!
     label: String
     data: String
+    value: String
+    variant: TextVariant
     encrypted: Boolean!
     validators: [Validator!]!
 }
