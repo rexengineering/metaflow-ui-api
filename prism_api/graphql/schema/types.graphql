@@ -54,6 +54,7 @@ enum DataType {
     FLOAT
     BOOLEAN
     PERCENTAGE
+    TABLE
 }
 
 # Data structures
