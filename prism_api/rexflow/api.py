@@ -52,7 +52,14 @@ async def start_workflow(
 
 
 async def _refresh_instance(did: WorkflowDeploymentId):
-    instances = await REXFlowBridge.get_instances(did)
+    try:
+        instances = await REXFlowBridge.get_instances(did)
+    except (GraphQLError, ClientConnectorError):
+        logger.warning('Exception handled when connecting to wrong bridge')
+        instances = []
+    except Exception:
+        logger.exception('Trying to connect to the wrong bridge')
+        instances = []
     for instance in instances:
         workflow = Workflow(
             did=did,
