@@ -58,6 +58,7 @@ class DataType(str, Enum):
     FLOAT = 'FLOAT'
     BOOLEAN = 'BOOLEAN'
     PERCENTAGE = 'PERCENTAGE'
+    TABLE = 'TABLE'
 
 
 class ErrorDetails(BaseModel):
