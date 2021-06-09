@@ -46,7 +46,7 @@ class ValidatorEnum(str, Enum):
     REQUIRED = 'REQUIRED'
     REGEX = 'REGEX'
     BOOLEAN = 'BOOLEAN'
-    REQUIRED_IF = 'REQUIRED_IF'
+    INTERVAL = 'INTERVAL'
     PERCENTAGE = 'PERCENTAGE'
     POSITIVE = 'POSITIVE'
 

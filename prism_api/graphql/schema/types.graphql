@@ -40,7 +40,7 @@ enum OperationStatus {
 enum ValidationType {
     BOOLEAN
     REQUIRED
-    REQUIRED_IF
+    INTERVAL
     PERCENTAGE
     POSITIVE
     REGEX
