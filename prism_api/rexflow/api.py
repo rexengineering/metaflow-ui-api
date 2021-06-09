@@ -4,6 +4,7 @@ from collections import defaultdict
 import logging
 from typing import List
 
+from aiohttp.client_exceptions import ClientConnectorError
 from graphql.error.graphql_error import GraphQLError
 from pydantic import validate_arguments
 
@@ -74,11 +75,17 @@ async def _refresh_instances():
 async def _refresh_workflow(workflow: Workflow):
     """Refresh a single workflow task"""
     try:
+        # TODO trigger missing bridge error when instancing bridge
         bridge = REXFlowBridge(workflow)
         tasks = await bridge.get_task_data([
             task.tid for task in workflow.tasks
         ])
-    except GraphQLError:
+    # TODO handle a more specific error
+    except (GraphQLError, ClientConnectorError):
+        logger.warning('Exception handled when connecting to wrong bridge')
+        Store.delete_workflow(workflow.iid)
+    except Exception:
+        logger.exception('Trying to connect to the wrong bridge')
         Store.delete_workflow(workflow.iid)
     else:
         workflow.tasks = []
