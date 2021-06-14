@@ -25,6 +25,7 @@ from .entities.wrappers import (
     TaskChange,
     TaskOperationResults
 )
+from .errors import BridgeNotReachableError
 from .store import Store
 
 logger = logging.getLogger()
@@ -54,11 +55,8 @@ async def start_workflow(
 async def _refresh_instance(did: WorkflowDeploymentId):
     try:
         instances = await REXFlowBridge.get_instances(did)
-    except (GraphQLError, ClientConnectorError):
-        logger.warning('Exception handled when connecting to wrong bridge')
-        instances = []
-    except Exception:
-        logger.exception('Trying to connect to the wrong bridge')
+    except BridgeNotReachableError:
+        logger.exception('Trying to connect to an unreacheable bridge')
         instances = []
     for instance in instances:
         workflow = Workflow(
