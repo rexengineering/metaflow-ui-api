@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class WorkflowDeploymentId(str):
@@ -28,6 +28,7 @@ class WorkflowStatus(str, Enum):
     STARTING = 'STARTING'
     STOPPED = 'STOPPED'
     STOPPING = 'STOPPING'
+    UNKNOWN = 'UNKNOWN'
 
 
 class TaskStatus(str, Enum):
@@ -45,7 +46,7 @@ class ValidatorEnum(str, Enum):
     REQUIRED = 'REQUIRED'
     REGEX = 'REGEX'
     BOOLEAN = 'BOOLEAN'
-    REQUIRED_IF = 'REQUIRED_IF'
+    INTERVAL = 'INTERVAL'
     PERCENTAGE = 'PERCENTAGE'
     POSITIVE = 'POSITIVE'
 
@@ -57,6 +58,21 @@ class DataType(str, Enum):
     FLOAT = 'FLOAT'
     BOOLEAN = 'BOOLEAN'
     PERCENTAGE = 'PERCENTAGE'
+    TABLE = 'TABLE'
+    COPY = 'COPY'
+
+
+class TextVariant(str, Enum):
+    BODY1 = 'BODY1'
+    BODY2 = 'BODY2'
+    H1 = 'H1'
+    H2 = 'H2'
+    H3 = 'H3'
+    H4 = 'H4'
+    H5 = 'H5'
+    H6 = 'H6'
+    SUBTITLE1 = 'SUBTITLE1'
+    SUBTITLE2 = 'SUBTITLE2'
 
 
 class ErrorDetails(BaseModel):
@@ -76,9 +92,13 @@ class TaskFieldData(BaseModel):
     type: DataType
     order: int
     label: Optional[str]
-    data: Optional[str]
+    data: Optional[str] = Field(alias='value')
+    variant: Optional[TextVariant]
     encrypted: bool = False
     validators: List[Validator] = []
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class Task(BaseModel):

@@ -40,7 +40,7 @@ enum OperationStatus {
 enum ValidationType {
     BOOLEAN
     REQUIRED
-    REQUIRED_IF
+    INTERVAL
     PERCENTAGE
     POSITIVE
     REGEX
@@ -54,6 +54,21 @@ enum DataType {
     FLOAT
     BOOLEAN
     PERCENTAGE
+    TABLE
+    COPY
+}
+
+enum TextVariant {
+    BODY1
+    BODY2
+    H1
+    H2
+    H3
+    H4
+    H5
+    H6
+    SUBTITLE1
+    SUBTITLE2
 }
 
 # Data structures
@@ -92,6 +107,8 @@ type TaskFieldData {
     order: Int!
     label: String
     data: String
+    value: String
+    variant: TextVariant
     encrypted: Boolean!
     validators: [Validator!]!
 }
