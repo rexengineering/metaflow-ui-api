@@ -46,11 +46,11 @@ spec:
         - name: APP_DEBUG
           value: "TRUE"
         - name: APP_CORS_ORIGINS
-          value: "http://localhost,http://localhost:8000"
+          value: "http://localhost,http://localhost:8000,http://localhost:3000"
         - name: APP_CORS_ORIGIN_REGEX
           value: "https?://.*\\.rex\\.sh"
         - name: REX_DS_REDIS_HOST
-          value: dc2-qa-redis.internal.rexchange.com
+          value: redis
         - name: REX_DS_REDIS_PORT
           value: "6379"
         - name: REX_REXFLOW_HOST
@@ -58,7 +58,7 @@ spec:
         - name: REX_REXFLOW_FLOWD_HOST
           value: "http://flowd.rexflow:9002"
         - name: REX_REXUI_SERVER_CALLBACK_HOST
-          value: "http://prism-api.default/callback"
+          value: "http://prism-api.default/callback/"
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService

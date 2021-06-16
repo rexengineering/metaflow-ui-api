@@ -47,6 +47,6 @@ class ValidationErrorDetails:
 
     def add_error(self, data_id: DataId, message: str, validator: Validator):
         self.errors[data_id] = {
-            'message': message,
+            'message': message or 'No details provided',
             'validator': validator,
         }

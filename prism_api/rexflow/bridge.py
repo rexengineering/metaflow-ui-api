@@ -182,6 +182,8 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     async def get_task_data(
         self,
         task_ids: List[TaskId] = [],
+        *,
+        reset_values: bool = False
     ) -> List[Task]:
         if len(task_ids) == 0:
             return []
@@ -197,6 +199,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                         'formInput': TaskMutationFormInput(
                             iid=self.workflow.iid,
                             tid=task_id,
+                            reset=reset_values,
                         ).dict(),
                     }
                     async_tasks.append(session.execute(
@@ -257,7 +260,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                             tid=task.tid,
                             fields=[
                                 TaskFieldInput(
-                                    **field.dict(by_alias=True)
+                                    **field.dict()
                                 )
                                 for field in task.data
                             ],
@@ -310,7 +313,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                             tid=task.tid,
                             fields=[
                                 TaskFieldInput(
-                                    **field.dict(by_alias=True)
+                                    **field.dict()
                                 )
                                 for field in task.data
                             ],
