@@ -27,10 +27,15 @@ from .entities.wrappers import (
     ValidateTaskInput,
     ValidateTasksPayload,
     ValidationProblem,
+    ServiceNotAvailableProblem,
     WorkflowFilter,
 )
 from prism_api.rexflow import api as rexflow
-from prism_api.rexflow.errors import REXFlowError, ValidationErrorDetails
+from prism_api.rexflow.errors import (
+    BridgeNotReachableError,
+    REXFlowError,
+    ValidationErrorDetails,
+)
 from prism_api.rexflow.entities.types import (
     OperationStatus,
     Workflow,
@@ -267,7 +272,17 @@ class WorkflowMutations:
     @validate_arguments
     async def start(self, info, input: StartWorkflowInput):
         logger.info(input)
-        workflow = await rexflow.start_workflow(input.did)
+        try:
+            workflow = await rexflow.start_workflow(input.did)
+        except BridgeNotReachableError:
+            logger.exception('Could not reach rexflow bridge')
+            return StartWorkflowPayload(
+                status=OperationStatus.FAILURE,
+                errors=[ServiceNotAvailableProblem(
+                    message='Could not reach rexflow bridge',
+                )]
+            )
+
         return StartWorkflowPayload(
             status=OperationStatus.SUCCESS,
             iid=workflow.iid,
