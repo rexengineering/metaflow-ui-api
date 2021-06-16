@@ -14,8 +14,12 @@ class REXFlowError(Exception):
     """Base exception for REXFlow package"""
 
 
+class REXFlowNotReachable(REXFlowError):
+    """Exception when connecition with flowd fails"""
+
+
 class BridgeNotReachableError(REXFlowError):
-    """Exception when connection with rexflow bridge failed"""
+    """Exception when connection with rexflow bridge fails"""
 
 
 class ValidationErrorDetails:

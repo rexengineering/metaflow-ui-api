@@ -6,7 +6,7 @@ from typing import Dict, List
 from aiohttp.client_exceptions import ClientConnectorError
 from gql import Client, gql
 from gql.transport import aiohttp
-from httpx import AsyncClient
+from httpx import AsyncClient, ConnectError
 from pydantic import validate_arguments
 
 from . import queries
@@ -38,7 +38,11 @@ from .entities.wrappers import (
     TaskSavePayload,
     TaskValidatePayload,
 )
-from .errors import BridgeNotReachableError, ValidationErrorDetails
+from .errors import (
+    BridgeNotReachableError,
+    REXFlowNotReachable,
+    ValidationErrorDetails,
+)
 from prism_api import settings
 
 
@@ -51,9 +55,12 @@ if settings.LOG_LEVEL != 'DEBUG':
 
 async def get_deployments() -> Dict[str, List[WorkflowDeploymentId]]:
     async with AsyncClient() as client:
-        result = await client.get(
-            f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
-        )
+        try:
+            result = await client.get(
+                f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
+            )
+        except ConnectError as e:
+            raise REXFlowNotReachable from e
         result.raise_for_status()
         data = result.json()['wf_map']
         return {
