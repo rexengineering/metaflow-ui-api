@@ -11,6 +11,7 @@ from .entities import (
     StartTaskPayload,
 )
 from prism_api.rexflow import api
+from prism_api.rexflow.errors import BridgeNotReachableError
 from prism_api.rexflow.entities.types import (
     OperationStatus,
 )
@@ -40,6 +41,16 @@ class TaskMutations:
                 f'Starting task {input.tid} for instance {input.iid}'
             )
             await api.start_tasks(input.iid, [input.tid])
+        except BridgeNotReachableError:
+            logger.exception('Could not reach rexflow bridge')
+            return StartTaskPayload(
+                status=OperationStatus.FAILURE,
+                errors=[
+                    Problem(
+                        message='Trying to connect to an unreachable bridge',
+                    )
+                ]
+            )
         except Exception as ex:
             logger.exception('Error when starting task')
             return StartTaskPayload(

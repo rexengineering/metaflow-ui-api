@@ -24,6 +24,9 @@ async def get_deployments():
 
 @pytest.mark.ci
 class TestWorkflow(unittest.TestCase):
+    def tearDown(self):
+        Store.clear()
+
     @run_async
     @mock.patch('prism_api.rexflow.api.Store', Store)
     @mock.patch('prism_api.rexflow.api.REXFlowBridge', FakeREXFlowBridge)

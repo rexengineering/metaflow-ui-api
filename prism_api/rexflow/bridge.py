@@ -3,9 +3,10 @@ import asyncio
 import logging
 from typing import Dict, List
 
+from aiohttp.client_exceptions import ClientConnectorError
 from gql import Client, gql
 from gql.transport import aiohttp
-from httpx import AsyncClient
+from httpx import AsyncClient, ConnectError
 from pydantic import validate_arguments
 
 from . import queries
@@ -37,7 +38,11 @@ from .entities.wrappers import (
     TaskSavePayload,
     TaskValidatePayload,
 )
-from .errors import ValidationErrorDetails
+from .errors import (
+    BridgeNotReachableError,
+    REXFlowNotReachable,
+    ValidationErrorDetails,
+)
 from prism_api import settings
 
 
@@ -50,9 +55,12 @@ if settings.LOG_LEVEL != 'DEBUG':
 
 async def get_deployments() -> Dict[str, List[WorkflowDeploymentId]]:
     async with AsyncClient() as client:
-        result = await client.get(
-            f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
-        )
+        try:
+            result = await client.get(
+                f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
+            )
+        except ConnectError as e:
+            raise REXFlowNotReachable from e
         result.raise_for_status()
         data = result.json()['wf_map']
         return {
@@ -106,7 +114,7 @@ class REXFlowBridgeABC(abc.ABC):
 
 class REXFlowBridgeGQL(REXFlowBridgeABC):
     @staticmethod
-    def get_transport(deployment_id):
+    def _get_transport(deployment_id):
         host = settings.REXFLOW_HOST.format(deployment_id=deployment_id)
         transport = aiohttp.AIOHTTPTransport(
             url=host,
@@ -114,9 +122,9 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         return transport
 
     @classmethod
-    def get_client(cls, deployment_id):
+    def _get_client(cls, deployment_id):
         return Client(
-            transport=cls.get_transport(deployment_id),
+            transport=cls._get_transport(deployment_id),
             fetch_schema_from_transport=True,
         )
 
@@ -126,24 +134,31 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         cls,
         deployment_id: WorkflowDeploymentId,
     ) -> Workflow:
-        async with cls.get_client(deployment_id) as session:
-            query = gql(queries.START_WORKFLOW_MUTATION)
-            params = {
-                'createWorkflow': CreateWorkflowInstanceInput(
-                    graphqlUri=settings.REXUI_CALLBACK_HOST
-                ).dict(),
-            }
+        query = gql(queries.START_WORKFLOW_MUTATION)
+        params = {
+            'createWorkflow': CreateWorkflowInstanceInput(
+                graphqlUri=settings.REXUI_CALLBACK_HOST,
+            ).dict(),
+        }
 
-            result = await session.execute(query, variable_values=params)
-            logger.debug(result)
-            payload = CreateInstancePayload(
-                **result['createInstance'],
-            )
-            return Workflow(
-                iid=payload.iid,
-                did=payload.did,
-                status=WorkflowStatus.STARTING,
-            )
+        client = cls._get_client(deployment_id)
+        try:
+            async with client as session:
+                result = await session.execute(query, variable_values=params)
+                logger.debug(result)
+        except ClientConnectorError as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
+
+        payload = CreateInstancePayload(
+            **result['createInstance'],
+        )
+        return Workflow(
+            iid=payload.iid,
+            did=payload.did,
+            status=WorkflowStatus.STARTING,
+        )
 
     @classmethod
     @validate_arguments
@@ -151,13 +166,20 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         cls,
         deployment_id: WorkflowDeploymentId,
     ) -> List[WorkflowInstanceInfo]:
-        async with cls.get_client(deployment_id) as session:
-            query = gql(queries.GET_INSTANCES_QUERY)
-            result = await session.execute(query)
-            logger.debug(result)
-            payload = GetInstancePayload(**result['getInstances'])
+        query = gql(queries.GET_INSTANCES_QUERY)
 
-            return payload.iid_list
+        client = cls._get_client(deployment_id)
+        try:
+            async with client as session:
+                result = await session.execute(query)
+                logger.debug(result)
+        except ClientConnectorError as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
+
+        payload = GetInstancePayload(**result['getInstances'])
+        return payload.iid_list
 
     @validate_arguments
     def __init__(self, workflow: Workflow) -> None:
@@ -170,181 +192,208 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         *,
         reset_values: bool = False
     ) -> List[Task]:
-        async with self.get_client(self.workflow.did) as session:
-            if len(task_ids) == 0:
-                return []
+        if len(task_ids) == 0:
+            return []
 
-            query = gql(queries.GET_TASK_DATA_QUERY)
+        query = gql(queries.GET_TASK_DATA_QUERY)
 
-            async_tasks = []
-            for task_id in task_ids:
-                params = {
-                    'formInput': TaskMutationFormInput(
-                        iid=self.workflow.iid,
-                        tid=task_id,
-                        reset=reset_values,
-                    ).dict(),
-                }
-                async_tasks.append(session.execute(
-                    query,
-                    variable_values=params,
-                ))
+        client = self._get_client(self.workflow.did)
+        try:
+            async with client as session:
+                async_tasks = []
+                for task_id in task_ids:
+                    params = {
+                        'formInput': TaskMutationFormInput(
+                            iid=self.workflow.iid,
+                            tid=task_id,
+                            reset=reset_values,
+                        ).dict(),
+                    }
+                    async_tasks.append(session.execute(
+                        query,
+                        variable_values=params,
+                    ))
 
-            results = await asyncio.gather(*async_tasks)
-            logger.debug(results)
-            tasks = []
-            for result in results:
-                task = Task(
-                    iid=result['tasks']['form']['iid'],
-                    tid=result['tasks']['form']['tid'],
-                    status=TaskStatus.UP,
-                    data=[
-                        TaskFieldData(
-                            dataId=field['dataId'],
-                            type=field['type'],
-                            order=field['order'],
-                            label=field['label'],
-                            data=field['data'],
-                            encrypted=field['encrypted'],
-                            validators=[
-                                Validator(
-                                    type=validator['type'],
-                                    constraint=validator['constraint'],
-                                )
-                                for validator in field['validators']
-                            ],
-                        )
-                        for field in result['tasks']['form']['fields']
-                    ]
-                )
-                tasks.append(task)
-            return tasks
+                results = await asyncio.gather(*async_tasks)
+                logger.debug(results)
+        except ClientConnectorError as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
+
+        tasks = []
+        for result in results:
+            task = Task(
+                iid=result['tasks']['form']['iid'],
+                tid=result['tasks']['form']['tid'],
+                status=TaskStatus.UP,
+                data=[
+                    TaskFieldData(
+                        dataId=field['dataId'],
+                        type=field['type'],
+                        order=field['order'],
+                        label=field['label'],
+                        data=field['data'],
+                        encrypted=field['encrypted'],
+                        validators=[
+                            Validator(
+                                type=validator['type'],
+                                constraint=validator['constraint'],
+                            )
+                            for validator in field['validators']
+                        ],
+                    )
+                    for field in result['tasks']['form']['fields']
+                ]
+            )
+            tasks.append(task)
+        return tasks
 
     @validate_arguments
     async def validate_task_data(
         self,
         tasks: List[Task],
     ) -> TaskOperationResults:
-        async with self.get_client(self.workflow.did) as session:
-            query = gql(queries.VALIDATE_TASK_DATA_MUTATION)
+        query = gql(queries.VALIDATE_TASK_DATA_MUTATION)
 
-            async_tasks = []
-            for task in tasks:
-                params = {
-                    'validateTaskInput': TaskMutationValidateInput(
-                        iid=self.workflow.iid,
-                        tid=task.tid,
-                        fields=[
-                            TaskFieldInput(
-                                **field.dict()
-                            )
-                            for field in task.data
-                        ],
-                    ).dict(),
-                }
-                async_tasks.append(session.execute(
-                    query,
-                    variable_values=params,
-                ))
+        client = self._get_client(self.workflow.did)
+        try:
+            async with client as session:
+                async_tasks = []
+                for task in tasks:
+                    params = {
+                        'validateTaskInput': TaskMutationValidateInput(
+                            iid=self.workflow.iid,
+                            tid=task.tid,
+                            fields=[
+                                TaskFieldInput(
+                                    **field.dict()
+                                )
+                                for field in task.data
+                            ],
+                        ).dict(),
+                    }
+                    async_tasks.append(session.execute(
+                        query,
+                        variable_values=params,
+                    ))
 
-            async_results = await asyncio.gather(*async_tasks)
-            logger.debug(async_results)
-            tasks_dict = {task.tid: task for task in tasks}
-            results = TaskOperationResults()
-            for result in async_results:
-                payload = TaskValidatePayload(
-                    **result['tasks']['validate'],
+                async_results = await asyncio.gather(*async_tasks)
+                logger.debug(async_results)
+        except ClientConnectorError as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
+
+        tasks_dict = {task.tid: task for task in tasks}
+        results = TaskOperationResults()
+        for result in async_results:
+            payload = TaskValidatePayload(
+                **result['tasks']['validate'],
+            )
+            if payload.status != OperationStatus.SUCCESS:
+                results.errors.append(ErrorDetails(message=str(payload)))
+            elif not payload.passed:
+                results.errors.append(
+                    ValidationErrorDetails(payload=payload)
                 )
-                if payload.status != OperationStatus.SUCCESS:
-                    results.errors.append(ErrorDetails(message=str(payload)))
-                elif not payload.passed:
-                    results.errors.append(
-                        ValidationErrorDetails(payload=payload)
-                    )
-                else:
-                    results.successful.append(tasks_dict[payload.tid])
+            else:
+                results.successful.append(tasks_dict[payload.tid])
 
-            return results
+        return results
 
     @validate_arguments
     async def save_task_data(
         self,
         tasks: List[Task],
     ) -> TaskOperationResults:
-        async with self.get_client(self.workflow.did) as session:
-            query = gql(queries.SAVE_TASK_DATA_MUTATION)
+        query = gql(queries.SAVE_TASK_DATA_MUTATION)
 
-            async_tasks = []
-            for task in tasks:
-                params = {
-                    'saveTaskInput': TaskMutationSaveInput(
-                        iid=self.workflow.iid,
-                        tid=task.tid,
-                        fields=[
-                            TaskFieldInput(
-                                **field.dict()
-                            )
-                            for field in task.data
-                        ],
-                    ).dict(),
-                }
-                async_tasks.append(session.execute(
-                    query,
-                    variable_values=params,
-                ))
+        client = self._get_client(self.workflow.did)
+        try:
+            async with client as session:
+                async_tasks = []
+                for task in tasks:
+                    params = {
+                        'saveTaskInput': TaskMutationSaveInput(
+                            iid=self.workflow.iid,
+                            tid=task.tid,
+                            fields=[
+                                TaskFieldInput(
+                                    **field.dict()
+                                )
+                                for field in task.data
+                            ],
+                        ).dict(),
+                    }
+                    async_tasks.append(session.execute(
+                        query,
+                        variable_values=params,
+                    ))
 
-            async_results = await asyncio.gather(*async_tasks)
-            logger.debug(async_results)
+                async_results = await asyncio.gather(*async_tasks)
+                logger.debug(async_results)
+        except ClientConnectorError as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
 
-            tasks_dict = {task.tid: task for task in tasks}
-            results = TaskOperationResults()
-            for result in async_results:
-                payload = TaskSavePayload(
-                    **result['tasks']['save'],
+        tasks_dict = {task.tid: task for task in tasks}
+        results = TaskOperationResults()
+        for result in async_results:
+            payload = TaskSavePayload(
+                **result['tasks']['save'],
+            )
+            if payload.status != OperationStatus.SUCCESS:
+                results.errors.append(ErrorDetails(message=str(payload)))
+            elif not payload.passed:
+                results.errors.append(
+                    ValidationErrorDetails(payload=payload)
                 )
-                if payload.status != OperationStatus.SUCCESS:
-                    results.errors.append(ErrorDetails(message=str(payload)))
-                elif not payload.passed:
-                    results.errors.append(
-                        ValidationErrorDetails(payload=payload)
-                    )
-                else:
-                    results.successful.append(tasks_dict[payload.tid])
+            else:
+                results.successful.append(tasks_dict[payload.tid])
 
-            return results
+        return results
 
     @validate_arguments
     async def complete_task(
         self,
         tasks: List[Task],
     ) -> TaskOperationResults:
-        async with self.get_client(self.workflow.did) as session:
-            query = gql(queries.COMPLETE_TASK_MUTATION)
+        query = gql(queries.COMPLETE_TASK_MUTATION)
 
-            async_tasks = []
-            for task in tasks:
-                params = {
-                    'completeTaskInput': TaskMutationCompleteInput(
-                        iid=self.workflow.iid,
-                        tid=task.tid,
-                    ).dict(),
-                }
-                async_tasks.append(session.execute(
-                    query,
-                    variable_values=params,
-                ))
+        client = self._get_client(self.workflow.did)
+        try:
+            async with client as session:
+                async_tasks = []
+                for task in tasks:
+                    params = {
+                        'completeTaskInput': TaskMutationCompleteInput(
+                            iid=self.workflow.iid,
+                            tid=task.tid,
+                        ).dict(),
+                    }
+                    async_tasks.append(session.execute(
+                        query,
+                        variable_values=params,
+                    ))
 
-            async_results = await asyncio.gather(*async_tasks)
-            logger.debug(async_results)
-            tasks_dict = {task.tid: task for task in tasks}
-            results = TaskOperationResults()
-            for result in async_results:
-                payload = TaskCompletePayload(
-                    **result['tasks']['complete'],
-                )
-                if payload.status != OperationStatus.SUCCESS:
-                    results.errors.append(ErrorDetails(message=str(payload)))
-                else:
-                    results.successful.append(tasks_dict[payload.tid])
+                async_results = await asyncio.gather(*async_tasks)
+                logger.debug(async_results)
+        except ClientConnectorError as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
 
-            return results
+        tasks_dict = {task.tid: task for task in tasks}
+        results = TaskOperationResults()
+        for result in async_results:
+            payload = TaskCompletePayload(
+                **result['tasks']['complete'],
+            )
+            if payload.status != OperationStatus.SUCCESS:
+                results.errors.append(ErrorDetails(message=str(payload)))
+            else:
+                results.successful.append(tasks_dict[payload.tid])
+
+        return results

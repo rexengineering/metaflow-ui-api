@@ -1,4 +1,11 @@
-from . import MOCK_DATA_ID_BASE, MOCK_DID, MOCK_IID, MOCK_TID_BASE
+from . import (
+    MOCK_DATA_ID,
+    MOCK_DATA_ID_BASE,
+    MOCK_DID,
+    MOCK_IID,
+    MOCK_TID,
+    MOCK_TID_BASE,
+)
 from prism_api.rexflow.entities.types import (
     WorkflowStatus,
     TaskStatus,
@@ -9,6 +16,7 @@ from prism_api.rexflow.entities.types import (
     Task,
     Workflow,
 )
+from prism_api.rexflow.entities.wrappers import TaskChange, TaskDataChange
 
 
 def mock_task_field_data(
@@ -81,4 +89,15 @@ def mock_workflow(
             )
             for i in range(task_number)
         ]
+    )
+
+
+def mock_task_change():
+    return TaskChange(
+        iid=MOCK_IID,
+        tid=MOCK_TID,
+        data=[TaskDataChange(
+            dataId=MOCK_DATA_ID,
+            data='test',
+        )]
     )

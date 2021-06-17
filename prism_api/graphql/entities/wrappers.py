@@ -92,6 +92,11 @@ class ValidationProblem(Problem):
         return 'ValidationProblem'
 
 
+class ServiceNotAvailableProblem(Problem):
+    def resolve_type(self):
+        return 'ServiceNotAvailableProblem'
+
+
 # GraphQL payload types
 
 class Payload(BaseModel):

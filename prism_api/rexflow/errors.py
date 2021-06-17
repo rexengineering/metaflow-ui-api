@@ -14,6 +14,14 @@ class REXFlowError(Exception):
     """Base exception for REXFlow package"""
 
 
+class REXFlowNotReachable(REXFlowError):
+    """Exception when connecition with flowd fails"""
+
+
+class BridgeNotReachableError(REXFlowError):
+    """Exception when connection with rexflow bridge fails"""
+
+
 class ValidationErrorDetails:
     """Triggers when a validator fails on the bridge"""
     iid: WorkflowInstanceId

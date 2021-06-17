@@ -108,3 +108,7 @@ class Store(StoreABC):
                 logger.exception('Tried to delete a task that does not exists')
             workflow.tasks.remove(task)
             del cls._data[workflow_id]['tasks'][task_id]
+
+    @classmethod
+    def clear(cls):
+        cls._data = {}

@@ -23,6 +23,7 @@ from .entities.wrappers import (
     TaskChange,
     TaskOperationResults
 )
+from .errors import BridgeNotReachableError
 from .store import Store
 
 logger = logging.getLogger()
@@ -42,15 +43,23 @@ async def get_available_workflows() -> List[WorkflowDeployment]:
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
 ) -> Workflow:
-    workflow = await REXFlowBridge.start_workflow(
-        deployment_id=deployment_id,
-    )
+    try:
+        workflow = await REXFlowBridge.start_workflow(
+            deployment_id=deployment_id,
+        )
+    except BridgeNotReachableError:
+        logger.error('Trying to connect to an unreacheable bridge')
+        raise
     Store.add_workflow(workflow)
     return workflow
 
 
 async def _refresh_instance(did: WorkflowDeploymentId):
-    instances = await REXFlowBridge.get_instances(did)
+    try:
+        instances = await REXFlowBridge.get_instances(did)
+    except BridgeNotReachableError:
+        logger.exception('Trying to connect to an unreacheable bridge')
+        instances = []
     for instance in instances:
         workflow = Workflow(
             did=did,
@@ -73,12 +82,17 @@ async def _refresh_instances():
 async def _refresh_workflow(workflow: Workflow):
     """Refresh a single workflow task"""
     bridge = REXFlowBridge(workflow)
-    tasks = await bridge.get_task_data([
-        task.tid for task in workflow.tasks
-    ])
-    workflow.tasks = []
-    for task in tasks:
-        Store.add_task(task)
+    try:
+        tasks = await bridge.get_task_data([
+            task.tid for task in workflow.tasks
+        ])
+    except BridgeNotReachableError:
+        logger.exception('Trying to connect to the wrong bridge')
+        Store.delete_workflow(workflow.iid)
+    else:
+        workflow.tasks = []
+        for task in tasks:
+            Store.add_task(task)
 
 
 async def refresh_workflows() -> None:
@@ -118,7 +132,11 @@ async def start_tasks(
     bridge = REXFlowBridge(Store.get_workflow(iid))
     created_tasks = []
     # Get tasks with initial values
-    created_tasks = await bridge.get_task_data(tasks, reset_values=True)
+    try:
+        created_tasks = await bridge.get_task_data(tasks, reset_values=True)
+    except BridgeNotReachableError:
+        logger.error('Trying to connect to an unreacheable bridge')
+        raise
     # Save initial values
     await bridge.save_task_data(created_tasks)
     for task in created_tasks:
@@ -146,7 +164,16 @@ async def _validate_tasks(
         for task_data_input in task_input.data:
             task_data[task_data_input.dataId].data = task_data_input.data
         updated_tasks.append(task)
-    return await bridge.validate_task_data(updated_tasks)
+
+    try:
+        result = await bridge.validate_task_data(updated_tasks)
+    except BridgeNotReachableError:
+        logger.exception('Trying to connect to an unreachable bridge')
+        result = TaskOperationResults(
+            errors=[{'message': 'Unreachable bridge'}]
+        )
+
+    return result
 
 
 @validate_arguments
@@ -179,7 +206,16 @@ async def _save_tasks(
         for task_data_input in task_input.data:
             task_data[task_data_input.dataId].data = task_data_input.data
         updated_tasks.append(task)
-    return await bridge.save_task_data(updated_tasks)
+
+    try:
+        result = await bridge.save_task_data(updated_tasks)
+    except BridgeNotReachableError:
+        logger.exception('Trying to connect to an unreachable bridge')
+        result = TaskOperationResults(
+            errors=[{'message': 'Unreachable bridge'}]
+        )
+
+    return result
 
 
 @validate_arguments
@@ -206,7 +242,15 @@ async def _complete_tasks(
 ) -> TaskOperationResults:
     updated_tasks = await _save_tasks(iid, tasks)
     bridge = REXFlowBridge(Store.get_workflow(iid))
-    result = await bridge.complete_task(updated_tasks.successful)
+
+    try:
+        result = await bridge.complete_task(updated_tasks.successful)
+    except BridgeNotReachableError:
+        logger.exception('Trying to connect to an unreachable bridge')
+        result = TaskOperationResults(
+            errors=[{'message': 'Unreachable bridge'}]
+        )
+
     result.errors.extend(updated_tasks.errors)
     for task in result.successful:
         Store.delete_task(iid, task.tid)
