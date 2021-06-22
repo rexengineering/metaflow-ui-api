@@ -3,9 +3,10 @@ import asyncio
 import logging
 from typing import Dict, List
 
-from aiohttp.client_exceptions import ClientConnectorError
+from aiohttp.client_exceptions import ClientError
 from gql import Client, gql
 from gql.transport import aiohttp
+from gql.transport.exceptions import TransportError
 from httpx import AsyncClient, ConnectError
 from pydantic import validate_arguments
 
@@ -146,7 +147,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             async with client as session:
                 result = await session.execute(query, variable_values=params)
                 logger.debug(result)
-        except ClientConnectorError as e:
+        except (ClientError, TransportError) as e:
             raise BridgeNotReachableError from e
         finally:
             await client.transport.close()
@@ -173,7 +174,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             async with client as session:
                 result = await session.execute(query)
                 logger.debug(result)
-        except ClientConnectorError as e:
+        except (ClientError, TransportError) as e:
             raise BridgeNotReachableError from e
         finally:
             await client.transport.close()
@@ -216,7 +217,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
 
                 results = await asyncio.gather(*async_tasks)
                 logger.debug(results)
-        except ClientConnectorError as e:
+        except (ClientError, TransportError) as e:
             raise BridgeNotReachableError from e
         finally:
             await client.transport.close()
@@ -280,7 +281,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
 
                 async_results = await asyncio.gather(*async_tasks)
                 logger.debug(async_results)
-        except ClientConnectorError as e:
+        except (ClientError, TransportError) as e:
             raise BridgeNotReachableError from e
         finally:
             await client.transport.close()
@@ -333,7 +334,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
 
                 async_results = await asyncio.gather(*async_tasks)
                 logger.debug(async_results)
-        except ClientConnectorError as e:
+        except (ClientError, TransportError) as e:
             raise BridgeNotReachableError from e
         finally:
             await client.transport.close()
@@ -380,7 +381,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
 
                 async_results = await asyncio.gather(*async_tasks)
                 logger.debug(async_results)
-        except ClientConnectorError as e:
+        except (ClientError, TransportError) as e:
             raise BridgeNotReachableError from e
         finally:
             await client.transport.close()
