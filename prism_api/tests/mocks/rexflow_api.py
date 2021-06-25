@@ -64,6 +64,12 @@ async def start_workflow(
     return _mock_workflow(with_tasks=False)
 
 
+async def start_workflow_by_name(
+    workflow_name: str,
+) -> Workflow:
+    return _mock_workflow(with_tasks=False)
+
+
 @validate_arguments
 async def get_active_workflows(
     iids: List[WorkflowInstanceId]

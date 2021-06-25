@@ -37,8 +37,7 @@ async def start_talktrack(
     else:
         status = TalkTrackStatus.QUEUE
 
-    # TODO change to start workflow by name
-    workflow = await rexflow.start_workflow(talktrack_info.workflow_name)
+    workflow = await rexflow.start_workflow_by_name(talktrack_info.workflow_name)  # noqa: E501
 
     talktrack = TalkTrack(
         id=uuid4(),
