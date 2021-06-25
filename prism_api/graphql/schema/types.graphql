@@ -11,6 +11,8 @@ scalar TaskId
 
 scalar DataId
 
+scalar TalkTrackId
+
 scalar State
 
 # Enum types
@@ -28,6 +30,11 @@ enum WorkflowStatus {
 enum TaskStatus {
     UP
     DOWN
+}
+
+enum TalkTrackStatus {
+    ACTIVE
+    QUEUE
 }
 
 enum OperationStatus {
@@ -117,6 +124,26 @@ type Validator {
     type: ValidationType!
     """For regex validation the regex should go here"""
     constraint: String
+}
+
+type TalkTrack {
+    id: ID!
+    session_id: SessionId!
+    details: TalkTrackInfo!
+    workflow: Workflow!
+    status: TalkTrackStatus!
+}
+
+type TalkTrackInfo {
+    talktrack_id: TalkTrackId!
+    text: String!
+    workflow_name: String!
+    actions: [TalkTrackAction!]!
+}
+
+type TalkTrackAction {
+    label: String!
+    talktrack_id: TalkTrackId!
 }
 
 # Data filters

@@ -1,6 +1,7 @@
 type Mutation {
     session: SessionMutations
     workflow: WorkflowMutations
+    talktrack: TalkTrackMutations
 }
 
 type SessionMutations {
@@ -31,6 +32,13 @@ type TasksMutations {
     save(input: SaveTasksInput!): SaveTasksPayload
     """Finish the task"""
     complete(input: CompleteTasksInput!): CompleteTasksPayload
+}
+
+type TalkTrackMutations {
+    """Start a new talk track"""
+    startTalkTrack(input: StartTalkTrackInput!): StartTalkTrackPayload
+    """Finish a talk track"""
+    endTalkTrack(input: EndTalkTrackInput!): EndTalkTrackPayload
 }
 
 # Mutations inputs
@@ -70,6 +78,14 @@ input TaskDataInput {
 input CompleteTasksInput {
     """Ids of task to be completed"""
     tasks: [TaskInput!]!
+}
+
+input StartTalkTrackInput {
+    talktrack_id: [TalkTrackId!]!
+}
+
+input EndTalkTrackInput {
+    talktrack_uuid: [ID!]!
 }
 
 # Response payloads
@@ -120,5 +136,18 @@ type CompleteTasksPayload {
     status: OperationStatus!
     tasks: [Task!]
     errors: [TaskProblems!]
+    query: Query
+}
+
+type StartTalkTrackPayload {
+    status: OperationStatus!
+    talktracks: [TalkTrack!]
+    errors: [TalkTrackProblems!]
+    query: Query
+}
+
+type EndTalkTrackPayload {
+    status: OperationStatus!
+    errors: [TalkTrackProblems!]
     query: Query
 }

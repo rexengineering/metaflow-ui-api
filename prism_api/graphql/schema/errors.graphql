@@ -11,6 +11,7 @@ union SessionProblems = GenericProblem | ServiceNotAvailableProblem
 
 union WorkflowProblems = GenericProblem | ServiceNotAvailableProblem
 
+union TalkTrackProblems = GenericProblem | ServiceNotAvailableProblem
 
 type GenericProblem implements ProblemInterface {
     message: String!

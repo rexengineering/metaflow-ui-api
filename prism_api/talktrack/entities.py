@@ -21,7 +21,7 @@ class TalkTrackStatus(str, Enum):
 
 class TalkTrackAction(BaseModel):
     label: str
-    talktrack: TalkTrackId
+    talktrack_id: TalkTrackId
 
 
 class TalkTrackInfo(BaseModel):
