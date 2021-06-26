@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Optional
 
@@ -15,10 +16,14 @@ from .entities.types import Session
 from .entities.wrappers import (
     CompleteTaskPayload,
     CompleteTasksInput,
+    FinishTalkTrackInput,
+    FinishTalkTrackPayload,
     GenericProblem,
     Problem,
     SaveTaskInput,
     SaveTasksPayload,
+    StartTalkTrackInput,
+    StartTalkTrackPayload,
     StartWorkflowInput,
     StartWorkflowPayload,
     TaskFilter,
@@ -30,6 +35,7 @@ from .entities.wrappers import (
     ServiceNotAvailableProblem,
     WorkflowFilter,
 )
+from prism_api import settings
 from prism_api.rexflow import api as rexflow
 from prism_api.rexflow.errors import (
     BridgeNotReachableError,
@@ -41,6 +47,7 @@ from prism_api.rexflow.entities.types import (
     Workflow,
 )
 from prism_api.state_manager import store
+from prism_api.talktrack import actions as talktrack_actions
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +73,10 @@ query = QueryType()
 @query.field('session')
 async def resolve_session(_, info: GraphQLResolveInfo):
     request = info.context['request']
-    client_id = request.headers.get('client-id', 'anon')
-    state = await store.read_raw_state(client_id)
+    session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+    state = await store.read_raw_state(session_id)
     return Session(
-        id=client_id,
+        id=session_id,
         state=state,
     )
 
@@ -95,6 +102,21 @@ class WorkflowResolver:
 
 query.set_field('workflows', WorkflowResolver)
 
+
+class TalkTrackResolver:
+    def __init__(self, *_):
+        pass
+
+    async def all(self, _):
+        return talktrack_actions.list_talktracks()
+
+    async def active(self, info):
+        request = info.context['request']
+        session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+        return talktrack_actions.get_talktrack_queue(session_id)
+
+
+query.set_field('talktracks', TalkTrackResolver)
 
 workflow_object = ObjectType('Workflow')
 
@@ -124,8 +146,8 @@ class StateMutations:
     @validate_arguments
     async def update(self, info, input: UpdateStateInput):
         request = info.context['request']
-        client_id = request.headers.get('client-id', 'anon')
-        state = await store.save_raw_state(client_id, input.state)
+        session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+        state = await store.save_raw_state(session_id, input.state)
         return UpdateStatePayload(
             status=OperationStatus.SUCCESS,
             state=state,
@@ -294,3 +316,43 @@ class WorkflowMutations:
 
 
 mutation.set_field('workflow', WorkflowMutations)
+
+
+class TalkTrackMutations:
+    def __init__(self, *_):
+        pass
+
+    @validate_arguments
+    async def start(self, info, input: StartTalkTrackInput):
+        request = info.context['request']
+        session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+
+        async_tasks = []
+        for talktrack_id in input.talktrack_id:
+            async_task = talktrack_actions.start_talktrack(
+                session_id,
+                talktrack_id,
+            )
+            async_tasks.append(async_task)
+
+        talktracks = await asyncio.gather(*async_tasks)
+
+        return StartTalkTrackPayload(
+            status=OperationStatus.SUCCESS,
+            talktrack=talktracks,
+        )
+
+    @validate_arguments
+    async def finish(self, info, input: FinishTalkTrackInput):
+        request = info.context['request']
+        session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+
+        for talktrack_uuid in input.talktrack_uuid:
+            talktrack_actions.finish_talktrack(session_id, talktrack_uuid)
+
+        return FinishTalkTrackPayload(
+            status=OperationStatus.SUCCESS,
+        )
+
+
+mutation.set_field('talktrack', TalkTrackMutations)

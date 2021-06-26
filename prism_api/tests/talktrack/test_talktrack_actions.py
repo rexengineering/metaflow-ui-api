@@ -9,7 +9,7 @@ from prism_api.talktrack.actions import (
     list_talktracks,
     start_talktrack,
     get_talktrack_queue,
-    end_talktrack,
+    finish_talktrack,
 )
 from prism_api.talktrack.entities import (
     TalkTrack,
@@ -92,11 +92,11 @@ class TestTalkTrackActions(unittest.TestCase):
         )
 
     @run_async
-    async def test_end_talktrack(self):
+    async def test_finish_talktrack(self):
         talktrack = await start_talktrack(
             SESSION_ID,
             mock_talktrack_info.talktrack_id,
         )
         self.assertEqual(len(FakeStore.get_talktrack_queue(SESSION_ID)), 1)
-        end_talktrack(talktrack.session_id, talktrack.id)
+        finish_talktrack(talktrack.session_id, talktrack.id)
         self.assertEqual(len(FakeStore.get_talktrack_queue(SESSION_ID)), 0)

@@ -2,6 +2,7 @@
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel
+from pydantic.types import UUID4
 
 from .types import State
 from prism_api.rexflow.entities.types import (
@@ -13,6 +14,10 @@ from prism_api.rexflow.entities.types import (
     WorkflowInstanceId,
     WorkflowDeploymentId,
     TaskId,
+)
+from prism_api.talktrack.entities import (
+    TalkTrackId,
+    TalkTrack,
 )
 
 
@@ -66,6 +71,14 @@ class SaveTaskInput(BaseModel):
 
 class CompleteTasksInput(BaseModel):
     tasks: List[TaskInput]
+
+
+class StartTalkTrackInput(BaseModel):
+    talktrack_id: List[TalkTrackId]
+
+
+class FinishTalkTrackInput(BaseModel):
+    talktrack_uuid: List[UUID4]
 
 
 # GraphQL error types
@@ -132,3 +145,11 @@ class SaveTasksPayload(Payload):
 
 class CompleteTaskPayload(Payload):
     tasks: Optional[List[Task]]
+
+
+class StartTalkTrackPayload(Payload):
+    talktrack: Optional[List[TalkTrack]]
+
+
+class FinishTalkTrackPayload(Payload):
+    pass

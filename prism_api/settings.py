@@ -10,6 +10,8 @@ CORS_ORIGINS = [
 ]
 CORS_ORIGIN_REGEX = os.getenv('APP_CORS_ORIGIN_REGEX', r'https?://.*\.rex\.sh')
 
+SESSION_ID_HEADER = os.getenv('APP_SESSION_ID_HEADER', 'x-client-id')
+
 REXUI_CALLBACK_HOST = os.getenv('REX_REXUI_SERVER_CALLBACK_HOST')
 
 REXFLOW_HOST = os.getenv('REX_REXFLOW_HOST')

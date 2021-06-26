@@ -54,5 +54,5 @@ def get_talktrack_queue(session_id: SessionId) -> list[TalkTrack]:
     return Store.get_talktrack_queue(session_id)
 
 
-def end_talktrack(session_id: SessionId, talktrack_uuid: UUID4) -> None:
+def finish_talktrack(session_id: SessionId, talktrack_uuid: UUID4) -> None:
     Store.remove_talktrack(session_id, talktrack_uuid)
