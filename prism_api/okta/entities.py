@@ -35,5 +35,5 @@ class JWKS(BaseModel):
     use: str  # How the key is used
 
 
-class JWKSResponse:
+class JWKSResponse(BaseModel):
     keys: List[JWKS]
