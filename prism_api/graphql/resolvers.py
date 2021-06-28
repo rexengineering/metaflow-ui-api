@@ -339,7 +339,7 @@ class TalkTrackMutations:
 
         return StartTalkTrackPayload(
             status=OperationStatus.SUCCESS,
-            talktrack=talktracks,
+            talktracks=talktracks,
         )
 
     @validate_arguments

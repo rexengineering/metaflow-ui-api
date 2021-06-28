@@ -130,14 +130,14 @@ type TalkTrack {
     id: ID!
     session_id: SessionId!
     details: TalkTrackInfo!
-    workflow: Workflow!
+    workflow: Workflow
     status: TalkTrackStatus!
 }
 
 type TalkTrackInfo {
     talktrack_id: TalkTrackId!
     text: String!
-    workflow_name: String!
+    workflow_name: String
     actions: [TalkTrackAction!]!
 }
 

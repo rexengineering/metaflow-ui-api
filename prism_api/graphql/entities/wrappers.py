@@ -148,7 +148,7 @@ class CompleteTaskPayload(Payload):
 
 
 class StartTalkTrackPayload(Payload):
-    talktrack: Optional[List[TalkTrack]]
+    talktracks: Optional[List[TalkTrack]]
 
 
 class FinishTalkTrackPayload(Payload):

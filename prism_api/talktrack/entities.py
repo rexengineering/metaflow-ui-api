@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 from pydantic.types import UUID4
@@ -27,7 +27,7 @@ class TalkTrackAction(BaseModel):
 class TalkTrackInfo(BaseModel):
     talktrack_id: TalkTrackId
     text: str
-    workflow_name: str
+    workflow_name: Optional[str]
     actions: List[TalkTrackAction]
 
 
@@ -35,5 +35,5 @@ class TalkTrack(BaseModel):
     id: UUID4
     session_id: SessionId
     details: TalkTrackInfo
-    workflow: Workflow
+    workflow: Optional[Workflow]
     status: TalkTrackStatus
