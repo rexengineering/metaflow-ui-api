@@ -7,5 +7,6 @@ class MockRequest:
 
 class MockInfo:
     context: dict = {
-        'request': MockRequest()
+        'request': MockRequest(),
+        'session_id': 'testuser',
     }
