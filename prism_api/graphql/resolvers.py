@@ -14,6 +14,8 @@ from pydantic.decorator import validate_arguments
 
 from .entities.types import Session
 from .entities.wrappers import (
+    ActivateTalkTrackInput,
+    ActivateTalkTrackPayload,
     CompleteTaskPayload,
     CompleteTasksInput,
     FinishTalkTrackInput,
@@ -340,6 +342,21 @@ class TalkTrackMutations:
         return StartTalkTrackPayload(
             status=OperationStatus.SUCCESS,
             talktracks=talktracks,
+        )
+
+    @validate_arguments
+    async def activate(self, info, input: ActivateTalkTrackInput):
+        request = info.context['request']
+        session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+
+        talktrack = talktrack_actions.activate_talktrack(
+            session_id,
+            input.talktrack_uuid,
+        )
+
+        return ActivateTalkTrackPayload(
+            status=OperationStatus.SUCCESS,
+            talktrack=talktrack,
         )
 
     @validate_arguments

@@ -57,6 +57,23 @@ def get_talktrack_queue(session_id: SessionId) -> list[TalkTrack]:
     return Store.get_talktrack_queue(session_id)
 
 
+def activate_talktrack(
+    session_id: SessionId,
+    talktrack_uuid: UUID4,
+) -> TalkTrack:
+    active_talktrack = Store.get_talktrack(session_id, talktrack_uuid)
+
+    talktracks = Store.get_talktrack_queue(session_id)
+    for talktrack in talktracks:
+        if talktrack.id != talktrack_uuid:
+            talktrack.status = TalkTrackStatus.QUEUE
+            Store.save_talktrack(talktrack)
+
+    active_talktrack.status = TalkTrackStatus.ACTIVE
+    Store.save_talktrack(active_talktrack)
+    return active_talktrack
+
+
 def finish_talktrack(session_id: SessionId, talktrack_uuid: UUID4) -> None:
     Store.remove_talktrack(session_id, talktrack_uuid)
 

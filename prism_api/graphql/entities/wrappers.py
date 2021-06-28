@@ -77,6 +77,10 @@ class StartTalkTrackInput(BaseModel):
     talktrack_id: List[TalkTrackId]
 
 
+class ActivateTalkTrackInput(BaseModel):
+    talktrack_uuid: UUID4
+
+
 class FinishTalkTrackInput(BaseModel):
     talktrack_uuid: List[UUID4]
 
@@ -149,6 +153,10 @@ class CompleteTaskPayload(Payload):
 
 class StartTalkTrackPayload(Payload):
     talktracks: Optional[List[TalkTrack]]
+
+
+class ActivateTalkTrackPayload(Payload):
+    talktrack: Optional[TalkTrack]
 
 
 class FinishTalkTrackPayload(Payload):
