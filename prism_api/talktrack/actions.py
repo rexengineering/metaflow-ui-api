@@ -56,3 +56,8 @@ def get_talktrack_queue(session_id: SessionId) -> list[TalkTrack]:
 
 def finish_talktrack(session_id: SessionId, talktrack_uuid: UUID4) -> None:
     Store.remove_talktrack(session_id, talktrack_uuid)
+
+
+#  TODO load talktracks in a better way
+
+load_talktracks()

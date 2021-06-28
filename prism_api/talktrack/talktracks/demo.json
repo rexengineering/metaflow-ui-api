@@ -5,7 +5,7 @@
     "actions": [
         {
             "label": "Continue",
-            "talktrack": "nextone"
+            "talktrack_id": "nextone"
         }
     ] 
 }

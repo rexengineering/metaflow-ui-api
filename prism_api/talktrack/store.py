@@ -64,8 +64,9 @@ class Store:
     @classmethod
     def clear_talktrack_info(cls):
         redis = cls._get_redis()
-        talktrack_keys = redis.find_keys(cls.TALKTRACK_INFO_PREFIX + ':')
-        redis.delete_keys(*talktrack_keys)
+        talktrack_keys = list(redis.find_keys(cls.TALKTRACK_INFO_PREFIX + ':'))
+        if talktrack_keys:
+            redis.delete_keys(*talktrack_keys)
 
     @classmethod
     def save_talktrack(cls, talktrack: TalkTrack):
