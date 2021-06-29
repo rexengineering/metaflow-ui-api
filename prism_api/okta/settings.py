@@ -9,3 +9,5 @@ AUDIENCE = os.getenv('OKTA_AUDIENCE')
 
 ID_TOKEN_HEADER = os.getenv('APP_ID_TOKEN_HEADER', 'x-id-token')
 AUTHORIZATION_HEADER = os.getenv('APP_AUTHORIZATION_HEADER', 'authorization')
+
+JWKS_EXPIRATION_SEC = int(os.getenv('OKTA_JWKS_EXPIRATION_SEC', 24 * 60 * 60))

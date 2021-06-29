@@ -18,6 +18,7 @@ from .entities import (
     TokenHeader,
 )
 from .errors import OktaError
+from .store import Store
 
 
 logger = logging.getLogger(__name__)
@@ -62,12 +63,15 @@ async def validate_id_token(id_token: str, access_token: str):
 
 
 async def get_json_web_keys():
-    endpoint = f'{BASE_URI}/v1/keys?client_id={CLIENT_ID}'
-    async with AsyncClient() as client:
-        try:
-            result = await client.get(endpoint)
-        except ConnectError as e:
-            logger.exception('Could not connect to Okta')
-            raise OktaError from e
-    response = JWKSResponse(**result.json())
+    response = Store.get_jwks()
+    if response is None:
+        endpoint = f'{BASE_URI}/v1/keys?client_id={CLIENT_ID}'
+        async with AsyncClient() as client:
+            try:
+                result = await client.get(endpoint)
+            except ConnectError as e:
+                logger.exception('Could not connect to Okta')
+                raise OktaError from e
+        response = JWKSResponse(**result.json())
+        Store.save_jwks(response)
     return {key.kid: key for key in response.keys}
