@@ -3,11 +3,6 @@ from typing import List
 from pydantic import BaseModel
 
 
-class TokenWrapper(BaseModel):
-    access_token: str
-    token_type: str
-
-
 class TokenHeader(BaseModel):
     alg: str  # encryption algorithm
     kid: str  # public key identifier
