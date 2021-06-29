@@ -26,6 +26,7 @@ class TalkTrackAction(BaseModel):
 
 class TalkTrackInfo(BaseModel):
     talktrack_id: TalkTrackId
+    title: str
     text: str
     workflow_name: Optional[str]
     actions: List[TalkTrackAction]

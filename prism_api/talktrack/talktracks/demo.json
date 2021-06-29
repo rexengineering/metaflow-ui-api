@@ -1,5 +1,6 @@
 {
     "talktrack_id": "test-123",
+    "title": "Demo Talktrack",
     "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris pretium sem et nibh feugiat venenatis. Proin consectetur tempus urna, eu interdum massa consequat vitae. Vivamus a orci in purus elementum scelerisque ut eu magna. Nullam suscipit mollis dolor, sed interdum turpis sagittis vel. Nunc ultricies quam nec libero blandit faucibus. Sed turpis risus, tincidunt a vehicula sit amet, pellentesque eu neque. Nulla vel vulputate lectus, et rhoncus lacus.",
     "actions": [
         {

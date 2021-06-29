@@ -22,6 +22,7 @@ SESSION_ID = 'testuser'
 
 mock_talktrack_info = TalkTrackInfo(
     talktrack_id='talktrack-123',
+    title='test',
     text='this is a test',
     workflow_name='process',
     actions=[],
