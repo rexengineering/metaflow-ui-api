@@ -76,8 +76,3 @@ def activate_talktrack(
 
 def finish_talktrack(session_id: SessionId, talktrack_uuid: UUID4) -> None:
     Store.remove_talktrack(session_id, talktrack_uuid)
-
-
-#  TODO load talktracks in a better way
-
-load_talktracks()
