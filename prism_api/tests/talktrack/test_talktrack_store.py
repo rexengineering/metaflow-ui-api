@@ -27,6 +27,7 @@ mock_talktrack_info = TalkTrackInfo(
 mock_talktrack = TalkTrack(
     id=uuid4(),
     session_id=SESSION_ID,
+    order=1,
     details=mock_talktrack_info,
     workflow=mock_workflow(),
     status=TalkTrackStatus.ACTIVE,

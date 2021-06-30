@@ -35,6 +35,7 @@ class TalkTrackInfo(BaseModel):
 class TalkTrack(BaseModel):
     id: UUID4
     session_id: SessionId
+    order: int
     details: TalkTrackInfo
     workflow: Optional[Workflow]
     status: TalkTrackStatus

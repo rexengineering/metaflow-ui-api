@@ -32,7 +32,8 @@ async def start_talktrack(
 ) -> TalkTrack:
     talktrack_info = Store.get_talktrack_info(talktrack_id)
 
-    if len(Store.get_talktrack_queue(session_id)) == 0:
+    queue_size = len(Store.get_talktrack_queue(session_id))
+    if queue_size == 0:
         status = TalkTrackStatus.ACTIVE
     else:
         status = TalkTrackStatus.QUEUE
@@ -46,6 +47,7 @@ async def start_talktrack(
 
     talktrack = TalkTrack(
         id=uuid4(),
+        order=queue_size + 1,
         session_id=session_id,
         details=talktrack_info,
         workflow=workflow,

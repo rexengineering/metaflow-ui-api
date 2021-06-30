@@ -129,6 +129,7 @@ type Validator {
 type TalkTrack {
     id: ID!
     session_id: SessionId!
+    order: Int!
     details: TalkTrackInfo!
     workflow: Workflow
     status: TalkTrackStatus!
