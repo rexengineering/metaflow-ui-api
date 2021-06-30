@@ -37,8 +37,10 @@ async def start_talktrack(
     else:
         status = TalkTrackStatus.QUEUE
 
-    if talktrack_info.workflow_name:
-        workflow = await rexflow.start_workflow_by_name(talktrack_info.workflow_name)  # noqa: E501
+    if status == TalkTrackStatus.ACTIVE and talktrack_info.workflow_name:
+        workflow = await rexflow.start_workflow_by_name(
+            talktrack_info.workflow_name
+        )
     else:
         workflow = None
 
@@ -57,7 +59,7 @@ def get_talktrack_queue(session_id: SessionId) -> list[TalkTrack]:
     return Store.get_talktrack_queue(session_id)
 
 
-def activate_talktrack(
+async def activate_talktrack(
     session_id: SessionId,
     talktrack_uuid: UUID4,
 ) -> TalkTrack:
@@ -70,6 +72,10 @@ def activate_talktrack(
             Store.save_talktrack(talktrack)
 
     active_talktrack.status = TalkTrackStatus.ACTIVE
+    if active_talktrack.details.workflow_name:
+        active_talktrack.workflow = await rexflow.start_workflow_by_name(
+            active_talktrack.details.workflow_name
+        )
     Store.save_talktrack(active_talktrack)
     return active_talktrack
 

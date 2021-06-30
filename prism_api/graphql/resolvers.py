@@ -349,7 +349,7 @@ class TalkTrackMutations:
         request = info.context['request']
         session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
 
-        talktrack = talktrack_actions.activate_talktrack(
+        talktrack = await talktrack_actions.activate_talktrack(
             session_id,
             input.talktrack_uuid,
         )
