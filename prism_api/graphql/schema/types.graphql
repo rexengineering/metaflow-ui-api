@@ -136,6 +136,7 @@ type TalkTrack {
 
 type TalkTrackInfo {
     talktrack_id: TalkTrackId!
+    title: String!
     text: String!
     workflow_name: String
     actions: [TalkTrackAction!]!
