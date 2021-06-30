@@ -74,7 +74,8 @@ async def activate_talktrack(
             Store.save_talktrack(talktrack)
 
     active_talktrack.status = TalkTrackStatus.ACTIVE
-    if active_talktrack.details.workflow_name:
+    if active_talktrack.workflow is None \
+       and active_talktrack.details.workflow_name:
         active_talktrack.workflow = await rexflow.start_workflow_by_name(
             active_talktrack.details.workflow_name
         )
