@@ -18,3 +18,4 @@ dependencies:
   - pip:
     - ariadne
     - gql[aiohttp]==3.0.0a5
+    - python-jose[cryptography]
