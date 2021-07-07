@@ -2,6 +2,10 @@ import unittest
 from unittest import mock
 
 from ..mocks import rexflow_api
+from ..mocks.talktrack_entities import (
+    SESSION_ID,
+    mock_talktrack_info,
+)
 from ..mocks.talktrack_store import FakeStore
 from ..utils import run_async
 from prism_api.talktrack.actions import (
@@ -13,19 +17,7 @@ from prism_api.talktrack.actions import (
 )
 from prism_api.talktrack.entities import (
     TalkTrack,
-    TalkTrackInfo,
     TalkTrackStatus,
-)
-
-
-SESSION_ID = 'testuser'
-
-mock_talktrack_info = TalkTrackInfo(
-    talktrack_id='talktrack-123',
-    title='test',
-    text='this is a test',
-    workflow_name='process',
-    actions=[],
 )
 
 

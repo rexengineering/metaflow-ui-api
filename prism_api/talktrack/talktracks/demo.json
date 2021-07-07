@@ -1,11 +1,29 @@
 {
     "talktrack_id": "test-123",
     "title": "Demo Talktrack",
-    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris pretium sem et nibh feugiat venenatis. Proin consectetur tempus urna, eu interdum massa consequat vitae. Vivamus a orci in purus elementum scelerisque ut eu magna. Nullam suscipit mollis dolor, sed interdum turpis sagittis vel. Nunc ultricies quam nec libero blandit faucibus. Sed turpis risus, tincidunt a vehicula sit amet, pellentesque eu neque. Nulla vel vulputate lectus, et rhoncus lacus.",
-    "actions": [
+    "steps": [
         {
-            "label": "Continue",
-            "talktrack_id": "nextone"
+            "title": "Step 1",
+            "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris pretium sem et nibh feugiat venenatis. Proin consectetur tempus urna, eu interdum massa consequat vitae. Vivamus a orci in purus elementum scelerisque ut eu magna. Nullam suscipit mollis dolor, sed interdum turpis sagittis vel. Nunc ultricies quam nec libero blandit faucibus. Sed turpis risus, tincidunt a vehicula sit amet, pellentesque eu neque. Nulla vel vulputate lectus, et rhoncus lacus.",
+            "order": 1,
+            "actions": [
+                {
+                    "label": "Intro",
+                    "talktrack_id": "intro-123"
+                }
+            ] 
+        },
+        {
+            "title": "Step 2",
+            "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris pretium sem et nibh feugiat venenatis. Proin consectetur tempus urna, eu interdum massa consequat vitae. Vivamus a orci in purus elementum scelerisque ut eu magna. Nullam suscipit mollis dolor, sed interdum turpis sagittis vel. Nunc ultricies quam nec libero blandit faucibus. Sed turpis risus, tincidunt a vehicula sit amet, pellentesque eu neque. Nulla vel vulputate lectus, et rhoncus lacus.",
+            "order": 2,
+            "workflow_name": "test_workflow",
+            "actions": [
+                {
+                    "label": "Intro",
+                    "talktrack_id": "intro-123"
+                }
+            ] 
         }
-    ] 
+    ]
 }

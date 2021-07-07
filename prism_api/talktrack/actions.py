@@ -26,6 +26,14 @@ def list_talktracks() -> list[TalkTrackInfo]:
     return Store.list_talktrack_info()
 
 
+async def _start_step_workflow(talktrack: TalkTrack):
+    step = talktrack.details.get_step(talktrack.current_step)
+    if step and step.workflow_name and \
+       talktrack.workflow_not_started(step.order):
+        workflow = await rexflow.start_workflow_by_name(step.workflow_name)
+        talktrack.add_workflow(step.order, workflow)
+
+
 async def start_talktrack(
     session_id: SessionId,
     talktrack_id: TalkTrackId,
@@ -38,21 +46,17 @@ async def start_talktrack(
     else:
         status = TalkTrackStatus.QUEUE
 
-    if status == TalkTrackStatus.ACTIVE and talktrack_info.workflow_name:
-        workflow = await rexflow.start_workflow_by_name(
-            talktrack_info.workflow_name
-        )
-    else:
-        workflow = None
-
     talktrack = TalkTrack(
         id=uuid4(),
         order=queue_size + 1,
         session_id=session_id,
         details=talktrack_info,
-        workflow=workflow,
         status=status,
     )
+
+    if status == TalkTrackStatus.ACTIVE:
+        await _start_step_workflow(talktrack)
+
     Store.save_talktrack(talktrack)
     return talktrack
 
@@ -74,11 +78,19 @@ async def activate_talktrack(
             Store.save_talktrack(talktrack)
 
     active_talktrack.status = TalkTrackStatus.ACTIVE
-    if active_talktrack.workflow is None \
-       and active_talktrack.details.workflow_name:
-        active_talktrack.workflow = await rexflow.start_workflow_by_name(
-            active_talktrack.details.workflow_name
-        )
+    await _start_step_workflow(active_talktrack)
+    Store.save_talktrack(active_talktrack)
+    return active_talktrack
+
+
+async def activate_talktrack_step(
+    session_id: SessionId,
+    talktrack_uuid: UUID4,
+    step_number: int,
+) -> TalkTrack:
+    active_talktrack = Store.get_talktrack(session_id, talktrack_uuid)
+    active_talktrack.current_step = step_number
+    await _start_step_workflow(active_talktrack)
     Store.save_talktrack(active_talktrack)
     return active_talktrack
 

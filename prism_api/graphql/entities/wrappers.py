@@ -2,6 +2,7 @@
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel
+from pydantic.fields import Field
 from pydantic.types import UUID4
 
 from .types import State
@@ -74,15 +75,20 @@ class CompleteTasksInput(BaseModel):
 
 
 class StartTalkTrackInput(BaseModel):
-    talktrack_id: List[TalkTrackId]
+    talktrack_id: List[TalkTrackId] = Field(..., alias='talktrackId')
 
 
 class ActivateTalkTrackInput(BaseModel):
-    talktrack_uuid: UUID4
+    talktrack_uuid: UUID4 = Field(..., alias='talktrackUUID')
+
+
+class ChangeStepTalkTrackInput(BaseModel):
+    talktrack_uuid: UUID4 = Field(..., alias='talktrackUUID')
+    step_number: int = Field(..., alias='stepNumber')
 
 
 class FinishTalkTrackInput(BaseModel):
-    talktrack_uuid: List[UUID4]
+    talktrack_uuid: List[UUID4] = Field(..., alias='talktrackUUID')
 
 
 # GraphQL error types
@@ -156,6 +162,10 @@ class StartTalkTrackPayload(Payload):
 
 
 class ActivateTalkTrackPayload(Payload):
+    talktrack: Optional[TalkTrack]
+
+
+class ChangeStepTalktrackPayload(Payload):
     talktrack: Optional[TalkTrack]
 
 

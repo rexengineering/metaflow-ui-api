@@ -128,24 +128,31 @@ type Validator {
 
 type TalkTrack {
     id: ID!
-    session_id: SessionId!
+    sessionId: SessionId!
     order: Int!
+    currentStep: Int!
     details: TalkTrackInfo!
-    workflow: Workflow
+    workflows: [Workflow!]!
     status: TalkTrackStatus!
 }
 
 type TalkTrackInfo {
-    talktrack_id: TalkTrackId!
+    talktrackId: TalkTrackId!
+    title: String!
+    steps: [TalkTrackStep!]!
+}
+
+type TalkTrackStep {
     title: String!
     text: String!
-    workflow_name: String
+    order: Int!
+    workflowName: String
     actions: [TalkTrackAction!]!
 }
 
 type TalkTrackAction {
     label: String!
-    talktrack_id: TalkTrackId!
+    talktrackId: TalkTrackId!
 }
 
 # Data filters

@@ -1,37 +1,16 @@
 import unittest
 from unittest import mock
-from uuid import uuid4
 
 from rexredis import RexRedis
 
-from ..mocks.rexflow_entities import mock_workflow
-from prism_api.talktrack.entities import (
-    TalkTrack,
-    TalkTrackInfo,
-    TalkTrackStatus,
+from ..mocks.talktrack_entities import (
+    SESSION_ID,
+    mock_talktrack,
+    mock_talktrack_info,
 )
 from prism_api.talktrack.store import Store
 
 REXREDIS_PATH = 'prism_api.talktrack.store.Store._get_redis'
-
-SESSION_ID = 'testuser'
-
-mock_talktrack_info = TalkTrackInfo(
-            talktrack_id='talktrack-123',
-            title='test',
-            text='this is a test',
-            workflow_name='process',
-            actions=[],
-        )
-
-mock_talktrack = TalkTrack(
-    id=uuid4(),
-    session_id=SESSION_ID,
-    order=1,
-    details=mock_talktrack_info,
-    workflow=mock_workflow(),
-    status=TalkTrackStatus.ACTIVE,
-)
 
 
 def mock_redis_client():

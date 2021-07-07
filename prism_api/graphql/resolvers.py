@@ -16,6 +16,8 @@ from .entities.types import Session
 from .entities.wrappers import (
     ActivateTalkTrackInput,
     ActivateTalkTrackPayload,
+    ChangeStepTalkTrackInput,
+    ChangeStepTalktrackPayload,
     CompleteTaskPayload,
     CompleteTasksInput,
     FinishTalkTrackInput,
@@ -355,6 +357,22 @@ class TalkTrackMutations:
         )
 
         return ActivateTalkTrackPayload(
+            status=OperationStatus.SUCCESS,
+            talktrack=talktrack,
+        )
+
+    @validate_arguments
+    async def change_step(self, info, input: ChangeStepTalkTrackInput):
+        request = info.context['request']
+        session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+
+        talktrack = await talktrack_actions.activate_talktrack_step(
+            session_id,
+            input.talktrack_uuid,
+            input.step_number,
+        )
+
+        return ChangeStepTalktrackPayload(
             status=OperationStatus.SUCCESS,
             talktrack=talktrack,
         )

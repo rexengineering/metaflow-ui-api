@@ -39,6 +39,8 @@ type TalkTrackMutations {
     start(input: StartTalkTrackInput!): StartTalkTrackPayload
     """Make a talktrack active"""
     activate(input: ActivateTalkTrackInput!): ActivateTalkTrackPayload
+    """Change talktrack step"""
+    changeStep(input: ChangeStepTalkTrackInput): ChangeStepTalktrackPayload
     """Finish a talk track"""
     finish(input: FinishTalkTrackInput!): FinishTalkTrackPayload
 }
@@ -83,15 +85,20 @@ input CompleteTasksInput {
 }
 
 input StartTalkTrackInput {
-    talktrack_id: [TalkTrackId!]!
+    talktrackId: [TalkTrackId!]!
 }
 
 input ActivateTalkTrackInput {
-    talktrack_uuid: ID!
+    talktrackUUID: ID!
+}
+
+input ChangeStepTalkTrackInput {
+    talktrackUUID: ID!
+    stepNumber: Int!
 }
 
 input FinishTalkTrackInput {
-    talktrack_uuid: [ID!]!
+    talktrackUUID: [ID!]!
 }
 
 # Response payloads
@@ -153,6 +160,13 @@ type StartTalkTrackPayload {
 }
 
 type ActivateTalkTrackPayload {
+    status: OperationStatus!
+    talktrack: TalkTrack
+    errors: [TalkTrackProblems!]
+    query: Query
+}
+
+type ChangeStepTalktrackPayload {
     status: OperationStatus!
     talktrack: TalkTrack
     errors: [TalkTrackProblems!]
