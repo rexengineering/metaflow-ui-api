@@ -9,6 +9,7 @@ CORS_ORIGINS = [
     for origin in os.getenv('APP_CORS_ORIGINS', '').split(',')
 ]
 CORS_ORIGIN_REGEX = os.getenv('APP_CORS_ORIGIN_REGEX', r'https?://.*\.rex\.sh')
+DISABLE_AUTHENTICATION = os.getenv('APP_DISABLE_AUTHENTICATION', 'false').lower() == 'true'  # noqa E501
 
 SESSION_ID_HEADER = os.getenv('APP_SESSION_ID_HEADER', 'x-client-id')
 

@@ -5,6 +5,7 @@ from jose.exceptions import JWTError
 from pydantic.error_wrappers import ValidationError
 
 from .errors import HttpUnauthorizedError
+from prism_api import settings
 from prism_api.okta.actions import (
     get_access_token,
     validate_access_token,
@@ -14,6 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 async def verify_access_token(info: GraphQLResolveInfo):
+    if settings.DISABLE_AUTHENTICATION:
+        info.context['access_token'] = None
+        info.context['session_id'] = 'anon'
+        return
+
     access_token = get_access_token(info.context['request'])
 
     if access_token is None:
