@@ -29,7 +29,7 @@ class TalkTrackStep(BaseModel):
     text: str
     order: int
     workflow_name: Optional[str]
-    actions: List[TalkTrackAction]
+    actions: List[TalkTrackAction] = []
 
 
 class TalkTrackInfo(BaseModel):
