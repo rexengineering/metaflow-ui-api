@@ -402,7 +402,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         return results
 
     @validate_arguments
-    async def cancel_workflow(self):
+    async def cancel_workflow(self) -> bool:
         query = gql(queries.CANCEL_WORKFLOW_QUERY)
         params = {
             'cancelWorkflow': CancelWorkflowInstanceInput(
