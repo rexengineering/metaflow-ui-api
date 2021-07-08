@@ -12,6 +12,7 @@ from ariadne import (
 from graphql.type.definition import GraphQLResolveInfo
 from pydantic.decorator import validate_arguments
 
+from .decorators import resolver_verify_token
 from .entities.types import Session
 from .entities.wrappers import (
     ActivateTalkTrackInput,
@@ -75,9 +76,9 @@ query = QueryType()
 
 
 @query.field('session')
+@resolver_verify_token
 async def resolve_session(_, info: GraphQLResolveInfo):
-    request = info.context['request']
-    session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+    session_id = info.context['session_id']
     state = await store.read_raw_state(session_id)
     return Session(
         id=session_id,
@@ -89,6 +90,7 @@ class WorkflowResolver:
     def __init__(self, *_):
         pass
 
+    @resolver_verify_token
     @validate_arguments
     async def active(
         self,
@@ -99,6 +101,7 @@ class WorkflowResolver:
         workflows = await rexflow.get_active_workflows(iids)
         return workflows
 
+    @resolver_verify_token
     async def available(self, *_):
         available_workflows = await rexflow.get_available_workflows()
         return available_workflows
@@ -126,6 +129,7 @@ workflow_object = ObjectType('Workflow')
 
 
 @workflow_object.field('tasks')
+@resolver_verify_token
 @validate_arguments
 async def resolve_workflow_tasks(
     workflow: Workflow,
@@ -147,10 +151,10 @@ mutation = MutationType()
 
 
 class StateMutations:
+    @resolver_verify_token
     @validate_arguments
     async def update(self, info, input: UpdateStateInput):
-        request = info.context['request']
-        session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
+        session_id = info.context['session_id']
         state = await store.save_raw_state(session_id, input.state)
         return UpdateStatePayload(
             status=OperationStatus.SUCCESS,
@@ -162,18 +166,22 @@ class SessionMutations:
     def __init__(sel, *_) -> None:
         pass
 
-    async def start(self, _):
+    @resolver_verify_token
+    async def start(self, info: GraphQLResolveInfo):
+        session_id = info.context['session_id']
         return {
             'status': OperationStatus.SUCCESS,
             'session': {
-                'id': '',
+                'id': session_id,
                 'state': '',
             },
         }
 
+    @resolver_verify_token
     async def state(self, _):
         return StateMutations()
 
+    @resolver_verify_token
     async def close(self, _):
         return {
             'status': OperationStatus.SUCCESS,
@@ -185,6 +193,7 @@ mutation.set_field('session', SessionMutations)
 
 class TasksMutations:
 
+    @resolver_verify_token
     @validate_arguments
     async def validate(self, info, input: ValidateTaskInput):
         try:
@@ -220,6 +229,7 @@ class TasksMutations:
             errors=errors
         )
 
+    @resolver_verify_token
     @validate_arguments
     async def save(self, info, input: SaveTaskInput):
         try:
@@ -255,6 +265,7 @@ class TasksMutations:
             errors=errors,
         )
 
+    @resolver_verify_token
     @validate_arguments
     async def complete(self, info, input: CompleteTasksInput):
         try:
@@ -295,6 +306,7 @@ class WorkflowMutations:
     def __init__(self, *_) -> None:
         pass
 
+    @resolver_verify_token
     @validate_arguments
     async def start(self, info, input: StartWorkflowInput):
         logger.info(input)

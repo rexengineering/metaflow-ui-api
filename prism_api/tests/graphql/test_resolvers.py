@@ -69,9 +69,17 @@ def get_task_input():
     )
 
 
+async def dummy_verification(*args, **kwargs):
+    pass
+
+
 @mock.patch(
     'prism_api.state_manager.store.api.Store',
     FakeStore,
+)
+@mock.patch(
+    'prism_api.graphql.decorators.verify_access_token',
+    dummy_verification,
 )
 class TestSessionResolvers(unittest.TestCase):
     @run_async
@@ -88,6 +96,10 @@ class TestSessionResolvers(unittest.TestCase):
     'prism_api.graphql.resolvers.rexflow',
     rexflow_api,
 )
+@mock.patch(
+    'prism_api.graphql.decorators.verify_access_token',
+    dummy_verification,
+)
 class TestRexflowResolvers(unittest.TestCase):
     @run_async
     async def test_active_workflows(self):
@@ -102,7 +114,7 @@ class TestRexflowResolvers(unittest.TestCase):
     @run_async
     async def test_available_workflows(self):
         resolver = WorkflowResolver()
-        response = await resolver.available()
+        response = await resolver.available(MockInfo())
         self.assertIsInstance(response, List)
         for workflow in response:
             self.assertIsInstance(workflow, WorkflowDeployment)
