@@ -96,4 +96,12 @@ async def activate_talktrack_step(
 
 
 def finish_talktrack(session_id: SessionId, talktrack_uuid: UUID4) -> None:
-    Store.remove_talktrack(session_id, talktrack_uuid)
+    talktrack = Store.get_talktrack(session_id, talktrack_uuid)
+    if talktrack:
+        for workflow in talktrack.workflows:
+            if workflow.status not in (
+                WorkflowStatus.COMPLETED,
+                WorkflowStatus.ERROR,
+            ):
+                rexflow.cancel_workflow(workflow.iid)
+        Store.remove_talktrack(session_id, talktrack_uuid)
