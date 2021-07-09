@@ -12,6 +12,7 @@ from .types import (
     WorkflowDeploymentId,
     WorkflowInstanceId,
     WorkflowInstanceInfo,
+    WorkflowStatus,
 )
 
 
@@ -35,6 +36,10 @@ class TaskOperationResults(BaseModel):
 
 class CreateWorkflowInstanceInput(BaseModel):
     graphqlUri: str
+
+
+class CancelWorkflowInstanceInput(BaseModel):
+    iid: WorkflowInstanceId
 
 
 class TaskMutationFormInput(BaseModel):
@@ -76,6 +81,12 @@ class CreateInstancePayload(Payload):
     iid: WorkflowInstanceId
     status: OperationStatus
     tasks: List[TaskId]
+
+
+class CancelInstancePayload(Payload):
+    did: WorkflowDeploymentId
+    iid: WorkflowInstanceId
+    iid_status: WorkflowStatus
 
 
 class GetInstancePayload(BaseModel):

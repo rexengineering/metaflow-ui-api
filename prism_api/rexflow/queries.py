@@ -12,6 +12,17 @@ mutation StartWorkflow($createWorkflow: CreateWorkflowInstanceInput!) {
 }
 '''
 
+CANCEL_WORKFLOW_QUERY = '''
+mutation CancelWorkflow($cancelWorkflow: CancelWorkflowInstanceInput!) {
+  cancelInstance(input: $cancelWorkflow) {
+    did
+    iid
+    iid_status
+    status
+  }
+}
+'''
+
 GET_INSTANCES_QUERY = '''
 query GetInstances{
   getInstances {

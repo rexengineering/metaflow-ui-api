@@ -43,6 +43,7 @@ enum ValidationType {
 
 """Data request types that will be mapped to UI components"""
 enum DataType {
+    COPY
     TEXT
     CURRENCY
     INTEGER
@@ -125,6 +126,10 @@ input CreateWorkflowInstanceInput {
     graphqlUri: String!
 }
 
+input CancelWorkflowInstanceInput {
+    iid: WorkflowInstanceId!
+}
+
 input TaskMutationFormInput {
     iid:WorkflowInstanceId
     tid:TaskId!
@@ -161,6 +166,13 @@ type CreateInstancePayload {
     iid: WorkflowInstanceId!
     status: OperationStatus!
     tasks: [TaskId!]!
+}
+
+type CancelInstancePayload {
+    did: WorkflowDeployemntId!
+    iid: WorkflowInstanceId!
+    iid_status: WorkflowStatus!
+    status: OperationStatus!
 }
 
 type WorkflowInstanceInfo {
@@ -214,6 +226,7 @@ type Query {
 
 type Mutation {
     createInstance(input: CreateWorkflowInstanceInput!) : CreateInstancePayload
+    cancelInstance(input: CancelWorkflowInstanceInput!) : CancelInstancePayload
     tasks: TaskMutation
 }
 

@@ -139,3 +139,15 @@ class TestBridgeIntegration(unittest.TestCase):
         self.assertGreater(len(result.successful), 0)
         for task in result.successful:
             self.assertIsInstance(task, bridge.Task)
+
+    @run_async
+    async def test_cancel_workflow(self):
+        workflow = bridge.Workflow(
+            iid=MOCK_IID,
+            did=MOCK_DID,
+            status=bridge.WorkflowStatus.RUNNING,
+        )
+        rexflow = bridge.REXFlowBridgeGQL(workflow)
+
+        result = await rexflow.cancel_workflow()
+        self.assertTrue(result)
