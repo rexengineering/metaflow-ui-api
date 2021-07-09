@@ -52,15 +52,14 @@ class TalkTrack(BaseModel):
     current_step: int = 1
     details: TalkTrackInfo
     status: TalkTrackStatus
-
-    _workflows_dict: Dict[int, Workflow] = {}
+    workflows_dict: Dict[int, Workflow] = {}
 
     @property
     def workflows(self) -> List[Workflow]:
-        return list(self._workflows_dict.values())
+        return list(self.workflows_dict.values())
 
     def add_workflow(self, step_number: int, workflow: Workflow):
-        self._workflows_dict[step_number] = workflow
+        self.workflows_dict[step_number] = workflow
 
     def workflow_not_started(self, step_number: int):
-        return step_number not in self._workflows_dict
+        return step_number not in self.workflows_dict

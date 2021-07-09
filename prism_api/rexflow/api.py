@@ -2,7 +2,7 @@
 import asyncio
 from collections import defaultdict
 import logging
-from typing import List
+from typing import Dict, List
 
 from pydantic import validate_arguments
 
@@ -125,6 +125,14 @@ async def get_active_workflows(
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
     ]
+
+
+def get_all_workflows() -> Dict[WorkflowInstanceId, Workflow]:
+    workflows = Store.get_workflow_list()
+    return {
+        workflow.iid: workflow
+        for workflow in workflows
+    }
 
 
 async def complete_workflow(

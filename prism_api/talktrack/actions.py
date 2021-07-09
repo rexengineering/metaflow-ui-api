@@ -12,6 +12,7 @@ from .provider import get_talktrack_file_parsed_contents
 from .store import Store
 from prism_api.graphql.entities.types import SessionId
 from prism_api.rexflow import api as rexflow
+from prism_api.rexflow.entities.types import WorkflowStatus
 
 
 def load_talktracks():
@@ -32,6 +33,13 @@ async def _start_step_workflow(talktrack: TalkTrack):
        talktrack.workflow_not_started(step.order):
         workflow = await rexflow.start_workflow_by_name(step.workflow_name)
         talktrack.add_workflow(step.order, workflow)
+
+
+def _update_workflows(talktrack: TalkTrack):
+    workflows = rexflow.get_all_workflows()
+    for step, workflow in talktrack.workflows_dict.items():
+        workflow = workflows[workflow.iid]
+        talktrack.add_workflow(step, workflow)
 
 
 async def start_talktrack(
@@ -62,7 +70,10 @@ async def start_talktrack(
 
 
 def get_talktrack_queue(session_id: SessionId) -> list[TalkTrack]:
-    return Store.get_talktrack_queue(session_id)
+    talktracks = Store.get_talktrack_queue(session_id)
+    for talktrack in talktracks:
+        _update_workflows(talktrack)
+    return talktracks
 
 
 async def activate_talktrack(
@@ -79,6 +90,7 @@ async def activate_talktrack(
 
     active_talktrack.status = TalkTrackStatus.ACTIVE
     await _start_step_workflow(active_talktrack)
+    _update_workflows(active_talktrack)
     Store.save_talktrack(active_talktrack)
     return active_talktrack
 
@@ -91,17 +103,19 @@ async def activate_talktrack_step(
     active_talktrack = Store.get_talktrack(session_id, talktrack_uuid)
     active_talktrack.current_step = step_number
     await _start_step_workflow(active_talktrack)
+    _update_workflows(active_talktrack)
     Store.save_talktrack(active_talktrack)
     return active_talktrack
 
 
-def finish_talktrack(session_id: SessionId, talktrack_uuid: UUID4) -> None:
+async def finish_talktrack(session_id: SessionId, talktrack_uuid: UUID4):
     talktrack = Store.get_talktrack(session_id, talktrack_uuid)
     if talktrack:
+        _update_workflows(talktrack)
         for workflow in talktrack.workflows:
             if workflow.status not in (
                 WorkflowStatus.COMPLETED,
                 WorkflowStatus.ERROR,
             ):
-                rexflow.cancel_workflow(workflow.iid)
+                await rexflow.cancel_workflow(workflow.iid)
         Store.remove_talktrack(session_id, talktrack_uuid)

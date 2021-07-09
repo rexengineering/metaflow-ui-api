@@ -91,5 +91,5 @@ class TestTalkTrackActions(unittest.TestCase):
             mock_talktrack_info.talktrack_id,
         )
         self.assertEqual(len(FakeStore.get_talktrack_queue(SESSION_ID)), 1)
-        finish_talktrack(talktrack.session_id, talktrack.id)
+        await finish_talktrack(talktrack.session_id, talktrack.id)
         self.assertEqual(len(FakeStore.get_talktrack_queue(SESSION_ID)), 0)

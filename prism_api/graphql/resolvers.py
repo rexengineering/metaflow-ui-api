@@ -395,7 +395,10 @@ class TalkTrackMutations:
         session_id = request.headers.get(settings.SESSION_ID_HEADER, 'anon')
 
         for talktrack_uuid in input.talktrack_uuid:
-            talktrack_actions.finish_talktrack(session_id, talktrack_uuid)
+            await talktrack_actions.finish_talktrack(
+                session_id,
+                talktrack_uuid,
+            )
 
         return FinishTalkTrackPayload(
             status=OperationStatus.SUCCESS,

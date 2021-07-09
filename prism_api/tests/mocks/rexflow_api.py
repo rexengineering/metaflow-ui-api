@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from pydantic import validate_arguments
 
@@ -77,6 +77,11 @@ async def get_active_workflows(
     return [_mock_workflow()]
 
 
+def get_all_workflows() -> Dict[WorkflowInstanceId, Workflow]:
+    workflow = _mock_workflow()
+    return {workflow.iid: workflow}
+
+
 async def complete_workflow(instance_id: WorkflowInstanceId) -> None:
     pass
 
@@ -119,3 +124,9 @@ async def complete_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     result = TaskOperationResults()
     result.successful = [_mock_task()]
     return result
+
+
+async def cancel_workflow(
+    instance_id: WorkflowInstanceId,
+) -> bool:
+    return True
