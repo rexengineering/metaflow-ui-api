@@ -76,3 +76,15 @@ class TestWorkflow(unittest.TestCase):
         # Finish workflow
         await api.complete_workflow(workflow.iid)
         self.assertNotIn(workflow, await api.get_active_workflows([]))
+
+    @run_async
+    @mock.patch('prism_api.rexflow.api.Store', Store)
+    @mock.patch('prism_api.rexflow.api.REXFlowBridge', FakeREXFlowBridge)
+    @mock.patch('prism_api.rexflow.api.get_deployments', get_deployments)
+    async def test_cancel_workflow(self):
+        workflow = await api.start_workflow(deployment_id=MOCK_DID)
+        result = await api.cancel_workflow(workflow.iid)
+        self.assertTrue(result)
+
+        workflow = api.Store.get_workflow(workflow.iid)
+        self.assertEqual(workflow.status, api.WorkflowStatus.CANCELED)

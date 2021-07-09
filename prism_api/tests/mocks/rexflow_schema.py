@@ -53,6 +53,16 @@ def resolve_create_instance(*_, input):
     }
 
 
+@mutation.field('cancelInstance')
+def resolve_cancel_instance(*_, input):
+    return {
+        'did': MOCK_DID,
+        'iid': MOCK_IID,
+        'iid_status': 'RUNNING',
+        'status': 'SUCCESS',
+    }
+
+
 @task_mutation.field('form')
 def resolve_form(*_, input):
     return {

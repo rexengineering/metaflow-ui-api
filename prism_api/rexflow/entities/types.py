@@ -22,6 +22,7 @@ class DataId(str):
 
 class WorkflowStatus(str, Enum):
     COMPLETED = 'COMPLETED'
+    CANCELED = 'CANCELED'
     ERROR = 'ERROR'
     RUNNING = 'RUNNING'
     START = 'START'

@@ -135,6 +135,20 @@ async def complete_workflow(
     Store.add_workflow(workflow)
 
 
+async def cancel_workflow(
+    instance_id: WorkflowInstanceId,
+) -> bool:
+    workflow = Store.get_workflow(instance_id)
+    bridge = REXFlowBridge(workflow)
+    result = await bridge.cancel_workflow()
+
+    if result:
+        workflow.status = WorkflowStatus.CANCELED
+        Store.add_workflow(workflow)
+
+    return result
+
+
 @validate_arguments
 async def start_tasks(
     iid: WorkflowInstanceId,

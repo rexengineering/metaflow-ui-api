@@ -120,3 +120,7 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         result = TaskOperationResults()
         result.successful = tasks
         return result
+
+    async def cancel_workflow(self) -> bool:
+        await asyncio.sleep(self.sleep_time)
+        return True
