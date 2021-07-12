@@ -89,7 +89,7 @@ class Validator(BaseModel):
 
 
 class TaskFieldData(BaseModel):
-    dataId: DataId
+    data_id: DataId = Field(..., alias='dataId')
     type: DataType
     order: int
     label: Optional[str]
@@ -110,7 +110,7 @@ class Task(BaseModel):
 
     def get_data_dict(self):
         return {
-            d.dataId: d
+            d.data_id: d
             for d in self.data
         }
 

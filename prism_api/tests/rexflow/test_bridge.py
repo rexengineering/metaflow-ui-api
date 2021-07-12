@@ -32,7 +32,7 @@ class TestGraphQLSchema(unittest.TestCase):
 
 
 mock_task_data = bridge.TaskFieldData(
-    dataId='uname',
+    data_id='uname',
     type='TEXT',
     order=1,
     label='username',
