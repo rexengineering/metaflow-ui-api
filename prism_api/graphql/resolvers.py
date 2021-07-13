@@ -71,6 +71,20 @@ task_problems_union = UnionType(
     resolve_problem_interface_type,
 )
 
+session_problems_union = UnionType(
+    'SessionProblems',
+    resolve_problem_interface_type,
+)
+
+workflow_problems_union = UnionType(
+    'WorkflowProblems',
+    resolve_problem_interface_type,
+)
+
+talktrack_problems_union = UnionType(
+    'TalkTrackProblems',
+    resolve_problem_interface_type,
+)
 
 query = QueryType()
 

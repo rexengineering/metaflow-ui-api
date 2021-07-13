@@ -105,6 +105,11 @@ class GenericProblem(Problem):
         return 'GenericProblem'
 
 
+class ParsingProblem(Problem):
+    def resolve_type(self):
+        return 'ParsingProblem'
+
+
 class ValidationProblem(Problem):
     iid: WorkflowInstanceId
     tid: TaskId
