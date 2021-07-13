@@ -1,3 +1,4 @@
+import secrets
 
 workflow_deployments = {
     'CallWorkflow': 'callworkflow-abc123',
@@ -34,3 +35,18 @@ async def get_workflow_instances(did: str):
         'iid_list': workflow_instances.get(did, []),
         'tasks': [],
     }
+
+
+async def start_workflow(did: str, callback: str):
+    if did in workflow_instances:
+        iid = f'{did}-{secrets.token_hex(8)}'
+        workflow_instances[did].append(
+            {
+                'iid': iid,
+                'iid_status': 'RUNNING',
+                'graphqlUri': callback,
+            }
+        )
+        return iid
+    else:
+        return ''
