@@ -3,6 +3,7 @@ from ariadne import QueryType, MutationType
 from prism_api.rexflow.schema import schema
 
 from .resolvers import (
+    resolve_cancel_instance,
     resolve_create_instance,
     resolve_get_instances,
     resolve_version,
@@ -19,5 +20,6 @@ query.bind_to_schema(schema)
 mutations = MutationType()
 
 mutations.set_field('createInstance', resolve_create_instance)
+mutations.set_field('cancelInstance', resolve_cancel_instance)
 
 mutations.bind_to_schema(schema)
