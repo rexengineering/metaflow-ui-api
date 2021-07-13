@@ -18,7 +18,7 @@ def resolve_version(*_):
 
 
 @query.field('getInstances')
-def resolve_get_instances(*_, input):
+def resolve_get_instances(*_):
     return {
         'did': MOCK_DID,
         'did_status': 'RUNNING',
