@@ -2,6 +2,7 @@ from starlette.requests import Request
 
 from .workflows import (
     cancel_workflow,
+    get_task_fields,
     get_workflow_instances,
     start_workflow,
 )
@@ -43,3 +44,19 @@ async def resolve_cancel_instance(_, info, input):
         'iid_status': 'ERROR',
         'status': 'SUCCESS',
     }
+
+
+class TaskResolver:
+    def __init__(self, _, info):
+        self.did = _get_did(info)
+
+    async def form(self, info, input):
+        iid = input['iid']
+        tid = input['tid']
+
+        return {
+            'iid': iid,
+            'tid': tid,
+            'status': 'SUCCESS',
+            'fields': await get_task_fields(self.did, tid),
+        }

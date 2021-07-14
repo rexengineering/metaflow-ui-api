@@ -1,13 +1,45 @@
+import json
 import secrets
+from os import path
+
+
+def _transform_field(field):
+    field['encrypted'] = field['encrypted'] == 'True'
+    return field
+
+
+def _load_fields(filename: str):
+    with open(filename) as f:
+        fields = json.load(f)
+
+    return [
+        _transform_field(field)
+        for field in fields
+    ]
+
+
+basepath = path.dirname(__file__)
+worflows_dir = path.abspath(path.join(basepath, '..', 'workflows'))
 
 workflow_deployments = {
-    'CallWorkflow': 'callworkflow-abc123',
-    'test': 'another',
+    'callworkflow-abc123': {
+        'name': 'CallWorkflow',
+        'did': 'callworkflow-abc123',
+        'tasks': {
+            'get_call_data': _load_fields(
+                path.join(worflows_dir, 'call', 'call_fields.json'),
+            ),
+        },
+    },
+    'another': {
+        'name': 'test',
+        'did': 'another',
+    },
 }
 
 workflow_instances = {
-    did: {}
-    for did in workflow_deployments.values()
+    info['did']: {}
+    for info in workflow_deployments.values()
 }
 
 
@@ -16,14 +48,14 @@ async def available_workflows():
         'message': 'Ok',
         'status': 0,
         'wf_map': {
-            name: [
+            info['name']: [
                 {
-                    'id': did,
+                    'id': info['did'],
                     'start_events_urls': '',
                     'use_opaque_metadata': {},
                 }
             ]
-            for name, did in workflow_deployments.items()
+            for info in workflow_deployments.values()
         }
     }
 
@@ -55,3 +87,10 @@ async def cancel_workflow(did: str, iid: str):
         del workflow_instances[did][iid]
     except KeyError:
         pass
+
+
+async def get_task_fields(did: str, tid: str):
+    try:
+        return workflow_deployments[did]['tasks'][tid]
+    except KeyError:
+        return []
