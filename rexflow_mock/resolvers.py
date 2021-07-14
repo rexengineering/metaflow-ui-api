@@ -26,6 +26,9 @@ async def resolve_create_instance(_, info, input):
     did = _get_did(info)
     callback = input['graphqlUri']
     iid = await start_workflow(did, callback)
+
+    # TODO: activate first task
+
     return {
         'did': did,
         'iid': iid,
@@ -50,7 +53,7 @@ class TaskResolver:
     def __init__(self, _, info):
         self.did = _get_did(info)
 
-    async def form(self, info, input):
+    async def form(self, _, input):
         iid = input['iid']
         tid = input['tid']
 
@@ -59,4 +62,54 @@ class TaskResolver:
             'tid': tid,
             'status': 'SUCCESS',
             'fields': await get_task_fields(self.did, tid),
+        }
+
+    async def validate(self, _, input):
+        iid = input['iid']
+        tid = input['tid']
+
+        return {
+            'iid': iid,
+            'tid': tid,
+            'status': 'SUCCESS',
+            'passed': True,
+            'results': [
+                {
+                    'dataId': field['dataId'],
+                    'passed': True,
+                    'results': [],
+                }
+                for field in input['fields']
+            ],
+        }
+
+    async def save(self, _, input):
+        iid = input['iid']
+        tid = input['tid']
+
+        return {
+            'iid': iid,
+            'tid': tid,
+            'status': 'SUCCESS',
+            'passed': True,
+            'results': [
+                {
+                    'dataId': field['dataId'],
+                    'passed': True,
+                    'results': [],
+                }
+                for field in input['fields']
+            ],
+        }
+
+    async def complete(self, _, input):
+        iid = input['iid']
+        tid = input['tid']
+
+        # TODO: move along to next task
+
+        return {
+            'iid': iid,
+            'tid': tid,
+            'status': 'SUCCESS',
         }
