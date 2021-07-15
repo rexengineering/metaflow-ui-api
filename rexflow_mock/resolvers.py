@@ -1,8 +1,10 @@
 from starlette.requests import Request
 
+from .task_scheduler import Scheduler
 from .workflows import (
     cancel_workflow,
     get_task_fields,
+    get_task_list,
     get_workflow_instances,
     start_workflow,
 )
@@ -27,7 +29,8 @@ async def resolve_create_instance(_, info, input):
     callback = input['graphqlUri']
     iid = await start_workflow(did, callback)
 
-    # TODO: activate first task
+    scheduler = Scheduler(iid, callback, await get_task_list(did))
+    await scheduler.start()
 
     return {
         'did': did,
@@ -106,7 +109,11 @@ class TaskResolver:
         iid = input['iid']
         tid = input['tid']
 
-        # TODO: move along to next task
+        scheduler: Scheduler = Scheduler.get_scheduler(iid)
+        if scheduler:
+            result = await scheduler.next_task(tid)
+            if result is False:
+                cancel_workflow(self.did, iid)
 
         return {
             'iid': iid,

@@ -89,6 +89,15 @@ async def cancel_workflow(did: str, iid: str):
         pass
 
 
+async def get_task_list(did: str):
+    try:
+        tasks = list(workflow_deployments[did]['tasks'].keys())
+    except KeyError:
+        tasks = []
+
+    return tasks
+
+
 async def get_task_fields(did: str, tid: str):
     try:
         return workflow_deployments[did]['tasks'][tid]
