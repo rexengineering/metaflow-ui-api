@@ -58,7 +58,7 @@ def resolve_cancel_instance(*_, input):
     return {
         'did': MOCK_DID,
         'iid': MOCK_IID,
-        'iid_status': 'RUNNING',
+        'iid_status': 'ERROR',
         'status': 'SUCCESS',
     }
 

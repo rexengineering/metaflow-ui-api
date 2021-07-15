@@ -31,10 +31,6 @@ workflow_deployments = {
             ),
         },
     },
-    'another': {
-        'name': 'test',
-        'did': 'another',
-    },
 }
 
 workflow_instances = {

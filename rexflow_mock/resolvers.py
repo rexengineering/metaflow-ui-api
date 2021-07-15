@@ -113,7 +113,7 @@ class TaskResolver:
         if scheduler:
             result = await scheduler.next_task(tid)
             if result is False:
-                cancel_workflow(self.did, iid)
+                await cancel_workflow(self.did, iid)
 
         return {
             'iid': iid,

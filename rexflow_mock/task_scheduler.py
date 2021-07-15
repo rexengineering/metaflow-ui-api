@@ -1,5 +1,10 @@
+import logging
+
 from gql import Client, gql
 from gql.transport import aiohttp
+
+# aiohttp info logs are too verbose, forcing them to debug level
+aiohttp.log.setLevel(logging.WARNING)
 
 
 START_TASK_MUTATION = """
