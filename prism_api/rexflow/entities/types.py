@@ -83,6 +83,11 @@ class ErrorDetails(BaseModel):
         return self.message
 
 
+class MetaData(BaseModel):
+    key: str
+    value: str
+
+
 class Validator(BaseModel):
     type: ValidatorEnum
     constraint: Optional[str]
@@ -136,4 +141,5 @@ class WorkflowDeployment(BaseModel):
 class WorkflowInstanceInfo(BaseModel):
     iid: WorkflowInstanceId
     iid_status: WorkflowStatus
+    meta_data: Optional[List[MetaData]]
     graphqlUri: Optional[str]
