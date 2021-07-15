@@ -19,7 +19,7 @@ def _load_fields(filename: str):
 
 
 basepath = path.dirname(__file__)
-worflows_dir = path.abspath(path.join(basepath, '..', 'workflows'))
+fields_dir = path.abspath(path.join(basepath, 'fields'))
 
 workflow_deployments = {
     'callworkflow-abc123': {
@@ -27,7 +27,7 @@ workflow_deployments = {
         'did': 'callworkflow-abc123',
         'tasks': {
             'get_call_data': _load_fields(
-                path.join(worflows_dir, 'call', 'call_fields.json'),
+                path.join(fields_dir, 'call_fields.json'),
             ),
         },
     },
