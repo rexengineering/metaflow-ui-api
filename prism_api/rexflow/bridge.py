@@ -254,7 +254,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                                 constraint=validator['constraint'],
                             )
                             for validator in field['validators']
-                        ],
+                        ] if field['validators'] else [],
                     )
                     for field in result['tasks']['form']['fields']
                 ]

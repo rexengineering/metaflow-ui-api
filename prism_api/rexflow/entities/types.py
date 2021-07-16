@@ -53,6 +53,7 @@ class ValidatorEnum(str, Enum):
 
 
 class DataType(str, Enum):
+    COPY = 'COPY'
     TEXT = 'TEXT'
     CURRENCY = 'CURRENCY'
     INTEGER = 'INTEGER'
@@ -60,7 +61,7 @@ class DataType(str, Enum):
     BOOLEAN = 'BOOLEAN'
     PERCENTAGE = 'PERCENTAGE'
     TABLE = 'TABLE'
-    COPY = 'COPY'
+    WORKFLOW = 'WORKFLOW'
 
 
 class TextVariant(str, Enum):

@@ -45,6 +45,7 @@ class GetInstanceInput(BaseModel):
 
 
 class CreateWorkflowInstanceInput(BaseModel):
+    did: Optional[str]
     graphqlUri: str
     meta_data: Optional[List[MetaDataInput]]
 
