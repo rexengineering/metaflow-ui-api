@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from ariadne import (
     InterfaceType,
@@ -31,6 +31,7 @@ from .entities.wrappers import (
     ServiceNotAvailableProblem,
     WorkflowFilter,
 )
+from prism_api import settings
 from prism_api.rexflow import api as rexflow
 from prism_api.rexflow.errors import (
     BridgeNotReachableError,
@@ -40,6 +41,7 @@ from prism_api.rexflow.errors import (
 from prism_api.rexflow.entities.types import (
     OperationStatus,
     Workflow,
+    WorkflowDeployment,
 )
 from prism_api.state_manager import store
 
@@ -119,6 +121,23 @@ async def resolve_workflow_tasks(
         ]
     else:
         return workflow.tasks
+
+
+class TalkTrackResolver:
+    def __init__(self, *_):
+        pass
+
+    async def list(self, *_) -> List[WorkflowDeployment]:
+        workflows = await rexflow.get_available_workflows()
+        talktracks = [
+            deployment
+            for deployment in workflows
+            if deployment.name in settings.TALKTRACK_WORKFLOWS
+        ]
+        return talktracks
+
+
+query.set_field('talktracks', TalkTrackResolver)
 
 
 mutation = MutationType()

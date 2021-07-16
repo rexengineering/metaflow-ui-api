@@ -3,10 +3,17 @@ type Query {
     session: Session!
     """Workflows information"""
     workflows: WorkflowQuery!
+    """Talktracks information"""
+    talktracks: TalkTrackQuery!
 }
 
 type WorkflowQuery {
     active(filter: WorkflowFilter): [Workflow!]!
     """Workflows available to start"""
     available: [WorkflowDeployment!]!
+}
+
+
+type TalkTrackQuery {
+    list: [WorkflowDeployment!]!
 }
