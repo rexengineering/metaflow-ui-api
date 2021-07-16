@@ -7,6 +7,7 @@ from pydantic import validate_arguments
 from . import MOCK_IID
 from prism_api.rexflow.entities.types import (
     DataType,
+    MetaData,
     Task,
     TaskFieldData,
     TaskId,
@@ -38,6 +39,7 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     async def start_workflow(
         cls,
         deployment_id: WorkflowDeploymentId,
+        metadata: List[MetaData] = [],
     ) -> Workflow:
         await asyncio.sleep(cls.sleep_time)
         return Workflow(

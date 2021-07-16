@@ -4,6 +4,7 @@ from pydantic import validate_arguments
 
 from ..mocks import MOCK_DID, MOCK_IID, MOCK_TID
 from prism_api.rexflow.entities.types import (
+    MetaData,
     Task,
     TaskFieldData,
     TaskId,
@@ -60,6 +61,7 @@ async def get_available_workflows() -> List[WorkflowDeployment]:
 
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
+    metadata: List[MetaData] = [],
 ) -> Workflow:
     return _mock_workflow(with_tasks=False)
 

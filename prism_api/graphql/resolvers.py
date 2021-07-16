@@ -38,6 +38,7 @@ from prism_api.rexflow.errors import (
     ValidationErrorDetails,
 )
 from prism_api.rexflow.entities.types import (
+    MetaData,
     OperationStatus,
     Workflow,
 )
@@ -284,8 +285,13 @@ class WorkflowMutations:
     @validate_arguments
     async def start(self, info, input: StartWorkflowInput):
         logger.info(input)
+        session_id = info.context['session_id']
+        session_metadata = MetaData(key='session_id', value=session_id)
         try:
-            workflow = await rexflow.start_workflow(input.did)
+            workflow = await rexflow.start_workflow(
+                input.did,
+                [session_metadata],
+            )
         except BridgeNotReachableError:
             logger.exception('Could not reach rexflow bridge')
             return StartWorkflowPayload(

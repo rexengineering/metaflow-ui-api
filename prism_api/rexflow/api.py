@@ -11,6 +11,7 @@ from .bridge import (
     REXFlowBridgeGQL as REXFlowBridge,
 )
 from .entities.types import (
+    MetaData,
     Task,
     TaskId,
     Workflow,
@@ -42,10 +43,12 @@ async def get_available_workflows() -> List[WorkflowDeployment]:
 
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
+    metadata: List[MetaData] = [],
 ) -> Workflow:
     try:
         workflow = await REXFlowBridge.start_workflow(
             deployment_id=deployment_id,
+            metadata=metadata,
         )
     except BridgeNotReachableError:
         logger.error('Trying to connect to an unreacheable bridge')
