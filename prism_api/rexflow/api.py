@@ -11,6 +11,7 @@ from .bridge import (
     REXFlowBridgeGQL as REXFlowBridge,
 )
 from .entities.types import (
+    MetaData,
     Task,
     TaskId,
     Workflow,
@@ -25,6 +26,7 @@ from .entities.wrappers import (
 )
 from .errors import BridgeNotReachableError
 from .store import Store
+from prism_api.graphql.entities.types import SessionId
 
 logger = logging.getLogger()
 
@@ -42,11 +44,18 @@ async def get_available_workflows() -> List[WorkflowDeployment]:
 
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
+    metadata: List[MetaData] = [],
 ) -> Workflow:
     try:
         workflow = await REXFlowBridge.start_workflow(
             deployment_id=deployment_id,
+            metadata=metadata,
         )
+        # Assigning metadata because it doesn't come back from create instance
+        workflow.metadata = {
+            data.key: data.value
+            for data in metadata
+        }
     except BridgeNotReachableError:
         logger.error('Trying to connect to an unreacheable bridge')
         raise
@@ -65,6 +74,10 @@ async def _refresh_instance(did: WorkflowDeploymentId):
             did=did,
             iid=instance.iid,
             status=instance.iid_status,
+            metadata={
+                data.key: data.value
+                for data in instance.meta_data
+            },
         )
         Store.add_workflow(workflow)
 
@@ -105,6 +118,7 @@ async def refresh_workflows() -> None:
 
 
 async def get_active_workflows(
+    session_id: SessionId,
     iids: List[WorkflowInstanceId],
 ) -> List[Workflow]:
     await refresh_workflows()
@@ -112,6 +126,7 @@ async def get_active_workflows(
         workflow
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
+        and workflow.metadata.get('session_id') == session_id
     ]
 
 

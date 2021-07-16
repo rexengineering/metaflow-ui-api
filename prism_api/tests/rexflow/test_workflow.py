@@ -7,6 +7,7 @@ from ..mocks import MOCK_DID, MOCK_TID
 from ..mocks.rexflow_bridge import FakeREXFlowBridge
 from ..utils import run_async
 from prism_api.rexflow import api
+from prism_api.rexflow.entities.types import MetaData
 from prism_api.rexflow.store.memory import Store
 
 
@@ -32,11 +33,15 @@ class TestWorkflow(unittest.TestCase):
     @mock.patch('prism_api.rexflow.api.REXFlowBridge', FakeREXFlowBridge)
     @mock.patch('prism_api.rexflow.api.get_deployments', get_deployments)
     async def test_happy_workflow(self):
+        metadata = [MetaData(key='session_id', value='anon')]
         # Instance a new workflow
-        workflow = await api.start_workflow(deployment_id=MOCK_DID)
+        workflow = await api.start_workflow(
+            deployment_id=MOCK_DID,
+            metadata=metadata,
+        )
         self.assertIsNotNone(workflow)
         self.assertEqual(len(workflow.tasks), 0)
-        self.assertIn(workflow, await api.get_active_workflows([]))
+        self.assertIn(workflow, await api.get_active_workflows('anon', []))
 
         created = await api.start_tasks(workflow.iid, [MOCK_TID])
         new_task = created.pop()
@@ -75,7 +80,7 @@ class TestWorkflow(unittest.TestCase):
 
         # Finish workflow
         await api.complete_workflow(workflow.iid)
-        self.assertNotIn(workflow, await api.get_active_workflows([]))
+        self.assertNotIn(workflow, await api.get_active_workflows('anon', []))
 
     @run_async
     @mock.patch('prism_api.rexflow.api.Store', Store)
