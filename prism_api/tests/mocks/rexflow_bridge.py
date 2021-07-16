@@ -32,6 +32,10 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         return [WorkflowInstanceInfo(
             iid=MOCK_IID,
             iid_status=WorkflowStatus.RUNNING,
+            meta_data=[MetaData(
+                key='session_id',
+                value='anon',
+            )]
         )]
 
     @classmethod

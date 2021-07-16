@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -125,6 +125,7 @@ class Workflow(BaseModel):
     did: Optional[WorkflowDeploymentId]
     status: WorkflowStatus
     tasks: List[Task] = []
+    metadata: Dict[str, str] = {}
 
     def get_task_dict(self):
         return {
