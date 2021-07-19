@@ -3,12 +3,18 @@ import secrets
 from os import path
 
 
+basepath = path.dirname(__file__)
+fields_dir = path.abspath(path.join(basepath, 'fields'))
+
+
 def _transform_field(field):
     field['encrypted'] = field['encrypted'] == 'True'
     return field
 
 
-def _load_fields(filename: str):
+def _load_fields(file: str):
+    filename = path.join(fields_dir, file)
+
     with open(filename) as f:
         fields = json.load(f)
 
@@ -18,17 +24,12 @@ def _load_fields(filename: str):
     ]
 
 
-basepath = path.dirname(__file__)
-fields_dir = path.abspath(path.join(basepath, 'fields'))
-
 workflow_deployments = {
     'callworkflow-abc123': {
         'name': 'CallWorkflow',
         'did': 'callworkflow-abc123',
         'tasks': {
-            'get_call_data': _load_fields(
-                path.join(fields_dir, 'call_fields.json'),
-            ),
+            'get_call_data': _load_fields('call_fields.json'),
         },
     },
 }
