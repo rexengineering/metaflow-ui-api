@@ -15,3 +15,6 @@ REXUI_CALLBACK_HOST = os.getenv('REX_REXUI_SERVER_CALLBACK_HOST')
 
 REXFLOW_HOST = os.getenv('REX_REXFLOW_HOST')
 REXFLOW_FLOWD_HOST = os.getenv('REX_REXFLOW_FLOWD_HOST')
+
+
+TALKTRACK_WORKFLOWS = list([s.strip() for s in os.getenv('APP_TALKTRACK_WORKFLOWS', '').split(',')])  # noqa E501
