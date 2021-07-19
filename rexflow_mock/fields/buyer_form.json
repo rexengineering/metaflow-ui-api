@@ -1,0 +1,24 @@
+[
+    {
+        "dataId":"title",
+        "type":"COPY",
+        "order":1,
+        "label":"",
+        "data":"Buyer",
+        "variant": "H1",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"text",
+        "type":"COPY",
+        "order":2,
+        "label":"",
+        "data": "Example talking points: \n- Who do I have the pleasure of speaking with?\n- May I have the address of the property you're interested in? (if applicable)",
+        "variant": "BODY1",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {"dataId":"email", "type":"TEXT", "order":3, "label":"Email", "data":"", "encrypted":"False", "validators":[]},
+    {"dataId":"phone", "type":"TEXT", "order":4, "label":"Phone", "data":"", "encrypted":"False", "validators":[]}
+]

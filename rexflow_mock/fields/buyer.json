@@ -1,0 +1,49 @@
+[
+    {
+        "dataId":"title",
+        "type":"COPY",
+        "order":1,
+        "label":"",
+        "data":"Buyer",
+        "variant": "H1",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"text",
+        "type":"COPY",
+        "order":2,
+        "label":"",
+        "data": "Thank you for choosing REX, Home of the one stop shop for your buying and selling needs. This is _____. How can I help you today?",
+        "variant": "BODY1",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"book-showing",
+        "type":"WORKFLOW",
+        "order":3,
+        "label":"Book Showing",
+        "data":"bookshowing",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"questions",
+        "type":"WORKFLOW",
+        "order":4,
+        "label":"Questions",
+        "data":"questions",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"selling",
+        "type":"WORKFLOW",
+        "order":5,
+        "label":"Selling",
+        "data":"selling",
+        "encrypted":"False",
+        "validators":[]
+    }
+]

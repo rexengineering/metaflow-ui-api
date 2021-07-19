@@ -32,6 +32,14 @@ workflow_deployments = {
             'get_call_data': _load_fields('call_fields.json'),
         },
     },
+    'buying-abc': {
+        'name': 'Buying',
+        'did': 'buying-abc',
+        'tasks': {
+            'buyer': _load_fields('buyer.json'),
+            'buyer_form': _load_fields('buyer_form.json'),
+        }
+    },
 }
 
 workflow_instances = {
