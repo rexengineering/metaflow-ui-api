@@ -247,6 +247,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                         order=field['order'],
                         label=field['label'],
                         data=field['data'],
+                        variant=field['variant'],
                         encrypted=field['encrypted'],
                         validators=[
                             Validator(
