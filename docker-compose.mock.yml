@@ -17,3 +17,5 @@ services:
         - REX_ANACONDA_MACHINE_USER_PASSWORD=${REX_ANACONDA_MACHINE_USER_PASSWORD}
     ports:
       - 8001:8001
+    volumes:
+      - ./rexflow_mock:/code/rexflow_mock
