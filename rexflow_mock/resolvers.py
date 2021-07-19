@@ -27,7 +27,8 @@ async def resolve_get_instances(_, info):
 async def resolve_create_instance(_, info, input):
     did = _get_did(info)
     callback = input['graphqlUri']
-    iid = await start_workflow(did, callback)
+    metadata = input.get('meta_data', [])
+    iid = await start_workflow(did, callback, metadata)
 
     scheduler = Scheduler(iid, callback, await get_task_list(did))
     await scheduler.start()

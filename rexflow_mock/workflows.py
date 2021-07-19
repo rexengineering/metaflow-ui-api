@@ -66,13 +66,14 @@ async def get_workflow_instances(did: str):
     }
 
 
-async def start_workflow(did: str, callback: str):
+async def start_workflow(did: str, callback: str, metadata: list):
     if did in workflow_instances:
         iid = f'{did}-{secrets.token_hex(8)}'
         workflow_instances[did][iid] = {
             'iid': iid,
             'iid_status': 'RUNNING',
             'graphqlUri': callback,
+            'meta_data': metadata,
         }
         return iid
     else:
