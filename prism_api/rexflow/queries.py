@@ -60,6 +60,7 @@ mutation GetTaskData($formInput: TaskMutationFormInput!) {
         order
         label
         data
+        variant
         encrypted
         validators {
           type
