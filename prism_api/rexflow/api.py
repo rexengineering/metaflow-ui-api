@@ -77,7 +77,7 @@ async def _refresh_instance(did: WorkflowDeploymentId):
             metadata={
                 data.key: data.value
                 for data in instance.meta_data
-            },
+            } if instance.meta_data else {},
         )
         Store.add_workflow(workflow)
 
