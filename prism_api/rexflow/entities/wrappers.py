@@ -34,8 +34,20 @@ class TaskOperationResults(BaseModel):
 
 # GraphQL input types
 
+class MetaDataInput(BaseModel):
+    key: str
+    value: str
+
+
+class GetInstanceInput(BaseModel):
+    iid: Optional[WorkflowInstanceId]
+    meta_data: Optional[List[MetaDataInput]]
+
+
 class CreateWorkflowInstanceInput(BaseModel):
+    did: Optional[str]
     graphqlUri: str
+    meta_data: Optional[List[MetaDataInput]]
 
 
 class CancelWorkflowInstanceInput(BaseModel):

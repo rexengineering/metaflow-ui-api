@@ -48,6 +48,7 @@ enum ValidationType {
 
 """Data request types that will be mapped to UI components"""
 enum DataType {
+    COPY
     TEXT
     CURRENCY
     INTEGER
@@ -55,7 +56,7 @@ enum DataType {
     BOOLEAN
     PERCENTAGE
     TABLE
-    COPY
+    WORKFLOW
 }
 
 enum TextVariant {

@@ -51,6 +51,7 @@ enum DataType {
     BOOLEAN
     PERCENTAGE
     TABLE
+    WORKFLOW
 }
 
 """Values for field.variant"""
@@ -91,7 +92,7 @@ type TaskFieldData {
     variant: TextVariant
     default: FieldInitializer
     encrypted: Boolean!
-    validators: [Validator!]!
+    validators: [Validator]
 }
 
 type Validator {
@@ -103,6 +104,7 @@ type FieldInitializer {
     type: FieldInitializerType!
     value: String!
 }
+
 
 """Used to communicate specific validator results"""
 type ValidatorResult {
@@ -118,12 +120,20 @@ type FieldValidationResult {
 }
 
 # Inputs
+input MetaDataInput {
+    key: String!
+    value: String!
+}
+
 input GetInstanceInput {
-    iid: WorkflowInstanceId!
+    iid: WorkflowInstanceId
+    meta_data: [MetaDataInput]
 }
 
 input CreateWorkflowInstanceInput {
+    did: String
     graphqlUri: String!
+    meta_data: [MetaDataInput]
 }
 
 input CancelWorkflowInstanceInput {
@@ -160,6 +170,10 @@ input TaskMutationCompleteInput {
 }
 
 # Payloads
+type MetaData {
+    key: String!
+    value: String!
+}
 
 type CreateInstancePayload {
     did: WorkflowDeployemntId!
@@ -178,6 +192,7 @@ type CancelInstancePayload {
 type WorkflowInstanceInfo {
     iid: WorkflowInstanceId!
     iid_status: WorkflowStatus!
+    meta_data: [MetaData]
     graphqlUri: String
 }
 

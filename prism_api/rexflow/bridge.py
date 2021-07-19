@@ -13,6 +13,7 @@ from pydantic import validate_arguments
 from . import queries
 from .entities.types import (
     ErrorDetails,
+    MetaData,
     OperationStatus,
     Task,
     TaskFieldData,
@@ -31,6 +32,7 @@ from .entities.wrappers import (
     CreateInstancePayload,
     CreateWorkflowInstanceInput,
     GetInstancePayload,
+    MetaDataInput,
     TaskCompletePayload,
     TaskFieldInput,
     TaskMutationCompleteInput,
@@ -136,11 +138,19 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     async def start_workflow(
         cls,
         deployment_id: WorkflowDeploymentId,
+        metadata: List[MetaData] = [],
     ) -> Workflow:
         query = gql(queries.START_WORKFLOW_MUTATION)
         params = {
             'createWorkflow': CreateWorkflowInstanceInput(
                 graphqlUri=settings.REXUI_CALLBACK_HOST,
+                meta_data=[
+                    MetaDataInput(
+                        key=data.key,
+                        value=data.value,
+                    )
+                    for data in metadata
+                ],
             ).dict(),
         }
 
@@ -244,7 +254,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                                 constraint=validator['constraint'],
                             )
                             for validator in field['validators']
-                        ],
+                        ] if field['validators'] else [],
                     )
                     for field in result['tasks']['form']['fields']
                 ]

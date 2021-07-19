@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from ariadne import (
     InterfaceType,
@@ -31,6 +31,7 @@ from .entities.wrappers import (
     ServiceNotAvailableProblem,
     WorkflowFilter,
 )
+from prism_api import settings
 from prism_api.rexflow import api as rexflow
 from prism_api.rexflow.errors import (
     BridgeNotReachableError,
@@ -38,8 +39,10 @@ from prism_api.rexflow.errors import (
     ValidationErrorDetails,
 )
 from prism_api.rexflow.entities.types import (
+    MetaData,
     OperationStatus,
     Workflow,
+    WorkflowDeployment,
 )
 from prism_api.state_manager import store
 
@@ -86,8 +89,9 @@ class WorkflowResolver:
         info,
         filter: WorkflowFilter = None
     ):
+        session_id = info.context['session_id']
         iids = [] if filter is None else filter.ids
-        workflows = await rexflow.get_active_workflows(iids)
+        workflows = await rexflow.get_active_workflows(session_id, iids)
         return workflows
 
     @resolver_verify_token
@@ -119,6 +123,23 @@ async def resolve_workflow_tasks(
         ]
     else:
         return workflow.tasks
+
+
+class TalkTrackResolver:
+    def __init__(self, *_):
+        pass
+
+    async def list(self, *_) -> List[WorkflowDeployment]:
+        workflows = await rexflow.get_available_workflows()
+        talktracks = [
+            deployment
+            for deployment in workflows
+            if deployment.name in settings.TALKTRACK_WORKFLOWS
+        ]
+        return talktracks
+
+
+query.set_field('talktracks', TalkTrackResolver)
 
 
 mutation = MutationType()
@@ -284,8 +305,13 @@ class WorkflowMutations:
     @validate_arguments
     async def start(self, info, input: StartWorkflowInput):
         logger.info(input)
+        session_id = info.context['session_id']
+        session_metadata = MetaData(key='session_id', value=session_id)
         try:
-            workflow = await rexflow.start_workflow(input.did)
+            workflow = await rexflow.start_workflow(
+                input.did,
+                [session_metadata],
+            )
         except BridgeNotReachableError:
             logger.exception('Could not reach rexflow bridge')
             return StartWorkflowPayload(

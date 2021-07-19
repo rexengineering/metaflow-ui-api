@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -53,6 +53,7 @@ class ValidatorEnum(str, Enum):
 
 
 class DataType(str, Enum):
+    COPY = 'COPY'
     TEXT = 'TEXT'
     CURRENCY = 'CURRENCY'
     INTEGER = 'INTEGER'
@@ -60,7 +61,7 @@ class DataType(str, Enum):
     BOOLEAN = 'BOOLEAN'
     PERCENTAGE = 'PERCENTAGE'
     TABLE = 'TABLE'
-    COPY = 'COPY'
+    WORKFLOW = 'WORKFLOW'
 
 
 class TextVariant(str, Enum):
@@ -81,6 +82,11 @@ class ErrorDetails(BaseModel):
 
     def __str__(self) -> str:
         return self.message
+
+
+class MetaData(BaseModel):
+    key: str
+    value: str
 
 
 class Validator(BaseModel):
@@ -120,6 +126,7 @@ class Workflow(BaseModel):
     did: Optional[WorkflowDeploymentId]
     status: WorkflowStatus
     tasks: List[Task] = []
+    metadata: Dict[str, str] = {}
 
     def get_task_dict(self):
         return {
@@ -136,4 +143,5 @@ class WorkflowDeployment(BaseModel):
 class WorkflowInstanceInfo(BaseModel):
     iid: WorkflowInstanceId
     iid_status: WorkflowStatus
+    meta_data: Optional[List[MetaData]]
     graphqlUri: Optional[str]
