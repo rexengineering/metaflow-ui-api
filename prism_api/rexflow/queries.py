@@ -30,6 +30,10 @@ query GetInstances{
     iid_list {
       iid
       iid_status
+      meta_data {
+        key
+        value
+      }
     }
   }
 }
