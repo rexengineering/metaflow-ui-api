@@ -1,0 +1,21 @@
+version: '3.4'
+
+services:
+  prismapi:
+    environment:
+      - REX_REXFLOW_HOST=http://rexflow:8001/graphql/?did={deployment_id}
+      - REX_REXFLOW_FLOWD_HOST=http://rexflow:8001
+      - REX_REXUI_SERVER_CALLBACK_HOST=http://prismapi:8000/callback/
+  rexflow:
+    image: rexflow_mock
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: rexflow_mock
+      args:
+        - REX_ANACONDA_MACHINE_USER_USERNAME=${REX_ANACONDA_MACHINE_USER_USERNAME}
+        - REX_ANACONDA_MACHINE_USER_PASSWORD=${REX_ANACONDA_MACHINE_USER_PASSWORD}
+    ports:
+      - 8001:8001
+    volumes:
+      - ./rexflow_mock:/code/rexflow_mock

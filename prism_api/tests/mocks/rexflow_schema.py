@@ -18,7 +18,7 @@ def resolve_version(*_):
 
 
 @query.field('getInstances')
-def resolve_get_instances(*_, input):
+def resolve_get_instances(*_):
     return {
         'did': MOCK_DID,
         'did_status': 'RUNNING',
@@ -58,7 +58,7 @@ def resolve_cancel_instance(*_, input):
     return {
         'did': MOCK_DID,
         'iid': MOCK_IID,
-        'iid_status': 'RUNNING',
+        'iid_status': 'ERROR',
         'status': 'SUCCESS',
     }
 

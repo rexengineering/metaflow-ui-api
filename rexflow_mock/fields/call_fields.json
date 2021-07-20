@@ -1,0 +1,8 @@
+[
+    {"dataId":"email", "type":"TEXT", "order":1, "label":"Email", "data":"", "encrypted":"False", "validators":[]},
+    {"dataId":"phone", "type":"TEXT", "order":2, "label":"Phone", "data":"", "encrypted":"False", "validators":[]},
+    {"dataId":"customer_type", "type":"TEXT", "order":3, "label":"Customer Type", "data":"", "encrypted":"False", "validators":[]},
+    {"dataId":"opp_stage", "type":"TEXT", "order":4, "label":"Opp Stage", "data":"", "encrypted":"False", "validators":[]},
+    {"dataId":"assigned_rm", "type":"TEXT", "order":5, "label":"Assigned RM", "data":"", "encrypted":"False", "validators":[]},
+    {"dataId":"existing_visit", "type":"TEXT", "order":6, "label":"Existing Visit", "data":"", "encrypted":"False", "validators":[]}
+]
