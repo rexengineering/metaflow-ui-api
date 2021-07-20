@@ -52,7 +52,7 @@ async def start_workflow(
             metadata=metadata,
         )
         # Assigning metadata because it doesn't come back from create instance
-        workflow.metadata = {
+        workflow.metadata_dict = {
             data.key: data.value
             for data in metadata
         }
@@ -74,7 +74,7 @@ async def _refresh_instance(did: WorkflowDeploymentId):
             did=did,
             iid=instance.iid,
             status=instance.iid_status,
-            metadata={
+            metadata_dict={
                 data.key: data.value
                 for data in instance.meta_data
             } if instance.meta_data else {},
@@ -126,7 +126,7 @@ async def get_active_workflows(
         workflow
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
-        and workflow.metadata.get('session_id') == session_id
+        and workflow.metadata_dict.get('session_id') == session_id
     ]
 
 
