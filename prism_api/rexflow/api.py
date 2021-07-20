@@ -2,7 +2,7 @@
 import asyncio
 from collections import defaultdict
 import logging
-from typing import List
+from typing import List, Optional
 
 from pydantic import validate_arguments
 
@@ -26,6 +26,7 @@ from .entities.wrappers import (
 )
 from .errors import BridgeNotReachableError
 from .store import Store
+from prism_api import settings
 from prism_api.graphql.entities.types import SessionId
 
 logger = logging.getLogger()
@@ -42,10 +43,29 @@ async def get_available_workflows() -> List[WorkflowDeployment]:
     ]
 
 
+async def _find_workflow_name(
+    deployment_id: WorkflowDeploymentId,
+) -> Optional[str]:
+    workflows = await get_available_workflows()
+    for workflow in workflows:
+        if deployment_id in workflow.deployments:
+            return workflow.name
+
+    return None
+
+
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
     metadata: List[MetaData] = [],
 ) -> Workflow:
+    # Reverse engineer workflow name from workflow did
+    workflow_name = await _find_workflow_name(deployment_id)
+    if workflow_name in settings.TALKTRACK_WORKFLOWS:
+        metadata.append(MetaData(
+            key='type',
+            value='talktrack',
+        ))
+
     try:
         workflow = await REXFlowBridge.start_workflow(
             deployment_id=deployment_id,
