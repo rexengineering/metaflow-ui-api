@@ -20,6 +20,8 @@ from .entities.wrappers import (
     Problem,
     SaveTaskInput,
     SaveTasksPayload,
+    StartWorkflowByNameInput,
+    StartWorkflowByNamePayload,
     StartWorkflowInput,
     StartWorkflowPayload,
     TaskFilter,
@@ -323,6 +325,41 @@ class WorkflowMutations:
 
         return StartWorkflowPayload(
             status=OperationStatus.SUCCESS,
+            iid=workflow.iid,
+            workflow=workflow,
+        )
+
+    @resolver_verify_token
+    @validate_arguments
+    async def startByName(self, info, input: StartWorkflowByNameInput):
+        logger.info(input)
+        session_id = info.context['session_id']
+        session_metadata = MetaData(key='session_id', value=session_id)
+        try:
+            workflow = await rexflow.start_workflow_by_name(
+                input.name,
+                [session_metadata],
+            )
+        except BridgeNotReachableError:
+            logger.exception('Could not reach rexflow bridge')
+            return StartWorkflowByNamePayload(
+                status=OperationStatus.FAILURE,
+                errors=[ServiceNotAvailableProblem(
+                    message='Could not reach rexflow bridge',
+                )]
+            )
+        except REXFlowError:
+            logger.exception(f'Workflow {input.name} is not deployed')
+            return StartWorkflowByNamePayload(
+                status=OperationStatus.FAILURE,
+                errors=[ServiceNotAvailableProblem(
+                    message=f'Workflow {input.name} is not deployed',
+                )]
+            )
+
+        return StartWorkflowByNamePayload(
+            status=OperationStatus.SUCCESS,
+            did=workflow.did,
             iid=workflow.iid,
             workflow=workflow,
         )

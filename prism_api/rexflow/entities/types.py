@@ -126,7 +126,17 @@ class Workflow(BaseModel):
     did: Optional[WorkflowDeploymentId]
     status: WorkflowStatus
     tasks: List[Task] = []
-    metadata: Dict[str, str] = {}
+    metadata_dict: Dict[str, str] = {}
+
+    @property
+    def metadata(self):
+        return [
+            MetaData(
+                key=key,
+                value=value,
+            )
+            for key, value in self.metadata_dict.items()
+        ]
 
     def get_task_dict(self):
         return {
