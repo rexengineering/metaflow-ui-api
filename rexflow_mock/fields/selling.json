@@ -1,0 +1,22 @@
+[
+    {
+        "dataId":"title",
+        "type":"COPY",
+        "order":1,
+        "label":"",
+        "data":"Selling",
+        "variant": "H1",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"text",
+        "type":"COPY",
+        "order":2,
+        "label":"",
+        "data": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris pretium sem et nibh feugiat venenatis. Proin consectetur tempus urna, eu interdum massa consequat vitae. Vivamus a orci in purus elementum scelerisque ut eu magna. Nullam suscipit mollis dolor, sed interdum turpis sagittis vel. Nunc ultricies quam nec libero blandit faucibus. Sed turpis risus, tincidunt a vehicula sit amet, pellentesque eu neque. Nulla vel vulputate lectus, et rhoncus lacus.",
+        "variant": "BODY1",
+        "encrypted":"False",
+        "validators":[]
+    }
+]

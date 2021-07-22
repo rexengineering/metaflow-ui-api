@@ -1,0 +1,40 @@
+[
+    {
+        "dataId":"title",
+        "type":"COPY",
+        "order":1,
+        "label":"",
+        "data":"Intro",
+        "variant": "H1",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"text",
+        "type":"COPY",
+        "order":2,
+        "label":"",
+        "data": "Hi thanking for chosing REX, Home of the one stop show for your buying and selling needs. How can I help you?",
+        "variant": "BODY1",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"buying",
+        "type":"WORKFLOW",
+        "order":3,
+        "label":"Buying",
+        "data":"buying",
+        "encrypted":"False",
+        "validators":[]
+    },
+    {
+        "dataId":"selling",
+        "type":"WORKFLOW",
+        "order":4,
+        "label":"Selling",
+        "data":"selling",
+        "encrypted":"False",
+        "validators":[]
+    }
+]
