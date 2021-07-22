@@ -83,13 +83,16 @@ async def start_workflow(
     return workflow
 
 
-async def start_workflow_by_name(workflow_name: str) -> Workflow:
+async def start_workflow_by_name(
+    workflow_name: str,
+    metadata: List[MetaData] = [],
+) -> Workflow:
     deployments = await get_deployments()
     deployment_ids = deployments.get(workflow_name)
 
     if deployment_ids:
         # Start first deployment
-        return await start_workflow(deployment_ids.pop())
+        return await start_workflow(deployment_ids.pop(), metadata)
     else:
         logger.error(f'Workflow {workflow_name} cannot be started')
         raise REXFlowError(f'Workflow {workflow_name} cannot be started')
