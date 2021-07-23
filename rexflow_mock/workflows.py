@@ -53,7 +53,21 @@ workflow_deployments = {
         'tasks': {
             'selling_1': _load_fields('selling.json'),
         },
-    }
+    },
+    'bookshowing-123': {
+        'name': 'bookswhowing',
+        'did': 'bookshowing-123',
+        'tasks': {
+            'bookshowing_1': _load_fields('bookshowing.json'),
+        },
+    },
+    'questions-123': {
+        'name': 'questions',
+        'did': 'questions-123',
+        'tasks': {
+            'questions_1': _load_fields('questions.json'),
+        },
+    },
 }
 
 workflow_instances = {
