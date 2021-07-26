@@ -55,7 +55,7 @@ workflow_deployments = {
         },
     },
     'bookshowing-123': {
-        'name': 'bookswhowing',
+        'name': 'bookshowing',
         'did': 'bookshowing-123',
         'tasks': {
             'bookshowing_1': _load_fields('bookshowing.json'),
@@ -66,6 +66,13 @@ workflow_deployments = {
         'did': 'questions-123',
         'tasks': {
             'questions_1': _load_fields('questions.json'),
+        },
+    },
+    'conclude-123': {
+        'name': 'conclude',
+        'did': 'conclude-123',
+        'tasks': {
+            'conclude': _load_fields('conclude.json'),
         },
     },
 }
