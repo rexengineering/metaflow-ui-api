@@ -51,7 +51,7 @@ def _mock_workflow(with_tasks=True):
     )
 
 
-async def get_available_workflows() -> List[WorkflowDeployment]:
+async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
     return [
         WorkflowDeployment(
             name='test_workflow',

@@ -12,6 +12,7 @@ from prism_api.rexflow.entities.types import (
     Task,
     TaskId,
     Workflow,
+    WorkflowDeployment,
     WorkflowInstanceId,
 )
 
@@ -20,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 class Store(StoreABC):
     _redis = None
+
+    DEPLOYMENT_KEY = 'rexflow:deployments'
 
     WORKFLOW_PREFIX = 'workflow:'
 
@@ -30,6 +33,26 @@ class Store(StoreABC):
         if cls._redis is None or cls._redis.ping() is False:
             cls._redis = RexRedis()
         return cls._redis
+
+    @classmethod
+    def save_deployments(cls, deployments: List[WorkflowDeployment]):
+        redis = cls._get_redis()
+        redis.set_json(
+            cls.DEPLOYMENT_KEY,
+            [deployment.dict() for deployment in deployments],
+        )
+
+    @classmethod
+    def get_deployments(cls) -> List[WorkflowDeployment]:
+        redis = cls._get_redis()
+        deployments = redis.get_from_json(cls.DEPLOYMENT_KEY)
+        if deployments:
+            return [
+                WorkflowDeployment(**deployment)
+                for deployment in deployments
+            ]
+        else:
+            return []
 
     @classmethod
     def add_workflow(cls, workflow: Workflow):

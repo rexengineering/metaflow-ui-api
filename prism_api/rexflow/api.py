@@ -32,15 +32,19 @@ from prism_api.graphql.entities.types import SessionId
 logger = logging.getLogger()
 
 
-async def get_available_workflows() -> List[WorkflowDeployment]:
-    deployments = await get_deployments()
-    return [
-        WorkflowDeployment(
-            name=name,
-            deployments=deployment_ids,
-        )
-        for name, deployment_ids in deployments.items()
-    ]
+async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
+    deployments = Store.get_deployments()
+    if refresh or len(deployments) == 0:
+        deployments_dict = await get_deployments()
+        deployments = [
+            WorkflowDeployment(
+                name=name,
+                deployments=deployment_ids,
+            )
+            for name, deployment_ids in deployments_dict.items()
+        ]
+        Store.save_deployments(deployments)
+    return deployments
 
 
 async def _find_workflow_name(
@@ -103,10 +107,10 @@ async def _refresh_instance(did: WorkflowDeploymentId):
 
 
 async def _refresh_instances():
-    deployment_ids = await get_deployments()
+    available = await get_available_workflows()
     async_tasks = []
-    for deployments in deployment_ids.values():
-        for did in deployments:
+    for deployments in available:
+        for did in deployments.deployments:
             async_tasks.append(_refresh_instance(did))
 
     await asyncio.gather(*async_tasks)

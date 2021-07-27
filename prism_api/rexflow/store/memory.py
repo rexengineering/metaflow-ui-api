@@ -11,6 +11,7 @@ from prism_api.rexflow.entities.types import (
     Task,
     TaskId,
     Workflow,
+    WorkflowDeployment,
     WorkflowInstanceId,
 )
 
@@ -18,10 +19,20 @@ logger = logging.getLogger(__name__)
 
 
 class Store(StoreABC):
+    _deployments: List[WorkflowDeployment] = []
+
     _data: Dict[
         WorkflowInstanceId,
         Dict[str, Union[Workflow, Dict[TaskId, Task]]]
     ] = {}
+
+    @classmethod
+    def save_deployments(cls, deployments: List[WorkflowDeployment]):
+        cls._deployments = deployments
+
+    @classmethod
+    def get_deployments(cls) -> List[WorkflowDeployment]:
+        return cls._deployments
 
     @classmethod
     def add_workflow(cls, workflow: Workflow):
