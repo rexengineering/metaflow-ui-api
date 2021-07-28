@@ -299,7 +299,7 @@ class WorkflowMutations:
 
     @resolver_verify_token
     @validate_arguments
-    async def startByName(self, info, input: StartWorkflowByNameInput):
+    async def start_by_name(self, info, input: StartWorkflowByNameInput):
         logger.info(input)
         session_id = info.context['session_id']
         session_metadata = MetaData(key='session_id', value=session_id)
