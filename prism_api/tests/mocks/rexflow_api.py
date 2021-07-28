@@ -3,7 +3,9 @@ from typing import List
 from pydantic import validate_arguments
 
 from ..mocks import MOCK_DID, MOCK_IID, MOCK_TID
+from prism_api.graphql.entities.types import SessionId
 from prism_api.rexflow.entities.types import (
+    MetaData,
     Task,
     TaskFieldData,
     TaskId,
@@ -60,12 +62,24 @@ async def get_available_workflows() -> List[WorkflowDeployment]:
 
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
+    metadata: List[MetaData] = [],
 ) -> Workflow:
     return _mock_workflow(with_tasks=False)
 
 
+async def start_workflow_by_name(
+    workflow_name: str,
+) -> Workflow:
+    return _mock_workflow(with_tasks=False)
+
+
+async def refresh_workflows():
+    pass
+
+
 @validate_arguments
 async def get_active_workflows(
+    session_id: SessionId,
     iids: List[WorkflowInstanceId]
 ) -> List[Workflow]:
     return [_mock_workflow()]
@@ -73,6 +87,12 @@ async def get_active_workflows(
 
 async def complete_workflow(instance_id: WorkflowInstanceId) -> None:
     pass
+
+
+async def cancel_workflow(
+    instance_id: WorkflowInstanceId,
+) -> bool:
+    return True
 
 
 @validate_arguments

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -22,6 +22,7 @@ class DataId(str):
 
 class WorkflowStatus(str, Enum):
     COMPLETED = 'COMPLETED'
+    CANCELED = 'CANCELED'
     ERROR = 'ERROR'
     RUNNING = 'RUNNING'
     START = 'START'
@@ -52,6 +53,7 @@ class ValidatorEnum(str, Enum):
 
 
 class DataType(str, Enum):
+    COPY = 'COPY'
     TEXT = 'TEXT'
     CURRENCY = 'CURRENCY'
     INTEGER = 'INTEGER'
@@ -59,7 +61,7 @@ class DataType(str, Enum):
     BOOLEAN = 'BOOLEAN'
     PERCENTAGE = 'PERCENTAGE'
     TABLE = 'TABLE'
-    COPY = 'COPY'
+    WORKFLOW = 'WORKFLOW'
 
 
 class TextVariant(str, Enum):
@@ -82,13 +84,18 @@ class ErrorDetails(BaseModel):
         return self.message
 
 
+class MetaData(BaseModel):
+    key: str
+    value: str
+
+
 class Validator(BaseModel):
     type: ValidatorEnum
     constraint: Optional[str]
 
 
 class TaskFieldData(BaseModel):
-    dataId: DataId
+    data_id: DataId = Field(..., alias='dataId')
     type: DataType
     order: int
     label: Optional[str]
@@ -109,7 +116,7 @@ class Task(BaseModel):
 
     def get_data_dict(self):
         return {
-            d.dataId: d
+            d.data_id: d
             for d in self.data
         }
 
@@ -119,6 +126,17 @@ class Workflow(BaseModel):
     did: Optional[WorkflowDeploymentId]
     status: WorkflowStatus
     tasks: List[Task] = []
+    metadata_dict: Dict[str, str] = {}
+
+    @property
+    def metadata(self):
+        return [
+            MetaData(
+                key=key,
+                value=value,
+            )
+            for key, value in self.metadata_dict.items()
+        ]
 
     def get_task_dict(self):
         return {
@@ -135,4 +153,5 @@ class WorkflowDeployment(BaseModel):
 class WorkflowInstanceInfo(BaseModel):
     iid: WorkflowInstanceId
     iid_status: WorkflowStatus
+    meta_data: Optional[List[MetaData]]
     graphqlUri: Optional[str]

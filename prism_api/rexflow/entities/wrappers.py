@@ -12,6 +12,7 @@ from .types import (
     WorkflowDeploymentId,
     WorkflowInstanceId,
     WorkflowInstanceInfo,
+    WorkflowStatus,
 )
 
 
@@ -33,8 +34,24 @@ class TaskOperationResults(BaseModel):
 
 # GraphQL input types
 
+class MetaDataInput(BaseModel):
+    key: str
+    value: str
+
+
+class GetInstanceInput(BaseModel):
+    iid: Optional[WorkflowInstanceId]
+    meta_data: Optional[List[MetaDataInput]]
+
+
 class CreateWorkflowInstanceInput(BaseModel):
+    did: Optional[str]
     graphqlUri: str
+    meta_data: Optional[List[MetaDataInput]]
+
+
+class CancelWorkflowInstanceInput(BaseModel):
+    iid: WorkflowInstanceId
 
 
 class TaskMutationFormInput(BaseModel):
@@ -76,6 +93,12 @@ class CreateInstancePayload(Payload):
     iid: WorkflowInstanceId
     status: OperationStatus
     tasks: List[TaskId]
+
+
+class CancelInstancePayload(Payload):
+    did: WorkflowDeploymentId
+    iid: WorkflowInstanceId
+    iid_status: WorkflowStatus
 
 
 class GetInstancePayload(BaseModel):

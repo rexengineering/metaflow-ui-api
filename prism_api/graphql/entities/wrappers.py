@@ -36,6 +36,10 @@ class StartWorkflowInput(BaseModel):
     did: WorkflowDeploymentId  # deployment id
 
 
+class StartWorkflowByNameInput(BaseModel):
+    name: str
+
+
 class StartWorkflowInputBridge(BaseModel):
     did: WorkflowDeploymentId
     callback: str
@@ -111,6 +115,12 @@ class UpdateStatePayload(Payload):
 
 class StartWorkflowPayload(Payload):
     iid: Optional[WorkflowInstanceId]  # instance id
+    workflow: Optional[Workflow]
+
+
+class StartWorkflowByNamePayload(Payload):
+    did: Optional[WorkflowDeploymentId]
+    iid: Optional[WorkflowInstanceId]
     workflow: Optional[Workflow]
 
 

@@ -48,6 +48,7 @@ enum ValidationType {
 
 """Data request types that will be mapped to UI components"""
 enum DataType {
+    COPY
     TEXT
     CURRENCY
     INTEGER
@@ -55,7 +56,7 @@ enum DataType {
     BOOLEAN
     PERCENTAGE
     TABLE
-    COPY
+    WORKFLOW
 }
 
 enum TextVariant {
@@ -83,12 +84,18 @@ type WorkflowDeployment {
     deployments: [WorkflowDeploymentId!]!
 }
 
+type Metadata {
+    key: String!
+    value: String!
+}
+
 type Workflow {
     """Id for a workflow instance"""
     iid: WorkflowInstanceId!
     """Id for a workflow deployment"""
     did: WorkflowDeploymentId!
     status: WorkflowStatus!
+    metadata: [Metadata!]!
     tasks(filter: TaskFilter): [Task!]!
 }
 

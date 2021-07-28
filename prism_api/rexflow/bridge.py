@@ -13,6 +13,7 @@ from pydantic import validate_arguments
 from . import queries
 from .entities.types import (
     ErrorDetails,
+    MetaData,
     OperationStatus,
     Task,
     TaskFieldData,
@@ -26,9 +27,12 @@ from .entities.types import (
     WorkflowStatus,
 )
 from .entities.wrappers import (
+    CancelInstancePayload,
+    CancelWorkflowInstanceInput,
     CreateInstancePayload,
     CreateWorkflowInstanceInput,
     GetInstancePayload,
+    MetaDataInput,
     TaskCompletePayload,
     TaskFieldInput,
     TaskMutationCompleteInput,
@@ -134,11 +138,19 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     async def start_workflow(
         cls,
         deployment_id: WorkflowDeploymentId,
+        metadata: List[MetaData] = [],
     ) -> Workflow:
         query = gql(queries.START_WORKFLOW_MUTATION)
         params = {
             'createWorkflow': CreateWorkflowInstanceInput(
                 graphqlUri=settings.REXUI_CALLBACK_HOST,
+                meta_data=[
+                    MetaDataInput(
+                        key=data.key,
+                        value=data.value,
+                    )
+                    for data in metadata
+                ],
             ).dict(),
         }
 
@@ -235,6 +247,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                         order=field['order'],
                         label=field['label'],
                         data=field['data'],
+                        variant=field['variant'],
                         encrypted=field['encrypted'],
                         validators=[
                             Validator(
@@ -242,7 +255,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                                 constraint=validator['constraint'],
                             )
                             for validator in field['validators']
-                        ],
+                        ] if field['validators'] else [],
                     )
                     for field in result['tasks']['form']['fields']
                 ]
@@ -268,7 +281,8 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                             tid=task.tid,
                             fields=[
                                 TaskFieldInput(
-                                    **field.dict()
+                                    dataId=field.data_id,
+                                    data=field.data,
                                 )
                                 for field in task.data
                             ],
@@ -321,7 +335,8 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                             tid=task.tid,
                             fields=[
                                 TaskFieldInput(
-                                    **field.dict()
+                                    dataId=field.data_id,
+                                    data=field.data,
                                 )
                                 for field in task.data
                             ],
@@ -398,3 +413,28 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                 results.successful.append(tasks_dict[payload.tid])
 
         return results
+
+    @validate_arguments
+    async def cancel_workflow(self) -> bool:
+        query = gql(queries.CANCEL_WORKFLOW_QUERY)
+        params = {
+            'cancelWorkflow': CancelWorkflowInstanceInput(
+                iid=self.workflow.iid,
+            ).dict(),
+        }
+
+        client = self._get_client(self.workflow.did)
+        try:
+            async with client as session:
+                result = await session.execute(query, variable_values=params)
+                logger.debug(result)
+        except (ClientError, TransportError) as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
+
+        payload = CancelInstancePayload(
+            **result['cancelInstance'],
+        )
+
+        return payload.status == OperationStatus.SUCCESS

@@ -53,6 +53,13 @@ EXPOSE 5678
 
 CMD ["./scripts/run_prism.debug.sh"]
 
+FROM build as rexflow_mock
+
+COPY rexflow_mock /code/rexflow_mock
+EXPOSE 8001
+
+CMD ["./scripts/run_rexflow_mock.sh"]
+
 FROM build as container
 
 # Run the app

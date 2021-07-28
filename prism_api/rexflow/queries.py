@@ -12,6 +12,17 @@ mutation StartWorkflow($createWorkflow: CreateWorkflowInstanceInput!) {
 }
 '''
 
+CANCEL_WORKFLOW_QUERY = '''
+mutation CancelWorkflow($cancelWorkflow: CancelWorkflowInstanceInput!) {
+  cancelInstance(input: $cancelWorkflow) {
+    did
+    iid
+    iid_status
+    status
+  }
+}
+'''
+
 GET_INSTANCES_QUERY = '''
 query GetInstances{
   getInstances {
@@ -19,6 +30,10 @@ query GetInstances{
     iid_list {
       iid
       iid_status
+      meta_data {
+        key
+        value
+      }
     }
   }
 }
@@ -45,6 +60,7 @@ mutation GetTaskData($formInput: TaskMutationFormInput!) {
         order
         label
         data
+        variant
         encrypted
         validators {
           type

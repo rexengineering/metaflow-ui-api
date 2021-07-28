@@ -2,7 +2,7 @@
 import asyncio
 from collections import defaultdict
 import logging
-from typing import List
+from typing import List, Optional
 
 from pydantic import validate_arguments
 
@@ -11,6 +11,7 @@ from .bridge import (
     REXFlowBridgeGQL as REXFlowBridge,
 )
 from .entities.types import (
+    MetaData,
     Task,
     TaskId,
     Workflow,
@@ -23,8 +24,10 @@ from .entities.wrappers import (
     TaskChange,
     TaskOperationResults
 )
-from .errors import BridgeNotReachableError
+from .errors import BridgeNotReachableError, REXFlowError
 from .store import Store
+from prism_api import settings
+from prism_api.graphql.entities.types import SessionId
 
 logger = logging.getLogger()
 
@@ -40,18 +43,59 @@ async def get_available_workflows() -> List[WorkflowDeployment]:
     ]
 
 
+async def _find_workflow_name(
+    deployment_id: WorkflowDeploymentId,
+) -> Optional[str]:
+    workflows = await get_available_workflows()
+    for workflow in workflows:
+        if deployment_id in workflow.deployments:
+            return workflow.name
+
+    return None
+
+
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
+    metadata: List[MetaData] = [],
 ) -> Workflow:
+    # Reverse engineer workflow name from workflow did
+    workflow_name = await _find_workflow_name(deployment_id)
+    if workflow_name in settings.TALKTRACK_WORKFLOWS:
+        metadata.append(MetaData(
+            key='type',
+            value='talktrack',
+        ))
+
     try:
         workflow = await REXFlowBridge.start_workflow(
             deployment_id=deployment_id,
+            metadata=metadata,
         )
+        # Assigning metadata because it doesn't come back from create instance
+        workflow.metadata_dict = {
+            data.key: data.value
+            for data in metadata
+        }
     except BridgeNotReachableError:
         logger.error('Trying to connect to an unreacheable bridge')
         raise
     Store.add_workflow(workflow)
     return workflow
+
+
+async def start_workflow_by_name(
+    workflow_name: str,
+    metadata: List[MetaData] = [],
+) -> Workflow:
+    deployments = await get_deployments()
+    deployment_ids = deployments.get(workflow_name)
+
+    if deployment_ids:
+        # Start first deployment
+        return await start_workflow(deployment_ids.pop(), metadata)
+    else:
+        logger.error(f'Workflow {workflow_name} cannot be started')
+        raise REXFlowError(f'Workflow {workflow_name} cannot be started')
 
 
 async def _refresh_instance(did: WorkflowDeploymentId):
@@ -65,6 +109,10 @@ async def _refresh_instance(did: WorkflowDeploymentId):
             did=did,
             iid=instance.iid,
             status=instance.iid_status,
+            metadata_dict={
+                data.key: data.value
+                for data in instance.meta_data
+            } if instance.meta_data else {},
         )
         Store.add_workflow(workflow)
 
@@ -105,6 +153,7 @@ async def refresh_workflows() -> None:
 
 
 async def get_active_workflows(
+    session_id: SessionId,
     iids: List[WorkflowInstanceId],
 ) -> List[Workflow]:
     await refresh_workflows()
@@ -112,6 +161,7 @@ async def get_active_workflows(
         workflow
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
+        and workflow.metadata_dict.get('session_id') == session_id
     ]
 
 
@@ -121,6 +171,20 @@ async def complete_workflow(
     workflow = Store.get_workflow(instance_id)
     workflow.status = WorkflowStatus.COMPLETED
     Store.add_workflow(workflow)
+
+
+async def cancel_workflow(
+    instance_id: WorkflowInstanceId,
+) -> bool:
+    workflow = Store.get_workflow(instance_id)
+    bridge = REXFlowBridge(workflow)
+    result = await bridge.cancel_workflow()
+
+    if result:
+        workflow.status = WorkflowStatus.CANCELED
+        Store.add_workflow(workflow)
+
+    return result
 
 
 @validate_arguments
