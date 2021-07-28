@@ -60,16 +60,16 @@ workflow_problems_union = ariadne.UnionType(
 
 schema = ariadne.make_executable_schema(
     typedefs,
-
+    # object resolvers
     query,
     mutation,
     workflow_object,
-
+    # error resolvers
     problem_interface,
     update_state_problems_union,
     task_problems_union,
     session_problems_union,
     workflow_problems_union,
-
+    # fallback resolver
     ariadne.snake_case_fallback_resolvers,
 )
