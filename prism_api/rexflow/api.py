@@ -106,9 +106,7 @@ async def start_workflow_by_name(
         raise REXFlowError(f'Workflow {workflow_name} cannot be started')
 
 
-async def _refresh_instance(did: WorkflowDeploymentId):
-    workflow_name = await _find_workflow_name(did)
-
+async def _refresh_instance(workflow_name: str, did: WorkflowDeploymentId):
     try:
         instances = await REXFlowBridge.get_instances(did)
     except BridgeNotReachableError:
@@ -131,9 +129,9 @@ async def _refresh_instance(did: WorkflowDeploymentId):
 async def _refresh_instances():
     deployment_ids = await get_deployments()
     async_tasks = []
-    for deployments in deployment_ids.values():
+    for name, deployments in deployment_ids.items():
         for did in deployments:
-            async_tasks.append(_refresh_instance(did))
+            async_tasks.append(_refresh_instance(name, did))
 
     await asyncio.gather(*async_tasks)
 
