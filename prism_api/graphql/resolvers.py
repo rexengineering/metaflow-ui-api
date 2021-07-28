@@ -1,13 +1,6 @@
 import logging
 from typing import List, Optional
 
-from ariadne import (
-    InterfaceType,
-    MutationType,
-    ObjectType,
-    QueryType,
-    UnionType,
-)
 from graphql.type.definition import GraphQLResolveInfo
 from pydantic.decorator import validate_arguments
 
@@ -51,40 +44,14 @@ from prism_api.state_manager import store
 logger = logging.getLogger(__name__)
 
 
+# Problem resolvers
+
 def resolve_problem_interface_type(obj: Problem, *_):
     return obj.resolve_type()
 
 
-problem_interface = InterfaceType(
-    'ProblemInterface',
-    resolve_problem_interface_type,
-)
+# Query resolvers
 
-update_state_problems_union = UnionType(
-    'UpdateStateProblems',
-    resolve_problem_interface_type,
-)
-
-task_problems_union = UnionType(
-    'TaskProblems',
-    resolve_problem_interface_type,
-)
-
-session_problems_union = UnionType(
-    'SessionProblems',
-    resolve_problem_interface_type,
-)
-
-workflow_problems_union = UnionType(
-    'WorkflowProblems',
-    resolve_problem_interface_type,
-)
-
-
-query = QueryType()
-
-
-@query.field('session')
 @resolver_verify_token
 async def resolve_session(_, info: GraphQLResolveInfo):
     session_id = info.context['session_id']
@@ -117,13 +84,6 @@ class WorkflowResolver:
         return available_workflows
 
 
-query.set_field('workflows', WorkflowResolver)
-
-
-workflow_object = ObjectType('Workflow')
-
-
-@workflow_object.field('tasks')
 @resolver_verify_token
 @validate_arguments
 async def resolve_workflow_tasks(
@@ -156,11 +116,7 @@ class TalkTrackResolver:
         return talktracks
 
 
-query.set_field('talktracks', TalkTrackResolver)
-
-
-mutation = MutationType()
-
+# Mutation resolvers
 
 class StateMutations:
     @resolver_verify_token
@@ -198,9 +154,6 @@ class SessionMutations:
         return {
             'status': OperationStatus.SUCCESS,
         }
-
-
-mutation.set_field('session', SessionMutations)
 
 
 class TasksMutations:
@@ -381,6 +334,3 @@ class WorkflowMutations:
 
     async def tasks(self, info):
         return TasksMutations()
-
-
-mutation.set_field('workflow', WorkflowMutations)
