@@ -98,8 +98,8 @@ async def start_workflow_by_name(
         # Start first deployment
         return await start_workflow(
             deployment_ids.pop(),
-            workflow_name,
-            metadata,
+            workflow_name=workflow_name,
+            metadata=metadata,
         )
     else:
         logger.error(f'Workflow {workflow_name} cannot be started')
