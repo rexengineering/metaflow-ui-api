@@ -56,10 +56,13 @@ async def _find_workflow_name(
 
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
+    workflow_name: str = None,
     metadata: List[MetaData] = [],
 ) -> Workflow:
     # Reverse engineer workflow name from workflow did
-    workflow_name = await _find_workflow_name(deployment_id)
+    if workflow_name is None:
+        workflow_name = await _find_workflow_name(deployment_id)
+
     if workflow_name in settings.TALKTRACK_WORKFLOWS:
         metadata.append(MetaData(
             key='type',
@@ -71,6 +74,7 @@ async def start_workflow(
             deployment_id=deployment_id,
             metadata=metadata,
         )
+        workflow.name = workflow_name
         # Assigning metadata because it doesn't come back from create instance
         workflow.metadata_dict = {
             data.key: data.value
@@ -92,13 +96,19 @@ async def start_workflow_by_name(
 
     if deployment_ids:
         # Start first deployment
-        return await start_workflow(deployment_ids.pop(), metadata)
+        return await start_workflow(
+            deployment_ids.pop(),
+            workflow_name,
+            metadata,
+        )
     else:
         logger.error(f'Workflow {workflow_name} cannot be started')
         raise REXFlowError(f'Workflow {workflow_name} cannot be started')
 
 
 async def _refresh_instance(did: WorkflowDeploymentId):
+    workflow_name = await _find_workflow_name(did)
+
     try:
         instances = await REXFlowBridge.get_instances(did)
     except BridgeNotReachableError:
@@ -108,6 +118,7 @@ async def _refresh_instance(did: WorkflowDeploymentId):
         workflow = Workflow(
             did=did,
             iid=instance.iid,
+            name=workflow_name,
             status=instance.iid_status,
             metadata_dict={
                 data.key: data.value
