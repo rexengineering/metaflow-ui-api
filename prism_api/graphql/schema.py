@@ -17,6 +17,9 @@ schema = ariadne.make_executable_schema(
     resolvers.mutation,
     resolvers.workflow_object,
     resolvers.problem_interface,
+    resolvers.update_state_problems_union,
     resolvers.task_problems_union,
+    resolvers.session_problems_union,
+    resolvers.workflow_problems_union,
     ariadne.snake_case_fallback_resolvers,
 )

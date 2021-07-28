@@ -60,8 +60,23 @@ problem_interface = InterfaceType(
     resolve_problem_interface_type,
 )
 
+update_state_problems_union = UnionType(
+    'UpdateStateProblems',
+    resolve_problem_interface_type,
+)
+
 task_problems_union = UnionType(
     'TaskProblems',
+    resolve_problem_interface_type,
+)
+
+session_problems_union = UnionType(
+    'SessionProblems',
+    resolve_problem_interface_type,
+)
+
+workflow_problems_union = UnionType(
+    'WorkflowProblems',
     resolve_problem_interface_type,
 )
 
