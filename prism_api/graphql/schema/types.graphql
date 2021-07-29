@@ -94,6 +94,7 @@ type Workflow {
     iid: WorkflowInstanceId!
     """Id for a workflow deployment"""
     did: WorkflowDeploymentId!
+    name: String
     status: WorkflowStatus!
     metadata: [Metadata!]!
     tasks(filter: TaskFilter): [Task!]!

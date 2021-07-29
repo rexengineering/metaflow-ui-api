@@ -124,6 +124,7 @@ class Task(BaseModel):
 class Workflow(BaseModel):
     iid: WorkflowInstanceId
     did: Optional[WorkflowDeploymentId]
+    name: Optional[str]
     status: WorkflowStatus
     tasks: List[Task] = []
     metadata_dict: Dict[str, str] = {}

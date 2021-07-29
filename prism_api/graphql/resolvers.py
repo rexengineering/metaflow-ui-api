@@ -280,7 +280,7 @@ class WorkflowMutations:
         try:
             workflow = await rexflow.start_workflow(
                 input.did,
-                [session_metadata],
+                metadata=[session_metadata],
             )
         except BridgeNotReachableError:
             logger.exception('Could not reach rexflow bridge')
