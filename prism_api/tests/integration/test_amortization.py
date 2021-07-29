@@ -15,12 +15,12 @@ RUN_INTEGRATION_TESTS = os.getenv('INTEGRATION_TESTS', False)
 
 API_TEST_HOST = 'http://localhost:8000/query/'
 
-AMORT_WORKFLOW_ID = os.getenv('AMORT_WORKFLOW_ID', 'amorttable-fcdd0672')
+AMORT_WORKFLOW_ID = 'AmortTable'
 
 START_WORKFLOW_MUTATION = '''
-mutation StartWorkflow ($startWorkflowInput: StartWorkflowInput!) {
+mutation StartWorkflow ($startWorkflowByNameInput: StartWorkflowByNameInput!) {
     workflow {
-        start (input: $startWorkflowInput) {
+        startByName (input: $startWorkflowByNameInput) {
             status
             iid
         }
@@ -124,10 +124,11 @@ class IntegrationTestAmortization(unittest.TestCase):
 
     @run_async
     async def test_amortization_workflow(self):
+        # Workfs for demo_amortization.bpmn
         start_workflow_query = gql(START_WORKFLOW_MUTATION)
         start_workflow_params = {
-            'startWorkflowInput': {
-                'did': AMORT_WORKFLOW_ID,
+            'startWorkflowByNameInput': {
+                'name': AMORT_WORKFLOW_ID,
             }
         }
 
@@ -137,11 +138,10 @@ class IntegrationTestAmortization(unittest.TestCase):
                 variable_values=start_workflow_params,
             )
 
-        status = result['workflow']['start']['status']
+        status = result['workflow']['startByName']['status']
         self.assertEqual(status, OperationStatus.SUCCESS)
 
-        workflow_iid = result['workflow']['start']['iid']
-        print(workflow_iid)
+        workflow_iid = result['workflow']['startByName']['iid']
 
         await asyncio.sleep(5)
 
@@ -165,6 +165,7 @@ class IntegrationTestAmortization(unittest.TestCase):
             'principal': '10000',
             'interest': '3.0',
             'term': '60',
+            'seller': 'Underpants',
         }
 
         task_data = {
