@@ -142,18 +142,20 @@ async def _refresh_instances():
 
 async def _refresh_workflow(workflow: Workflow):
     """Refresh a single workflow task"""
-    bridge = REXFlowBridge(workflow)
-    try:
-        tasks = await bridge.get_task_data([
-            task.tid for task in workflow.tasks
-        ])
-    except BridgeNotReachableError:
-        logger.exception('Trying to connect to the wrong bridge')
-        Store.delete_workflow(workflow.iid)
-    else:
-        workflow.tasks = []
-        for task in tasks:
-            Store.add_task(task)
+    if workflow.need_refresh():
+        bridge = REXFlowBridge(workflow)
+        try:
+            tasks = await bridge.get_task_data([
+                task.tid for task in workflow.tasks
+            ])
+        except BridgeNotReachableError:
+            logger.exception('Trying to connect to the wrong bridge')
+            Store.delete_workflow(workflow.iid)
+        else:
+            workflow.tasks = []
+            for task in tasks:
+                Store.add_task(task)
+            workflow.mark_refresh()
 
 
 async def refresh_workflows() -> None:

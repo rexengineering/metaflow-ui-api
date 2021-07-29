@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional
 
@@ -129,6 +130,8 @@ class Workflow(BaseModel):
     tasks: List[Task] = []
     metadata_dict: Dict[str, str] = {}
 
+    last_update: datetime = None
+
     @property
     def metadata(self):
         return [
@@ -138,6 +141,14 @@ class Workflow(BaseModel):
             )
             for key, value in self.metadata_dict.items()
         ]
+
+    def need_refresh(self) -> bool:
+        diff = timedelta(seconds=1)
+        return self.last_update is None \
+            or (datetime.now() - self.last_update) > diff
+
+    def mark_refresh(self):
+        self.last_update = datetime.now()
 
     def get_task_dict(self):
         return {
