@@ -24,7 +24,7 @@ from .entities.wrappers import (
     TaskChange,
     TaskOperationResults
 )
-from .errors import BridgeNotReachableError
+from .errors import BridgeNotReachableError, REXFlowError
 from .store import Store
 from prism_api import settings
 from prism_api.graphql.entities.types import SessionId
@@ -60,10 +60,13 @@ async def _find_workflow_name(
 
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
+    workflow_name: str = None,
     metadata: List[MetaData] = [],
 ) -> Workflow:
     # Reverse engineer workflow name from workflow did
-    workflow_name = await _find_workflow_name(deployment_id)
+    if workflow_name is None:
+        workflow_name = await _find_workflow_name(deployment_id)
+
     if workflow_name in settings.TALKTRACK_WORKFLOWS:
         metadata.append(MetaData(
             key='type',
@@ -75,6 +78,7 @@ async def start_workflow(
             deployment_id=deployment_id,
             metadata=metadata,
         )
+        workflow.name = workflow_name
         # Assigning metadata because it doesn't come back from create instance
         workflow.metadata_dict = {
             data.key: data.value
@@ -87,7 +91,26 @@ async def start_workflow(
     return workflow
 
 
-async def _refresh_instance(did: WorkflowDeploymentId):
+async def start_workflow_by_name(
+    workflow_name: str,
+    metadata: List[MetaData] = [],
+) -> Workflow:
+    deployments = await get_deployments()
+    deployment_ids = deployments.get(workflow_name)
+
+    if deployment_ids:
+        # Start first deployment
+        return await start_workflow(
+            deployment_ids.pop(),
+            workflow_name=workflow_name,
+            metadata=metadata,
+        )
+    else:
+        logger.error(f'Workflow {workflow_name} cannot be started')
+        raise REXFlowError(f'Workflow {workflow_name} cannot be started')
+
+
+async def _refresh_instance(workflow_name: str, did: WorkflowDeploymentId):
     try:
         instances = await REXFlowBridge.get_instances(did)
     except BridgeNotReachableError:
@@ -97,6 +120,7 @@ async def _refresh_instance(did: WorkflowDeploymentId):
         workflow = Workflow(
             did=did,
             iid=instance.iid,
+            name=workflow_name,
             status=instance.iid_status,
             metadata_dict={
                 data.key: data.value
@@ -111,7 +135,7 @@ async def _refresh_instances():
     async_tasks = []
     for deployments in available:
         for did in deployments.deployments:
-            async_tasks.append(_refresh_instance(did))
+            async_tasks.append(_refresh_instance(deployments.name, did))
 
     await asyncio.gather(*async_tasks)
 

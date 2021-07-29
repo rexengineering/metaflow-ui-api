@@ -25,6 +25,14 @@ def _load_fields(file: str):
 
 
 workflow_deployments = {
+    'amorttable-fcdd0672': {
+        'name': 'AmortTable',
+        'did': 'amorttable-fcdd0672',
+        'tasks': {
+            'get_terms': _load_fields('amort_terms_form.json'),
+            'show_table': _load_fields('amort_result_form.json'),
+        },
+    },
     'callworkflow-abc123': {
         'name': 'CallWorkflow',
         'did': 'callworkflow-abc123',

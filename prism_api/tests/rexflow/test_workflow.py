@@ -8,6 +8,7 @@ from ..mocks.rexflow_bridge import FakeREXFlowBridge
 from ..utils import run_async
 from prism_api.rexflow import api
 from prism_api.rexflow.entities.types import MetaData
+from prism_api.rexflow.entities.wrappers import TaskChange, TaskDataChange
 from prism_api.rexflow.store.memory import Store
 
 
@@ -62,18 +63,54 @@ class TestWorkflow(unittest.TestCase):
             field.data = answer
 
         # Validate the form
-        validated_tasks = await api.validate_tasks([task])
+        validated_tasks = await api.validate_tasks([
+            TaskChange(
+                iid=task.iid,
+                tid=task.tid,
+                data=[
+                    TaskDataChange(
+                        dataId=field.data_id,
+                        data=field.data
+                    )
+                    for field in task.data
+                ],
+            )
+        ])
         self.assertIn(task, validated_tasks.successful)
         self.assertEqual(answer, validated_tasks.successful[0].data[0].data)
 
         # Save the form
-        saved_task = await api.save_tasks([task])
+        saved_task = await api.save_tasks([
+            TaskChange(
+                iid=task.iid,
+                tid=task.tid,
+                data=[
+                    TaskDataChange(
+                        dataId=field.data_id,
+                        data=field.data
+                    )
+                    for field in task.data
+                ],
+            )
+        ])
         self.assertIn(task, saved_task.successful)
         self.assertEqual(answer, saved_task.successful[0].data[0].data)
 
         # Complete task
         task = await api.get_task(task.iid, task.tid)
-        completed = await api.complete_tasks([task])
+        completed = await api.complete_tasks([
+            TaskChange(
+                iid=task.iid,
+                tid=task.tid,
+                data=[
+                    TaskDataChange(
+                        dataId=field.data_id,
+                        data=field.data
+                    )
+                    for field in task.data
+                ],
+            )
+        ])
         self.assertIn(task, completed.successful)
         workflow = api.Store.get_workflow(task.iid)
         self.assertNotIn(task, workflow.tasks)

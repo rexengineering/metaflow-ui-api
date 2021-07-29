@@ -3,6 +3,7 @@ from . import (
     MOCK_DATA_ID_BASE,
     MOCK_DID,
     MOCK_IID,
+    MOCK_NAME,
     MOCK_TID,
     MOCK_TID_BASE,
 )
@@ -73,6 +74,7 @@ def mock_workflow(
     *,
     iid=MOCK_IID,
     did=MOCK_DID,
+    name=MOCK_NAME,
     workflow_status=WorkflowStatus.RUNNING,
     task_number=0,
     **mock_info,
@@ -80,6 +82,7 @@ def mock_workflow(
     return Workflow(
         iid=iid,
         did=did,
+        name=name,
         status=workflow_status,
         tasks=[
             mock_task(

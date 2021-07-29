@@ -1,13 +1,6 @@
 import logging
 from typing import List, Optional
 
-from ariadne import (
-    InterfaceType,
-    MutationType,
-    ObjectType,
-    QueryType,
-    UnionType,
-)
 from graphql.type.definition import GraphQLResolveInfo
 from pydantic.decorator import validate_arguments
 
@@ -20,6 +13,8 @@ from .entities.wrappers import (
     Problem,
     SaveTaskInput,
     SaveTasksPayload,
+    StartWorkflowByNameInput,
+    StartWorkflowByNamePayload,
     StartWorkflowInput,
     StartWorkflowPayload,
     TaskFilter,
@@ -49,25 +44,14 @@ from prism_api.state_manager import store
 logger = logging.getLogger(__name__)
 
 
+# Problem resolvers
+
 def resolve_problem_interface_type(obj: Problem, *_):
     return obj.resolve_type()
 
 
-problem_interface = InterfaceType(
-    'ProblemInterface',
-    resolve_problem_interface_type,
-)
+# Query resolvers
 
-task_problems_union = UnionType(
-    'TaskProblems',
-    resolve_problem_interface_type,
-)
-
-
-query = QueryType()
-
-
-@query.field('session')
 @resolver_verify_token
 async def resolve_session(_, info: GraphQLResolveInfo):
     session_id = info.context['session_id']
@@ -102,13 +86,6 @@ class WorkflowResolver:
         return available_workflows
 
 
-query.set_field('workflows', WorkflowResolver)
-
-
-workflow_object = ObjectType('Workflow')
-
-
-@workflow_object.field('tasks')
 @resolver_verify_token
 @validate_arguments
 async def resolve_workflow_tasks(
@@ -141,11 +118,7 @@ class TalkTrackResolver:
         return talktracks
 
 
-query.set_field('talktracks', TalkTrackResolver)
-
-
-mutation = MutationType()
-
+# Mutation resolvers
 
 class StateMutations:
     @resolver_verify_token
@@ -183,9 +156,6 @@ class SessionMutations:
         return {
             'status': OperationStatus.SUCCESS,
         }
-
-
-mutation.set_field('session', SessionMutations)
 
 
 class TasksMutations:
@@ -312,7 +282,7 @@ class WorkflowMutations:
         try:
             workflow = await rexflow.start_workflow(
                 input.did,
-                [session_metadata],
+                metadata=[session_metadata],
             )
         except BridgeNotReachableError:
             logger.exception('Could not reach rexflow bridge')
@@ -329,8 +299,40 @@ class WorkflowMutations:
             workflow=workflow,
         )
 
+    @resolver_verify_token
+    @validate_arguments
+    async def start_by_name(self, info, input: StartWorkflowByNameInput):
+        logger.info(input)
+        session_id = info.context['session_id']
+        session_metadata = MetaData(key='session_id', value=session_id)
+        try:
+            workflow = await rexflow.start_workflow_by_name(
+                input.name,
+                [session_metadata],
+            )
+        except BridgeNotReachableError:
+            logger.exception('Could not reach rexflow bridge')
+            return StartWorkflowByNamePayload(
+                status=OperationStatus.FAILURE,
+                errors=[ServiceNotAvailableProblem(
+                    message='Could not reach rexflow bridge',
+                )]
+            )
+        except REXFlowError:
+            logger.exception(f'Workflow {input.name} is not deployed')
+            return StartWorkflowByNamePayload(
+                status=OperationStatus.FAILURE,
+                errors=[ServiceNotAvailableProblem(
+                    message=f'Workflow {input.name} is not deployed',
+                )]
+            )
+
+        return StartWorkflowByNamePayload(
+            status=OperationStatus.SUCCESS,
+            did=workflow.did,
+            iid=workflow.iid,
+            workflow=workflow,
+        )
+
     async def tasks(self, info):
         return TasksMutations()
-
-
-mutation.set_field('workflow', WorkflowMutations)

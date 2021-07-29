@@ -67,6 +67,16 @@ async def start_workflow(
     return _mock_workflow(with_tasks=False)
 
 
+async def start_workflow_by_name(
+    workflow_name: str,
+) -> Workflow:
+    return _mock_workflow(with_tasks=False)
+
+
+async def refresh_workflows():
+    pass
+
+
 @validate_arguments
 async def get_active_workflows(
     session_id: SessionId,
@@ -77,6 +87,12 @@ async def get_active_workflows(
 
 async def complete_workflow(instance_id: WorkflowInstanceId) -> None:
     pass
+
+
+async def cancel_workflow(
+    instance_id: WorkflowInstanceId,
+) -> bool:
+    return True
 
 
 @validate_arguments
