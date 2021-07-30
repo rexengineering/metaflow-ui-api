@@ -1,7 +1,8 @@
 """Interface to interact with REXFlow"""
 import asyncio
-from collections import defaultdict
 import logging
+from collections import defaultdict
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from pydantic import validate_arguments
@@ -30,6 +31,10 @@ from prism_api import settings
 from prism_api.graphql.entities.types import SessionId
 
 logger = logging.getLogger()
+
+
+last_refresh = None
+refresh_rate = timedelta(seconds=3)
 
 
 async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
@@ -131,13 +136,16 @@ async def _refresh_instance(workflow_name: str, did: WorkflowDeploymentId):
 
 
 async def _refresh_instances():
-    available = await get_available_workflows()
-    async_tasks = []
-    for deployments in available:
-        for did in deployments.deployments:
-            async_tasks.append(_refresh_instance(deployments.name, did))
+    global last_refresh
+    if last_refresh is None or (datetime.now() - last_refresh) > refresh_rate:
+        available = await get_available_workflows()
+        async_tasks = []
+        for deployments in available:
+            for did in deployments.deployments:
+                async_tasks.append(_refresh_instance(deployments.name, did))
 
-    await asyncio.gather(*async_tasks)
+        await asyncio.gather(*async_tasks)
+        last_refresh = datetime.now()
 
 
 async def _refresh_workflow(workflow: Workflow):
