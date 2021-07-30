@@ -1,6 +1,9 @@
+import asyncio
+import random
+import secrets
 import timeit
 from statistics import fmean
-import secrets
+
 
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
@@ -39,7 +42,7 @@ query GetTaskData {
 """
 
 
-def main():
+async def main():
     session_id = secrets.token_hex()
     print(f'Starting test {session_id}')
     query = gql(QUERY)
@@ -58,6 +61,7 @@ def main():
     times = []
     try:
         for _ in range(NUMBER_OF_REQUESTS):
+            await asyncio.sleep(random.random())
             t1 = timeit.default_timer()
             client.execute(query)
             t2 = timeit.default_timer()
@@ -67,9 +71,10 @@ def main():
         print('Error!')
         print(repr(ex))
         client.transport.close()
+    print(times)
     avgtime = fmean(times)
     print(f'Finished with {session_id}, avg time {avgtime}')
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
