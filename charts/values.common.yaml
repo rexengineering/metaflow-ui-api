@@ -40,3 +40,5 @@ resources:
 
 env:
   LOG_LEVEL: INFO
+  REX_REXFLOW_FLOWD_HOST: http://flowd:9002
+  REX_REXUI_SERVER_CALLBACK_HOST: http://prism-api:8000/callback/
