@@ -72,7 +72,7 @@ async def get_deployments() -> List[WorkflowDeployment]:
     result.raise_for_status()
     data = result.json()['wf_map']
 
-    deployments_info = defaultdict({
+    deployments_info = defaultdict(lambda: {
         'deployment_ids': [],
         'bridge_url': '',
     })
@@ -88,7 +88,7 @@ async def get_deployments() -> List[WorkflowDeployment]:
     return [
         WorkflowDeployment(
             name=name,
-            deployments_id=deployment['deployment_ids'],
+            deployments=deployment['deployment_ids'],
             bridge_url=deployment['bridge_url'],
         )
         for name, deployment in deployments_info.items()
