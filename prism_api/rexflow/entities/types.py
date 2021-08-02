@@ -149,6 +149,7 @@ class Workflow(BaseModel):
 class WorkflowDeployment(BaseModel):
     name: str
     deployments: List[WorkflowDeploymentId]
+    bridge_url: str
 
 
 class WorkflowInstanceInfo(BaseModel):

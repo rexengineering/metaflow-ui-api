@@ -1,7 +1,8 @@
 import abc
 import asyncio
+from collections import defaultdict
 import logging
-from typing import Dict, List
+from typing import List
 
 from aiohttp.client_exceptions import ClientError
 from gql import Client, gql
@@ -21,6 +22,7 @@ from .entities.types import (
     TaskStatus,
     Validator,
     Workflow,
+    WorkflowDeployment,
     WorkflowDeploymentId,
     WorkflowInstanceId,
     WorkflowInstanceInfo,
@@ -58,7 +60,7 @@ if settings.LOG_LEVEL != 'DEBUG':
     aiohttp.log.setLevel(logging.WARNING)
 
 
-async def get_deployments() -> Dict[str, List[WorkflowDeploymentId]]:
+async def get_deployments() -> List[WorkflowDeployment]:
     async with AsyncClient() as client:
         try:
             result = await client.get(
@@ -68,10 +70,28 @@ async def get_deployments() -> Dict[str, List[WorkflowDeploymentId]]:
             raise REXFlowNotReachable from e
         result.raise_for_status()
         data = result.json()['wf_map']
-        return {
-            name: [deployment['id'] for deployment in deployments]
-            for name, deployments in data.items()
-        }
+
+        deployments_info = defaultdict({
+            'deployment_ids': [],
+            'bridge_url': '',
+        })
+        for name, deployments in data.items():
+            for deployment in deployments:
+                if 'id' in deployment:
+                    deployments_info[name]['deployment_ids'].append(
+                        deployment['id'],
+                    )
+                elif 'bridge_url' in deployment:
+                    deployments_info[name]['bridge_url'] = deployment['bridge_url']  # noqa E501
+
+        return [
+            WorkflowDeployment(
+                name=name,
+                deployments_id=deployment['deployment_ids'],
+                bridge_url=deployment['bridge_url'],
+            )
+            for name, deployment in deployments_info.items()
+        ]
 
 
 class REXFlowBridgeABC(abc.ABC):

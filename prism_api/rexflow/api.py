@@ -34,13 +34,7 @@ logger = logging.getLogger()
 
 async def get_available_workflows() -> List[WorkflowDeployment]:
     deployments = await get_deployments()
-    return [
-        WorkflowDeployment(
-            name=name,
-            deployments=deployment_ids,
-        )
-        for name, deployment_ids in deployments.items()
-    ]
+    return deployments
 
 
 async def _find_workflow_name(
@@ -91,8 +85,11 @@ async def start_workflow_by_name(
     workflow_name: str,
     metadata: List[MetaData] = [],
 ) -> Workflow:
-    deployments = await get_deployments()
-    deployment_ids = deployments.get(workflow_name)
+    deployments = await get_available_workflows()
+    deployment_ids = [
+        deployment.deployments for deployment in deployments
+        if deployment.name == workflow_name
+    ].pop()
 
     if deployment_ids:
         # Start first deployment
@@ -127,11 +124,11 @@ async def _refresh_instance(workflow_name: str, did: WorkflowDeploymentId):
 
 
 async def _refresh_instances():
-    deployment_ids = await get_deployments()
+    workflows = await get_available_workflows()
     async_tasks = []
-    for name, deployments in deployment_ids.items():
-        for did in deployments:
-            async_tasks.append(_refresh_instance(name, did))
+    for workflow in workflows:
+        for did in workflow.deployments:
+            async_tasks.append(_refresh_instance(workflow.name, did))
 
     await asyncio.gather(*async_tasks)
 

@@ -3,11 +3,11 @@ from unittest import mock
 
 import pytest
 
-from ..mocks import MOCK_DID, MOCK_TID
+from ..mocks import MOCK_DID, MOCK_NAME, MOCK_TID
 from ..mocks.rexflow_bridge import FakeREXFlowBridge
 from ..utils import run_async
 from prism_api.rexflow import api
-from prism_api.rexflow.entities.types import MetaData
+from prism_api.rexflow.entities.types import MetaData, WorkflowDeployment
 from prism_api.rexflow.entities.wrappers import TaskChange, TaskDataChange
 from prism_api.rexflow.store.memory import Store
 
@@ -17,11 +17,13 @@ FakeREXFlowBridge.Store = Store
 
 
 async def get_deployments():
-    return {
-        'test': [
-            MOCK_DID,
-        ]
-    }
+    return [
+        WorkflowDeployment(
+            name=MOCK_NAME,
+            deployments=[MOCK_DID],
+            bridge_url='',
+        ),
+    ]
 
 
 @pytest.mark.ci

@@ -7,6 +7,7 @@ import pytest
 from ..mocks import (
     MOCK_DID,
     MOCK_IID,
+    MOCK_NAME,
     MOCK_TID,
     rexflow_api,
 )
@@ -49,11 +50,13 @@ from prism_api.rexflow.entities.types import (
 
 
 async def mock_get_deployments():
-    return {
-        'test_workflow': [
-            MOCK_DID,
-        ]
-    }
+    return [
+        WorkflowDeployment(
+            name=MOCK_NAME,
+            deployments=[MOCK_DID],
+            bridge_url='',
+        ),
+    ]
 
 
 def get_task_input():

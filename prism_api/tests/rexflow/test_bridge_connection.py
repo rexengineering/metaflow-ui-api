@@ -1,3 +1,4 @@
+from prism_api.rexflow.entities.types import WorkflowDeployment
 import unittest
 from unittest import mock
 
@@ -20,11 +21,13 @@ FAKE_REXFLOW_HOST = 'http://ui-bridge.example'
 
 
 async def get_deployments():
-    return {
-        'test': [
-            MOCK_DID,
-        ]
-    }
+    return [
+        WorkflowDeployment(
+            name=MOCK_NAME,
+            deployments=[MOCK_DID],
+            bridge_url='',
+        ),
+    ]
 
 
 @mock.patch(
