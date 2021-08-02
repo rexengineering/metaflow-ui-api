@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 
 from ..utils import run_async
-from ..mocks import MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
+from ..mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
 from ..mocks.rexflow_entities import (
     mock_task,
     mock_task_change,
@@ -25,7 +25,7 @@ async def get_deployments():
         WorkflowDeployment(
             name=MOCK_NAME,
             deployments=[MOCK_DID],
-            bridge_url='',
+            bridge_url=MOCK_BRIDGE_URL,
         ),
     ]
 
@@ -73,7 +73,7 @@ class TestBridgeConnection(unittest.TestCase):
     @run_async
     async def test_api_bridge_connection_failure(self):
         # Should not trigger error
-        await api._refresh_instance(MOCK_NAME, MOCK_DID)
+        await api._refresh_instance(MOCK_NAME, MOCK_DID, MOCK_BRIDGE_URL)
 
         with self.assertRaises(BridgeNotReachableError):
             await api.start_workflow(MOCK_DID)

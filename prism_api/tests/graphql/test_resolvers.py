@@ -5,6 +5,7 @@ from typing import List
 import pytest
 
 from ..mocks import (
+    MOCK_BRIDGE_URL,
     MOCK_DID,
     MOCK_IID,
     MOCK_NAME,
@@ -54,7 +55,7 @@ async def mock_get_deployments():
         WorkflowDeployment(
             name=MOCK_NAME,
             deployments=[MOCK_DID],
-            bridge_url='',
+            bridge_url=MOCK_BRIDGE_URL,
         ),
     ]
 

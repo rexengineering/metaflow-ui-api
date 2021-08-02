@@ -4,7 +4,7 @@ from typing import List
 
 from pydantic import validate_arguments
 
-from . import MOCK_IID
+from . import MOCK_DID, MOCK_IID
 from prism_api.rexflow.entities.types import (
     DataType,
     MetaData,
@@ -14,7 +14,6 @@ from prism_api.rexflow.entities.types import (
     Validator,
     ValidatorEnum,
     Workflow,
-    WorkflowDeploymentId,
     WorkflowInstanceInfo,
     WorkflowStatus,
 )
@@ -42,15 +41,16 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     @validate_arguments
     async def start_workflow(
         cls,
-        deployment_id: WorkflowDeploymentId,
+        bridge_url: str,
         metadata: List[MetaData] = [],
     ) -> Workflow:
         await asyncio.sleep(cls.sleep_time)
         return Workflow(
-            did=deployment_id,
+            did=MOCK_DID,
             iid=MOCK_IID,
             status=WorkflowStatus.RUNNING,
             data=[],
+            bridge_url=bridge_url,
         )
 
     @validate_arguments

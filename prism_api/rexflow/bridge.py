@@ -68,30 +68,31 @@ async def get_deployments() -> List[WorkflowDeployment]:
             )
         except ConnectError as e:
             raise REXFlowNotReachable from e
-        result.raise_for_status()
-        data = result.json()['wf_map']
 
-        deployments_info = defaultdict({
-            'deployment_ids': [],
-            'bridge_url': '',
-        })
-        for name, deployments in data.items():
-            for deployment in deployments:
-                if 'id' in deployment:
-                    deployments_info[name]['deployment_ids'].append(
-                        deployment['id'],
-                    )
-                elif 'bridge_url' in deployment:
-                    deployments_info[name]['bridge_url'] = deployment['bridge_url']  # noqa E501
+    result.raise_for_status()
+    data = result.json()['wf_map']
 
-        return [
-            WorkflowDeployment(
-                name=name,
-                deployments_id=deployment['deployment_ids'],
-                bridge_url=deployment['bridge_url'],
-            )
-            for name, deployment in deployments_info.items()
-        ]
+    deployments_info = defaultdict({
+        'deployment_ids': [],
+        'bridge_url': '',
+    })
+    for name, deployments in data.items():
+        for deployment in deployments:
+            if 'id' in deployment:
+                deployments_info[name]['deployment_ids'].append(
+                    deployment['id'],
+                )
+            elif 'bridge_url' in deployment:
+                deployments_info[name]['bridge_url'] = deployment['bridge_url']  # noqa E501
+
+    return [
+        WorkflowDeployment(
+            name=name,
+            deployments_id=deployment['deployment_ids'],
+            bridge_url=deployment['bridge_url'],
+        )
+        for name, deployment in deployments_info.items()
+    ]
 
 
 class REXFlowBridgeABC(abc.ABC):
@@ -139,17 +140,16 @@ class REXFlowBridgeABC(abc.ABC):
 
 class REXFlowBridgeGQL(REXFlowBridgeABC):
     @staticmethod
-    def _get_transport(deployment_id):
-        host = settings.REXFLOW_HOST.format(deployment_id=deployment_id)
+    def _get_transport(bridge_url):
         transport = aiohttp.AIOHTTPTransport(
-            url=host,
+            url=bridge_url,
         )
         return transport
 
     @classmethod
-    def _get_client(cls, deployment_id):
+    def _get_client(cls, bridge_url):
         return Client(
-            transport=cls._get_transport(deployment_id),
+            transport=cls._get_transport(bridge_url),
             fetch_schema_from_transport=True,
         )
 
@@ -157,7 +157,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     @validate_arguments
     async def start_workflow(
         cls,
-        deployment_id: WorkflowDeploymentId,
+        bridge_url: str,
         metadata: List[MetaData] = [],
     ) -> Workflow:
         query = gql(queries.START_WORKFLOW_MUTATION)
@@ -174,7 +174,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             ).dict(),
         }
 
-        client = cls._get_client(deployment_id)
+        client = cls._get_client(bridge_url)
         try:
             async with client as session:
                 result = await session.execute(query, variable_values=params)
@@ -191,17 +191,18 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             iid=payload.iid,
             did=payload.did,
             status=WorkflowStatus.STARTING,
+            bridge_url=bridge_url,
         )
 
     @classmethod
     @validate_arguments
     async def get_instances(
         cls,
-        deployment_id: WorkflowDeploymentId,
+        bridge_url: str,
     ) -> List[WorkflowInstanceInfo]:
         query = gql(queries.GET_INSTANCES_QUERY)
 
-        client = cls._get_client(deployment_id)
+        client = cls._get_client(bridge_url)
         try:
             async with client as session:
                 result = await session.execute(query)
@@ -230,7 +231,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
 
         query = gql(queries.GET_TASK_DATA_QUERY)
 
-        client = self._get_client(self.workflow.did)
+        client = self._get_client(self.workflow.bridge_url)
         try:
             async with client as session:
                 async_tasks = []
@@ -290,7 +291,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> TaskOperationResults:
         query = gql(queries.VALIDATE_TASK_DATA_MUTATION)
 
-        client = self._get_client(self.workflow.did)
+        client = self._get_client(self.workflow.bridge_url)
         try:
             async with client as session:
                 async_tasks = []
@@ -344,7 +345,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> TaskOperationResults:
         query = gql(queries.SAVE_TASK_DATA_MUTATION)
 
-        client = self._get_client(self.workflow.did)
+        client = self._get_client(self.workflow.bridge_url)
         try:
             async with client as session:
                 async_tasks = []
@@ -398,7 +399,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> TaskOperationResults:
         query = gql(queries.COMPLETE_TASK_MUTATION)
 
-        client = self._get_client(self.workflow.did)
+        client = self._get_client(self.workflow.bridge_url)
         try:
             async with client as session:
                 async_tasks = []
@@ -443,7 +444,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             ).dict(),
         }
 
-        client = self._get_client(self.workflow.did)
+        client = self._get_client(self.workflow.bridge_url)
         try:
             async with client as session:
                 result = await session.execute(query, variable_values=params)

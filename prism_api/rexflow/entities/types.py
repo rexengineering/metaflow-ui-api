@@ -129,6 +129,8 @@ class Workflow(BaseModel):
     tasks: List[Task] = []
     metadata_dict: Dict[str, str] = {}
 
+    bridge_url: Optional[str]
+
     @property
     def metadata(self):
         return [

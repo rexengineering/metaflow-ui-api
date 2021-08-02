@@ -1,4 +1,5 @@
 from . import (
+    MOCK_BRIDGE_URL,
     MOCK_DATA_ID,
     MOCK_DATA_ID_BASE,
     MOCK_DID,
@@ -91,7 +92,8 @@ def mock_workflow(
                 **mock_info,
             )
             for i in range(task_number)
-        ]
+        ],
+        bridge_url=MOCK_BRIDGE_URL,
     )
 
 
