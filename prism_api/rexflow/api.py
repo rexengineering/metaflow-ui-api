@@ -34,7 +34,7 @@ logger = logging.getLogger()
 
 
 last_refresh = None
-refresh_rate = timedelta(seconds=3)
+refresh_rate = timedelta(seconds=settings.BRIDGE_RATE_LIMIT_SECONDS)
 
 
 async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
@@ -137,7 +137,9 @@ async def _refresh_instance(workflow_name: str, did: WorkflowDeploymentId):
 
 async def _refresh_instances():
     global last_refresh
-    if last_refresh is None or (datetime.now() - last_refresh) > refresh_rate:
+    if last_refresh is None \
+       or settings.BRIDGE_RATE_LIMIT_SECONDS < 1 \
+       or (datetime.now() - last_refresh) > refresh_rate:
         available = await get_available_workflows()
         async_tasks = []
         for deployments in available:
