@@ -141,8 +141,9 @@ class REXFlowBridgeABC(abc.ABC):
 class REXFlowBridgeGQL(REXFlowBridgeABC):
     @staticmethod
     def _get_transport(bridge_url):
+        graphql_url = bridge_url + 'graphql'
         transport = aiohttp.AIOHTTPTransport(
-            url=bridge_url,
+            url=graphql_url,
         )
         return transport
 
