@@ -4,6 +4,8 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from prism_api.settings import BRIDGE_RATE_LIMIT_SECONDS
+
 
 class WorkflowDeploymentId(str):
     """Identifier for a workflow deployment"""
@@ -143,7 +145,10 @@ class Workflow(BaseModel):
         ]
 
     def need_refresh(self) -> bool:
-        diff = timedelta(seconds=1)
+        if BRIDGE_RATE_LIMIT_SECONDS < 1:
+            return True
+
+        diff = timedelta(seconds=BRIDGE_RATE_LIMIT_SECONDS)
         return self.last_update is None \
             or (datetime.now() - self.last_update) > diff
 
