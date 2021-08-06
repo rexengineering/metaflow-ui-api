@@ -1,14 +1,15 @@
 import asyncio
+import random
+import secrets
 import timeit
 from statistics import fmean
 
+
 from gql import Client, gql
-from gql.transport import aiohttp
+from gql.transport.requests import RequestsHTTPTransport
 
 
-NUMBER_OF_CLIENTS = 10
-
-NUMBER_OF_REQUESTS = 10
+NUMBER_OF_REQUESTS = 100
 
 TEST_URL = 'http://localhost:8000/query/'
 
@@ -41,14 +42,14 @@ query GetTaskData {
 """
 
 
-async def execute_petitions(session_id):
-    print(f'Starting petitions for {session_id}')
+async def main():
+    session_id = secrets.token_hex()
+    print(f'Starting test {session_id}')
     query = gql(QUERY)
 
-    transport = aiohttp.AIOHTTPTransport(
+    transport = RequestsHTTPTransport(
         url=TEST_URL,
         headers={'session_id': session_id},
-        timeout=3000,
     )
 
     client = Client(
@@ -59,30 +60,20 @@ async def execute_petitions(session_id):
 
     times = []
     try:
-        async with client as session:
-            for i in range(NUMBER_OF_REQUESTS):
-                t1 = timeit.default_timer()
-                await session.execute(query)
-                t2 = timeit.default_timer()
-                result = t2 - t1
-                times.append(result)
-                # print(f'{session_id} - {i} - {result}')
+        for _ in range(NUMBER_OF_REQUESTS):
+            await asyncio.sleep(random.random())
+            t1 = timeit.default_timer()
+            client.execute(query)
+            t2 = timeit.default_timer()
+            result = t2 - t1
+            times.append(result)
     except Exception as ex:
         print('Error!')
         print(repr(ex))
-        await client.transport.close()
+        client.transport.close()
+    print(times)
     avgtime = fmean(times)
     print(f'Finished with {session_id}, avg time {avgtime}')
-
-
-async def main():
-    print(f'Starting test for {NUMBER_OF_CLIENTS} clients')
-    tasks = []
-    for i in range(NUMBER_OF_CLIENTS):
-        tasks.append(execute_petitions(f'session_{i}'))
-
-    await asyncio.gather(*tasks)
-    print('Finished')
 
 
 if __name__ == '__main__':
