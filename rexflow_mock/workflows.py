@@ -58,6 +58,9 @@ async def available_workflows():
                     'id': info['did'],
                     'start_events_urls': '',
                     'use_opaque_metadata': {},
+                },
+                {
+                    'bridge_url': f'http://rexflow:8001/graphql/?did={info["did"]}',  # noqa E501
                 }
             ]
             for info in workflow_deployments.values()

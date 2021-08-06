@@ -133,6 +133,7 @@ class Workflow(BaseModel):
     metadata_dict: Dict[str, str] = {}
 
     last_update: datetime = None
+    bridge_url: Optional[str]
 
     @property
     def metadata(self):
@@ -165,6 +166,7 @@ class Workflow(BaseModel):
 class WorkflowDeployment(BaseModel):
     name: str
     deployments: List[WorkflowDeploymentId]
+    bridge_url: str
 
 
 class WorkflowInstanceInfo(BaseModel):

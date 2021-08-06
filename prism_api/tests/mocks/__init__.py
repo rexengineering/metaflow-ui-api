@@ -8,6 +8,7 @@ from prism_api.rexflow.entities.types import (
 MOCK_TID_BASE: str = 'Activity_abcde_{n}'
 MOCK_DATA_ID_BASE: str = 'field_{n}'
 
+MOCK_BRIDGE_URL = 'http://testbridge/'
 
 MOCK_NAME: str = 'process'
 MOCK_DID: WorkflowDeploymentId = 'process-123-abc'
