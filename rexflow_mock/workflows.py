@@ -80,7 +80,7 @@ workflow_deployments = {
         'name': 'conclude',
         'did': 'conclude-123',
         'tasks': {
-            'conclude': _load_fields('conclude.json'),
+            'conclude_1': _load_fields('conclude.json'),
         },
     },
 }
