@@ -103,7 +103,7 @@ async def available_workflows():
                     'use_opaque_metadata': {},
                 },
                 {
-                    'bridge_url': f'http://rexflow:8001/graphql/?did={info["did"]}',  # noqa E501
+                    'bridge_url': f'http://rexflow:8001/graphql/?did={info["did"]}#',  # noqa E501
                 }
             ]
             for info in workflow_deployments.values()
