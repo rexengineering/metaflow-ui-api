@@ -20,7 +20,7 @@ type StateMutations {
 type WorkflowMutations {
     """Start a new workflow"""
     start(input: StartWorkflowInput!): StartWorkflowPayload
-    """Start a new workflow using is workflow name"""
+    """Start a new workflow using its workflow name"""
     startByName(input: StartWorkflowByNameInput!): StartWorkflowByNamePayload
     """Interact with workflow tasks"""
     tasks: TasksMutations

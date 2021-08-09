@@ -25,6 +25,14 @@ def _load_fields(file: str):
 
 
 workflow_deployments = {
+    'amorttable-fcdd0672': {
+        'name': 'AmortTable',
+        'did': 'amorttable-fcdd0672',
+        'tasks': {
+            'get_terms': _load_fields('amort_terms_form.json'),
+            'show_table': _load_fields('amort_result_form.json'),
+        },
+    },
     'callworkflow-abc123': {
         'name': 'CallWorkflow',
         'did': 'callworkflow-abc123',
@@ -93,6 +101,9 @@ async def available_workflows():
                     'id': info['did'],
                     'start_events_urls': '',
                     'use_opaque_metadata': {},
+                },
+                {
+                    'bridge_url': f'http://rexflow:8001/graphql/?did={info["did"]}',  # noqa E501
                 }
             ]
             for info in workflow_deployments.values()

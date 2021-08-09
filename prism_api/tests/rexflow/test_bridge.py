@@ -5,6 +5,7 @@ import pytest
 from gql import Client, gql
 
 from ..mocks import (
+    MOCK_BRIDGE_URL,
     MOCK_DID,
     MOCK_IID,
     MOCK_TID,
@@ -32,7 +33,7 @@ class TestGraphQLSchema(unittest.TestCase):
 
 
 mock_task_data = bridge.TaskFieldData(
-    dataId='uname',
+    data_id='uname',
     type='TEXT',
     order=1,
     label='username',
@@ -56,7 +57,7 @@ class TestBridgeIntegration(unittest.TestCase):
     @run_async
     async def test_start_workflow(self):
         workflow = await bridge.REXFlowBridgeGQL.start_workflow(
-            deployment_id=MOCK_DID,
+            bridge_url=MOCK_BRIDGE_URL,
         )
         self.assertIsInstance(workflow, bridge.Workflow)
         self.assertEqual(MOCK_DID, workflow.did)
