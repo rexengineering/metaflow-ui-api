@@ -44,8 +44,7 @@ class TestWorkflow(unittest.TestCase):
         )
         self.assertIsNotNone(workflow)
         self.assertEqual(len(workflow.tasks), 0)
-        active = await api.get_active_workflows('anon', [])
-        self.assertIn(workflow.iid, [wf.iid for wf in active])
+        self.assertIn(workflow, await api.get_active_workflows('anon', []))
 
         created = await api.start_tasks(workflow.iid, [MOCK_TID])
         new_task = created.pop()

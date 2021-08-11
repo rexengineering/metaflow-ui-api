@@ -2,7 +2,6 @@
 import asyncio
 import logging
 from collections import defaultdict
-from datetime import datetime, timedelta
 from typing import List, Optional
 
 from pydantic import validate_arguments
@@ -31,9 +30,6 @@ from prism_api import settings
 from prism_api.graphql.entities.types import SessionId
 
 logger = logging.getLogger()
-
-last_refresh = None
-refresh_rate = timedelta(seconds=settings.BRIDGE_RATE_LIMIT_SECONDS)
 
 
 async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
@@ -138,40 +134,33 @@ async def _refresh_instance(
 
 
 async def _refresh_instances():
-    global last_refresh
-    if last_refresh is None \
-       or settings.BRIDGE_RATE_LIMIT_SECONDS < 1 \
-       or (datetime.now() - last_refresh) > refresh_rate:
-        workflows = await get_available_workflows()
-        async_tasks = []
-        for workflow in workflows:
-            for did in workflow.deployments:
-                async_tasks.append(_refresh_instance(
-                    workflow.name,
-                    did,
-                    workflow.bridge_url,
-                ))
+    workflows = await get_available_workflows()
+    async_tasks = []
+    for workflow in workflows:
+        for did in workflow.deployments:
+            async_tasks.append(_refresh_instance(
+                workflow.name,
+                did,
+                workflow.bridge_url,
+            ))
 
-        await asyncio.gather(*async_tasks)
-        last_refresh = datetime.now()
+    await asyncio.gather(*async_tasks)
 
 
 async def _refresh_workflow(workflow: Workflow):
     """Refresh a single workflow task"""
-    if workflow.need_refresh():
-        bridge = REXFlowBridge(workflow)
-        try:
-            tasks = await bridge.get_task_data([
-                task.tid for task in workflow.tasks
-            ])
-        except BridgeNotReachableError:
-            logger.exception('Trying to connect to the wrong bridge')
-            Store.delete_workflow(workflow.iid)
-        else:
-            workflow.tasks = []
-            for task in tasks:
-                Store.add_task(task)
-            workflow.mark_refresh()
+    bridge = REXFlowBridge(workflow)
+    try:
+        tasks = await bridge.get_task_data([
+            task.tid for task in workflow.tasks
+        ])
+    except BridgeNotReachableError:
+        logger.exception('Trying to connect to the wrong bridge')
+        Store.delete_workflow(workflow.iid)
+    else:
+        workflow.tasks = []
+        for task in tasks:
+            Store.add_task(task)
 
 
 async def refresh_workflows() -> None:
