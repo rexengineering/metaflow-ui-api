@@ -26,7 +26,7 @@ from .entities.wrappers import (
     TaskOperationResults
 )
 from .errors import BridgeNotReachableError, REXFlowError
-from .store import Store
+from .store import Store, WorkflowNotFoundError
 from prism_api import settings
 from prism_api.graphql.entities.types import SessionId
 
@@ -85,6 +85,7 @@ async def start_workflow(
     except BridgeNotReachableError:
         logger.error('Trying to connect to an unreacheable bridge')
         raise
+    workflow.status = WorkflowStatus.RUNNING
     Store.add_workflow(workflow)
     return workflow
 
@@ -186,13 +187,18 @@ async def get_active_workflows(
     session_id: SessionId,
     iids: List[WorkflowInstanceId],
 ) -> List[Workflow]:
-    await refresh_workflows()
-    return [
+    workflows = [
         workflow
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
         and workflow.metadata_dict.get('session_id') == session_id
     ]
+
+    for workflow in workflows:
+        tasks = Store.get_workflow_tasks(workflow.iid)
+        workflow.tasks = list(tasks.values())
+
+    return workflows
 
 
 async def complete_workflow(
@@ -222,8 +228,12 @@ async def start_tasks(
     iid: WorkflowInstanceId,
     tasks: List[TaskId]
 ) -> List[Task]:
-    await refresh_workflows()
-    bridge = REXFlowBridge(Store.get_workflow(iid))
+    try:
+        workflow = Store.get_workflow(iid)
+    except WorkflowNotFoundError:
+        await _refresh_instances()
+        workflow = Store.get_workflow(iid)
+    bridge = REXFlowBridge(workflow)
     created_tasks = []
     # Get tasks with initial values
     try:
