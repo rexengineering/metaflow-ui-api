@@ -1,7 +1,8 @@
 """Interface to interact with REXFlow"""
 import asyncio
-from collections import defaultdict
 import logging
+from collections import defaultdict
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from pydantic import validate_arguments
@@ -25,15 +26,21 @@ from .entities.wrappers import (
     TaskOperationResults
 )
 from .errors import BridgeNotReachableError, REXFlowError
-from .store import Store
+from .store import Store, WorkflowNotFoundError
 from prism_api import settings
 from prism_api.graphql.entities.types import SessionId
 
 logger = logging.getLogger()
 
+last_refresh = None
+refresh_rate = timedelta(seconds=settings.BRIDGE_RATE_LIMIT_SECONDS)
 
-async def get_available_workflows() -> List[WorkflowDeployment]:
-    deployments = await get_deployments()
+
+async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
+    deployments = Store.get_deployments()
+    if refresh or len(deployments) == 0:
+        deployments = await get_deployments()
+        Store.save_deployments(deployments)
     return deployments
 
 
@@ -78,6 +85,7 @@ async def start_workflow(
     except BridgeNotReachableError:
         logger.error('Trying to connect to an unreacheable bridge')
         raise
+    workflow.status = WorkflowStatus.RUNNING
     Store.add_workflow(workflow)
     return workflow
 
@@ -130,33 +138,40 @@ async def _refresh_instance(
 
 
 async def _refresh_instances():
-    workflows = await get_available_workflows()
-    async_tasks = []
-    for workflow in workflows:
-        for did in workflow.deployments:
-            async_tasks.append(_refresh_instance(
-                workflow.name,
-                did,
-                workflow.bridge_url,
-            ))
+    global last_refresh
+    if last_refresh is None \
+       or settings.BRIDGE_RATE_LIMIT_SECONDS < 1 \
+       or (datetime.now() - last_refresh) > refresh_rate:
+        workflows = await get_available_workflows()
+        async_tasks = []
+        for workflow in workflows:
+            for did in workflow.deployments:
+                async_tasks.append(_refresh_instance(
+                    workflow.name,
+                    did,
+                    workflow.bridge_url,
+                ))
 
-    await asyncio.gather(*async_tasks)
+        await asyncio.gather(*async_tasks)
+        last_refresh = datetime.now()
 
 
 async def _refresh_workflow(workflow: Workflow):
     """Refresh a single workflow task"""
-    bridge = REXFlowBridge(workflow)
-    try:
-        tasks = await bridge.get_task_data([
-            task.tid for task in workflow.tasks
-        ])
-    except BridgeNotReachableError:
-        logger.exception('Trying to connect to the wrong bridge')
-        Store.delete_workflow(workflow.iid)
-    else:
-        workflow.tasks = []
-        for task in tasks:
-            Store.add_task(task)
+    if workflow.need_refresh():
+        bridge = REXFlowBridge(workflow)
+        try:
+            tasks = await bridge.get_task_data([
+                task.tid for task in workflow.tasks
+            ])
+        except BridgeNotReachableError:
+            logger.exception('Trying to connect to the wrong bridge')
+            Store.delete_workflow(workflow.iid)
+        else:
+            workflow.tasks = []
+            for task in tasks:
+                Store.add_task(task)
+            workflow.mark_refresh()
 
 
 async def refresh_workflows() -> None:
@@ -172,13 +187,18 @@ async def get_active_workflows(
     session_id: SessionId,
     iids: List[WorkflowInstanceId],
 ) -> List[Workflow]:
-    await refresh_workflows()
-    return [
+    workflows = [
         workflow
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
         and workflow.metadata_dict.get('session_id') == session_id
     ]
+
+    for workflow in workflows:
+        tasks = Store.get_workflow_tasks(workflow.iid)
+        workflow.tasks = list(tasks.values())
+
+    return workflows
 
 
 async def complete_workflow(
@@ -208,8 +228,12 @@ async def start_tasks(
     iid: WorkflowInstanceId,
     tasks: List[TaskId]
 ) -> List[Task]:
-    await refresh_workflows()
-    bridge = REXFlowBridge(Store.get_workflow(iid))
+    try:
+        workflow = Store.get_workflow(iid)
+    except WorkflowNotFoundError:
+        await _refresh_instances()
+        workflow = Store.get_workflow(iid)
+    bridge = REXFlowBridge(workflow)
     created_tasks = []
     # Get tasks with initial values
     try:
