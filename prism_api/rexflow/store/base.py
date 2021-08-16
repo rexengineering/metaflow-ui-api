@@ -6,11 +6,22 @@ from prism_api.rexflow.entities.types import (
     Task,
     TaskId,
     Workflow,
+    WorkflowDeployment,
     WorkflowInstanceId,
 )
 
 
 class StoreABC(abc.ABC):
+    @classmethod
+    @abc.abstractmethod
+    def save_deployments(cls, deployments: List[WorkflowDeployment]):
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def get_deployments(cls) -> List[WorkflowDeployment]:
+        raise NotImplementedError
+
     @classmethod
     @abc.abstractmethod
     def add_workflow(cls, workflow: Workflow):

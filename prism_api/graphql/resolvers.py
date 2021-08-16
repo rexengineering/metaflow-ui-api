@@ -80,7 +80,9 @@ class WorkflowResolver:
 
     @resolver_verify_token
     async def available(self, *_):
-        available_workflows = await rexflow.get_available_workflows()
+        available_workflows = await rexflow.get_available_workflows(
+            refresh=True
+        )
         return available_workflows
 
 
@@ -107,7 +109,7 @@ class TalkTrackResolver:
         pass
 
     async def list(self, *_) -> List[WorkflowDeployment]:
-        workflows = await rexflow.get_available_workflows()
+        workflows = await rexflow.get_available_workflows(refresh=True)
         talktracks = [
             deployment
             for deployment in workflows

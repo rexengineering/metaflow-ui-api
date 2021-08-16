@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import validate_arguments
 
-from ..mocks import MOCK_DID, MOCK_IID, MOCK_TID
+from ..mocks import MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
 from prism_api.graphql.entities.types import SessionId
 from prism_api.rexflow.entities.types import (
     MetaData,
@@ -51,11 +51,12 @@ def _mock_workflow(with_tasks=True):
     )
 
 
-async def get_available_workflows() -> List[WorkflowDeployment]:
+async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
     return [
         WorkflowDeployment(
-            name='test_workflow',
-            deployments=[MOCK_DID]
+            name=MOCK_NAME,
+            deployments=[MOCK_DID],
+            bridge_url='',
         )
     ]
 

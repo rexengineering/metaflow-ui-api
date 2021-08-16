@@ -1,7 +1,7 @@
 """Interface to interact with REXFlow"""
 import asyncio
-from collections import defaultdict
 import logging
+from collections import defaultdict
 from typing import List, Optional
 
 from pydantic import validate_arguments
@@ -25,31 +25,28 @@ from .entities.wrappers import (
     TaskOperationResults
 )
 from .errors import BridgeNotReachableError, REXFlowError
-from .store import Store
+from .store import Store, WorkflowNotFoundError
 from prism_api import settings
 from prism_api.graphql.entities.types import SessionId
 
 logger = logging.getLogger()
 
 
-async def get_available_workflows() -> List[WorkflowDeployment]:
-    deployments = await get_deployments()
-    return [
-        WorkflowDeployment(
-            name=name,
-            deployments=deployment_ids,
-        )
-        for name, deployment_ids in deployments.items()
-    ]
+async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
+    deployments = Store.get_deployments()
+    if refresh or len(deployments) == 0:
+        deployments = await get_deployments()
+        Store.save_deployments(deployments)
+    return deployments
 
 
-async def _find_workflow_name(
+async def _find_workflow_deployment(
     deployment_id: WorkflowDeploymentId,
-) -> Optional[str]:
+) -> Optional[WorkflowDeployment]:
     workflows = await get_available_workflows()
     for workflow in workflows:
         if deployment_id in workflow.deployments:
-            return workflow.name
+            return workflow
 
     return None
 
@@ -59,9 +56,10 @@ async def start_workflow(
     workflow_name: str = None,
     metadata: List[MetaData] = [],
 ) -> Workflow:
-    # Reverse engineer workflow name from workflow did
+    deployment = await _find_workflow_deployment(deployment_id)
+
     if workflow_name is None:
-        workflow_name = await _find_workflow_name(deployment_id)
+        workflow_name = deployment.name
 
     if workflow_name in settings.TALKTRACK_WORKFLOWS:
         metadata.append(MetaData(
@@ -71,7 +69,7 @@ async def start_workflow(
 
     try:
         workflow = await REXFlowBridge.start_workflow(
-            deployment_id=deployment_id,
+            bridge_url=deployment.bridge_url,
             metadata=metadata,
         )
         workflow.name = workflow_name
@@ -83,6 +81,7 @@ async def start_workflow(
     except BridgeNotReachableError:
         logger.error('Trying to connect to an unreacheable bridge')
         raise
+    workflow.status = WorkflowStatus.RUNNING
     Store.add_workflow(workflow)
     return workflow
 
@@ -91,8 +90,11 @@ async def start_workflow_by_name(
     workflow_name: str,
     metadata: List[MetaData] = [],
 ) -> Workflow:
-    deployments = await get_deployments()
-    deployment_ids = deployments.get(workflow_name)
+    deployments = await get_available_workflows()
+    deployment_ids = [
+        deployment.deployments for deployment in deployments
+        if deployment.name == workflow_name
+    ].pop()
 
     if deployment_ids:
         # Start first deployment
@@ -106,9 +108,13 @@ async def start_workflow_by_name(
         raise REXFlowError(f'Workflow {workflow_name} cannot be started')
 
 
-async def _refresh_instance(workflow_name: str, did: WorkflowDeploymentId):
+async def _refresh_instance(
+    workflow_name: str,
+    did: WorkflowDeploymentId,
+    bridge_url: str,
+):
     try:
-        instances = await REXFlowBridge.get_instances(did)
+        instances = await REXFlowBridge.get_instances(bridge_url)
     except BridgeNotReachableError:
         logger.exception('Trying to connect to an unreacheable bridge')
         instances = []
@@ -122,16 +128,21 @@ async def _refresh_instance(workflow_name: str, did: WorkflowDeploymentId):
                 data.key: data.value
                 for data in instance.meta_data
             } if instance.meta_data else {},
+            bridge_url=bridge_url,
         )
         Store.add_workflow(workflow)
 
 
 async def _refresh_instances():
-    deployment_ids = await get_deployments()
+    workflows = await get_available_workflows()
     async_tasks = []
-    for name, deployments in deployment_ids.items():
-        for did in deployments:
-            async_tasks.append(_refresh_instance(name, did))
+    for workflow in workflows:
+        for did in workflow.deployments:
+            async_tasks.append(_refresh_instance(
+                workflow.name,
+                did,
+                workflow.bridge_url,
+            ))
 
     await asyncio.gather(*async_tasks)
 
@@ -165,13 +176,18 @@ async def get_active_workflows(
     session_id: SessionId,
     iids: List[WorkflowInstanceId],
 ) -> List[Workflow]:
-    await refresh_workflows()
-    return [
+    workflows = [
         workflow
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
         and workflow.metadata_dict.get('session_id') == session_id
     ]
+
+    for workflow in workflows:
+        tasks = Store.get_workflow_tasks(workflow.iid)
+        workflow.tasks = list(tasks.values())
+
+    return workflows
 
 
 async def complete_workflow(
@@ -201,8 +217,12 @@ async def start_tasks(
     iid: WorkflowInstanceId,
     tasks: List[TaskId]
 ) -> List[Task]:
-    await refresh_workflows()
-    bridge = REXFlowBridge(Store.get_workflow(iid))
+    try:
+        workflow = Store.get_workflow(iid)
+    except WorkflowNotFoundError:
+        await _refresh_instances()
+        workflow = Store.get_workflow(iid)
+    bridge = REXFlowBridge(workflow)
     created_tasks = []
     # Get tasks with initial values
     try:
