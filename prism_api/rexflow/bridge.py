@@ -221,6 +221,43 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         self.workflow = workflow
 
     @validate_arguments
+    async def update_workflow_data(self) -> Workflow:
+        query = gql(queries.GET_WORKFLOW_QUERY)
+
+        client = self._get_client(self.workflow.bridge_url)
+        try:
+            async with client as session:
+                result = await session.execute(
+                    query,
+                    variable_values={
+                        'workflowInput': {
+                            'iid': self.workflow.iid
+                        }
+                    }
+                )
+        except (ClientError, TransportError) as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
+
+        payload = GetInstancePayload(**result['getInstances'])
+        instance = payload.iid_list.pop()
+
+        workflow = Workflow(
+            did=self.workflow.did,
+            iid=instance.iid,
+            name=self.workflow.name,
+            status=instance.iid_status,
+            metadata_dict={
+                data.key: data.value
+                for data in instance.meta_data
+            } if instance.meta_data else {},
+            bridge_url=self.workflow.bridge_url,
+        )
+        self.workflow = workflow
+        return workflow
+
+    @validate_arguments
     async def get_task_data(
         self,
         task_ids: List[TaskId] = [],
