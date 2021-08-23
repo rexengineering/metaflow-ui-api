@@ -117,6 +117,10 @@ class REXFlowBridgeABC(abc.ABC):
         self.workflow = workflow
 
     @abc.abstractmethod
+    async def update_workflow_data(self) -> Workflow:
+        raise NotImplementedError
+
+    @abc.abstractmethod
     async def get_task_data(
         self,
         task_ids: List[TaskId] = [],

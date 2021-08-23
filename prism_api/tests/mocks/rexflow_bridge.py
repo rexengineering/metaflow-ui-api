@@ -45,17 +45,26 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
         metadata: List[MetaData] = [],
     ) -> Workflow:
         await asyncio.sleep(cls.sleep_time)
-        return Workflow(
+        workflow = Workflow(
             did=MOCK_DID,
             iid=MOCK_IID,
             status=WorkflowStatus.RUNNING,
             data=[],
             bridge_url=bridge_url,
         )
+        workflow.metadata_dict = {
+            data.key: data.value
+            for data in metadata
+        }
+        return workflow
 
     @validate_arguments
     def __init__(self, workflow: Workflow) -> None:
         self.workflow = workflow
+
+    @validate_arguments
+    async def update_workflow_data(self) -> Workflow:
+        return self.workflow
 
     @validate_arguments
     async def get_task_data(
