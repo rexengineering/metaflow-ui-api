@@ -152,6 +152,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         return Client(
             transport=cls._get_transport(bridge_url),
             fetch_schema_from_transport=True,
+            execute_timeout=settings.REXFLOW_EXECUTION_TIMEOUT,
         )
 
     @classmethod
