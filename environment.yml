@@ -15,6 +15,7 @@ dependencies:
   - requests
   - rexredis
   - uvicorn
+  - click
   - pip:
     - ariadne
     - gql[aiohttp]==3.0.0a5
