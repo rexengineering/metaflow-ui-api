@@ -4,6 +4,10 @@ import os
 
 DEBUG = os.getenv('APP_DEBUG', 'true').lower() == 'true'
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+
+RUN_INTEGRATION_TESTS = os.getenv('INTEGRATION_TESTS', False)
+INTEGRATION_TEST_HOST = os.getenv('APP_INTEGRATION_TEST_HOST')
+
 CORS_ORIGINS = [
     origin.strip()
     for origin in os.getenv('APP_CORS_ORIGINS', '').split(',')

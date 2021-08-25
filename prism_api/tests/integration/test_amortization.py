@@ -1,5 +1,4 @@
 import asyncio
-import os
 import unittest
 
 import pytest
@@ -8,14 +7,20 @@ from gql.transport import aiohttp
 
 
 from ..utils import run_async
+from prism_api import settings
 from prism_api.rexflow.entities.types import OperationStatus
 
-
-RUN_INTEGRATION_TESTS = os.getenv('INTEGRATION_TESTS', False)
-
-API_TEST_HOST = 'http://localhost:8000/query/'
-
 AMORT_WORKFLOW_ID = 'AmortTable'
+
+AVAILABLE_WORKFLOW_QUERY = '''
+query AvailableWorkflow {
+    workflows {
+        available {
+            name
+        }
+    }
+}
+'''
 
 START_WORKFLOW_MUTATION = '''
 mutation StartWorkflow ($startWorkflowByNameInput: StartWorkflowByNameInput!) {
@@ -111,19 +116,31 @@ mutation CompleteTaskData($completeTasksInput: CompleteTasksInput!) {
 
 
 @pytest.mark.skipif(
-    RUN_INTEGRATION_TESTS is False,
+    settings.RUN_INTEGRATION_TESTS is False,
     reason='Test only run on integration environment',
 )
 @pytest.mark.integration
 class IntegrationTestAmortization(unittest.TestCase):
     def setUp(self):
+        self.assertIsNotNone(
+            settings.INTEGRATION_TEST_HOST,
+            'Host for integration tests is not set',
+        )
         self.client = Client(
-            transport=aiohttp.AIOHTTPTransport(url=API_TEST_HOST),
+            transport=aiohttp.AIOHTTPTransport(
+                url=settings.INTEGRATION_TEST_HOST,
+            ),
             fetch_schema_from_transport=True,
+            execute_timeout=300,
         )
 
     @run_async
     async def test_amortization_workflow(self):
+        # List available workflows
+        available_workflow_query = gql(AVAILABLE_WORKFLOW_QUERY)
+        async with self.client as session:
+            await session.execute(available_workflow_query)
+
         # Workfs for demo_amortization.bpmn
         start_workflow_query = gql(START_WORKFLOW_MUTATION)
         start_workflow_params = {
