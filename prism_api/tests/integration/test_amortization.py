@@ -12,6 +12,8 @@ from prism_api.rexflow.entities.types import OperationStatus
 
 AMORT_WORKFLOW_ID = 'AmortTable'
 
+RETRY_LIMIT = 5
+
 AVAILABLE_WORKFLOW_QUERY = '''
 query AvailableWorkflow {
     workflows {
@@ -160,23 +162,36 @@ class IntegrationTestAmortization(unittest.TestCase):
 
         workflow_iid = result['workflow']['startByName']['iid']
 
-        await asyncio.sleep(5)
+        tasks = []
+        count = 0
+        while len(tasks) == 0:
+            count = count + 1
+            if count > RETRY_LIMIT:
+                print('Exceeded number of retries')
+                break
 
-        get_task_data_query = gql(GET_TASK_DATA_QUERY)
-        get_task_data_params = {
-            'workflowFilter': {'ids': [workflow_iid]}
-        }
+            await asyncio.sleep(1)
 
-        async with self.client as session:
-            result = await session.execute(
-                get_task_data_query,
-                variable_values=get_task_data_params,
-            )
+            get_task_data_query = gql(GET_TASK_DATA_QUERY)
+            get_task_data_params = {
+                'workflowFilter': {'ids': [workflow_iid]}
+            }
 
-        tasks = result['workflows']['active'][0]['tasks']
-        self.assertGreater(len(tasks), 0)
+            async with self.client as session:
+                result = await session.execute(
+                    get_task_data_query,
+                    variable_values=get_task_data_params,
+                )
+
+            try:
+                tasks = result['workflows']['active'][0]['tasks']
+            except IndexError:
+                tasks = []
+
+        self.assertGreater(count, 0)
+        self.assertGreater(len(tasks), 0, f'workflow id {workflow_iid}')
         task_id = tasks[0]['tid']
-        self.assertEqual('get_terms', task_id)
+        self.assertEqual('get_terms', task_id, f'workflow id {workflow_iid}')
 
         data_values = {
             'principal': '10000',
@@ -210,10 +225,18 @@ class IntegrationTestAmortization(unittest.TestCase):
             )
 
         status = result['workflow']['tasks']['validate']['status']
-        self.assertEqual(status, OperationStatus.SUCCESS)
+        self.assertEqual(
+            status,
+            OperationStatus.SUCCESS,
+            f'workflow id {workflow_iid}',
+        )
         task = result['workflow']['tasks']['validate']['tasks'][0]
         for data in task['data']:
-            self.assertEqual(data['data'], data_values[data['dataId']])
+            self.assertEqual(
+                data['data'],
+                data_values[data['dataId']],
+                'workflow id {workflow_iid}',
+            )
 
         save_task_data_mutation = gql(SAVE_TASK_DATA_MUTATION)
         save_task_data_params = {
@@ -228,10 +251,18 @@ class IntegrationTestAmortization(unittest.TestCase):
             )
 
         status = result['workflow']['tasks']['save']['status']
-        self.assertEqual(status, OperationStatus.SUCCESS)
+        self.assertEqual(
+            status,
+            OperationStatus.SUCCESS,
+            f'workflow id {workflow_iid}',
+        )
         task = result['workflow']['tasks']['save']['tasks'][0]
         for data in task['data']:
-            self.assertEqual(data['data'], data_values[data['dataId']])
+            self.assertEqual(
+                data['data'],
+                data_values[data['dataId']],
+                f'workflow id {workflow_iid}',
+            )
 
         complete_task_data_mutation = gql(COMPLETE_TASK_DATA_MUTATION)
         complete_task_data_params = {
@@ -246,28 +277,49 @@ class IntegrationTestAmortization(unittest.TestCase):
             )
 
         status = result['workflow']['tasks']['complete']['status']
-        self.assertEqual(status, OperationStatus.SUCCESS)
+        self.assertEqual(
+            status,
+            OperationStatus.SUCCESS,
+            f'workflow id {workflow_iid}',
+        )
         task = result['workflow']['tasks']['complete']['tasks'][0]
         for data in task['data']:
-            self.assertEqual(data['data'], data_values[data['dataId']])
-
-        await asyncio.sleep(5)
-
-        get_task_data_query = gql(GET_TASK_DATA_QUERY)
-        get_task_data_params = {
-            'workflowFilter': {'ids': [workflow_iid]}
-        }
-
-        async with self.client as session:
-            result = await session.execute(
-                get_task_data_query,
-                variable_values=get_task_data_params,
+            self.assertEqual(
+                data['data'],
+                data_values[data['dataId']],
+                f'workflow id {workflow_iid}',
             )
 
-        tasks = result['workflows']['active'][0]['tasks']
-        self.assertGreater(len(tasks), 0)
+        tasks = []
+        count = 0
+        while len(tasks) == 0:
+            count = count + 1
+            if count > RETRY_LIMIT:
+                print('Exceeded number of retries')
+                break
+
+            await asyncio.sleep(1)
+
+            get_task_data_query = gql(GET_TASK_DATA_QUERY)
+            get_task_data_params = {
+                'workflowFilter': {'ids': [workflow_iid]}
+            }
+
+            async with self.client as session:
+                result = await session.execute(
+                    get_task_data_query,
+                    variable_values=get_task_data_params,
+                )
+
+            try:
+                tasks = result['workflows']['active'][0]['tasks']
+            except IndexError:
+                tasks = []
+
+        self.assertGreater(count, 0)
+        self.assertGreater(len(tasks), 0, f'workflow id {workflow_iid}')
         task_id = tasks[0]['tid']
-        self.assertEqual('show_table', task_id)
+        self.assertEqual('show_table', task_id, f'workflow id {workflow_iid}')
 
         complete_task_data_mutation = gql(COMPLETE_TASK_DATA_MUTATION)
         complete_task_data_params = {
@@ -286,20 +338,34 @@ class IntegrationTestAmortization(unittest.TestCase):
             )
 
         status = result['workflow']['tasks']['complete']['status']
-        self.assertEqual(status, OperationStatus.SUCCESS)
+        self.assertEqual(
+            status,
+            OperationStatus.SUCCESS,
+            f'workflow id {workflow_iid}',
+        )
 
-        await asyncio.sleep(5)
+        workflows = [...]
+        count = 0
+        while len(workflows) > 0:
+            count = count + 1
+            if count > RETRY_LIMIT:
+                print('Exceeded number of retries')
+                break
 
-        get_task_data_query = gql(GET_TASK_DATA_QUERY)
-        get_task_data_params = {
-            'workflowFilter': {'ids': [workflow_iid]}
-        }
+            await asyncio.sleep(1)
 
-        async with self.client as session:
-            result = await session.execute(
-                get_task_data_query,
-                variable_values=get_task_data_params,
-            )
+            get_task_data_query = gql(GET_TASK_DATA_QUERY)
+            get_task_data_params = {
+                'workflowFilter': {'ids': [workflow_iid]}
+            }
 
-        workflows = result['workflows']['active']
-        self.assertEqual(len(workflows), 0)
+            async with self.client as session:
+                result = await session.execute(
+                    get_task_data_query,
+                    variable_values=get_task_data_params,
+                )
+
+            workflows = result['workflows']['active']
+
+        self.assertGreater(count, 0)
+        self.assertEqual(len(workflows), 0, f'workflow id {workflow_iid}')
