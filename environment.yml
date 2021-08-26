@@ -4,8 +4,10 @@ channels:
   - defaults
   - rexchange
 dependencies:
+  - click
   - fastapi
   - flake8
+  - gunicorn
   - httpx=0.17.*
   - pip
   - pydantic=1.8.*
@@ -15,7 +17,6 @@ dependencies:
   - requests
   - rexredis
   - uvicorn
-  - click
   - pip:
     - ariadne
     - gql[aiohttp]==3.0.0a5
