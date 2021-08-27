@@ -1,4 +1,5 @@
 import asyncio
+import os
 import random
 import secrets
 import timeit
@@ -11,7 +12,7 @@ from gql.transport.requests import RequestsHTTPTransport
 
 NUMBER_OF_REQUESTS = 100
 
-TEST_URL = 'http://localhost:8000/query/'
+TEST_URL = os.getenv('APP_INTEGRATION_TEST_HOST')
 
 QUERY = """
 query GetTaskData {
