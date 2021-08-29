@@ -3,17 +3,15 @@ image:
   repository: rex/prism-api
 
 services:
- - name: prism-api
-   externalPort: '80'
-   internalPort: '8000'
+- name: prism-api
+  externalPort: '80'
+  internalPort: '8000'
 
 ingress:
   enabled: true
   internet_facing: true
   authentication:
     employee: true
-
-replicaCount: 3
 
 priorityClassName: shared-critical
 
