@@ -2,9 +2,15 @@ import abc
 import asyncio
 from collections import defaultdict
 import logging
+from urllib.parse import urljoin
 from typing import List
 
-from aiohttp.client_exceptions import ClientError
+import backoff
+from aiohttp.client_exceptions import (
+    ClientError,
+    ContentTypeError,
+    ServerTimeoutError,
+)
 from gql import Client, gql
 from gql.transport import aiohttp
 from gql.transport.exceptions import TransportError
@@ -138,22 +144,64 @@ class REXFlowBridgeABC(abc.ABC):
         raise NotImplementedError
 
 
-class REXFlowBridgeGQL(REXFlowBridgeABC):
-    @staticmethod
-    def _get_transport(bridge_url):
-        graphql_url = bridge_url + 'graphql'
+def backoff_hdlr(details):
+    message = ('Backing off {wait:0.1f} seconds after {tries} tries '
+               'calling function {target} with args {args} and kwargs '
+               '{kwargs}'.format(**details))
+    logger.warning(message)
+
+
+class GQLClient:
+    def __init__(self, url: str, path: str = 'graphql/'):
+        self.url = url
+        self.path = path
+
+    def _get_transport(self):
+        if '?' in self.url:
+            # Do not set path when url has a query string
+            # This is required for mock bridge
+            graphql_url = self.url
+        else:
+            graphql_url = urljoin(self.url, self.path)
         transport = aiohttp.AIOHTTPTransport(
             url=graphql_url,
         )
         return transport
 
-    @classmethod
-    def _get_client(cls, bridge_url):
+    def _get_client(self):
         return Client(
-            transport=cls._get_transport(bridge_url),
+            transport=self._get_transport(),
             fetch_schema_from_transport=True,
         )
 
+    @backoff.on_exception(
+        backoff.expo,
+        (
+            ContentTypeError,
+            ServerTimeoutError,
+        ),
+        max_tries=7,
+        on_backoff=backoff_hdlr,
+        logger=logger,
+    )
+    async def _execute(self, client: Client, query, params) -> dict:
+        async with client as session:
+            return await session.execute(query, variable_values=params)
+
+    async def execute(self, query: str, params: dict = None) -> dict:
+        client = self._get_client()
+        try:
+            result = await self._execute(client, query, params)
+            logger.debug(result)
+        except (ClientError, TransportError) as e:
+            raise BridgeNotReachableError from e
+        finally:
+            await client.transport.close()
+
+        return result
+
+
+class REXFlowBridgeGQL(REXFlowBridgeABC):
     @classmethod
     @validate_arguments
     async def start_workflow(
@@ -175,15 +223,8 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             ).dict(),
         }
 
-        client = cls._get_client(bridge_url)
-        try:
-            async with client as session:
-                result = await session.execute(query, variable_values=params)
-                logger.debug(result)
-        except (ClientError, TransportError) as e:
-            raise BridgeNotReachableError from e
-        finally:
-            await client.transport.close()
+        client = GQLClient(bridge_url)
+        result = await client.execute(query, params)
 
         payload = CreateInstancePayload(
             **result['createInstance'],
@@ -203,15 +244,8 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> List[WorkflowInstanceInfo]:
         query = gql(queries.GET_INSTANCES_QUERY)
 
-        client = cls._get_client(bridge_url)
-        try:
-            async with client as session:
-                result = await session.execute(query)
-                logger.debug(result)
-        except (ClientError, TransportError) as e:
-            raise BridgeNotReachableError from e
-        finally:
-            await client.transport.close()
+        client = GQLClient(bridge_url)
+        result = await client.execute(query)
 
         payload = GetInstancePayload(**result['getInstances'])
         return payload.iid_list
@@ -232,29 +266,23 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
 
         query = gql(queries.GET_TASK_DATA_QUERY)
 
-        client = self._get_client(self.workflow.bridge_url)
-        try:
-            async with client as session:
-                async_tasks = []
-                for task_id in task_ids:
-                    params = {
-                        'formInput': TaskMutationFormInput(
-                            iid=self.workflow.iid,
-                            tid=task_id,
-                            reset=reset_values,
-                        ).dict(),
-                    }
-                    async_tasks.append(session.execute(
-                        query,
-                        variable_values=params,
-                    ))
+        client = GQLClient(self.workflow.bridge_url)
 
-                results = await asyncio.gather(*async_tasks)
-                logger.debug(results)
-        except (ClientError, TransportError) as e:
-            raise BridgeNotReachableError from e
-        finally:
-            await client.transport.close()
+        async_tasks = []
+        for task_id in task_ids:
+            params = {
+                'formInput': TaskMutationFormInput(
+                    iid=self.workflow.iid,
+                    tid=task_id,
+                    reset=reset_values,
+                ).dict(),
+            }
+            async_tasks.append(client.execute(
+                query,
+                params,
+            ))
+
+        results = await asyncio.gather(*async_tasks)
 
         tasks = []
         for result in results:
@@ -292,35 +320,28 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> TaskOperationResults:
         query = gql(queries.VALIDATE_TASK_DATA_MUTATION)
 
-        client = self._get_client(self.workflow.bridge_url)
-        try:
-            async with client as session:
-                async_tasks = []
-                for task in tasks:
-                    params = {
-                        'validateTaskInput': TaskMutationValidateInput(
-                            iid=self.workflow.iid,
-                            tid=task.tid,
-                            fields=[
-                                TaskFieldInput(
-                                    dataId=field.data_id,
-                                    data=field.data,
-                                )
-                                for field in task.data
-                            ],
-                        ).dict(),
-                    }
-                    async_tasks.append(session.execute(
-                        query,
-                        variable_values=params,
-                    ))
+        client = GQLClient(self.workflow.bridge_url)
+        async_tasks = []
+        for task in tasks:
+            params = {
+                'validateTaskInput': TaskMutationValidateInput(
+                    iid=self.workflow.iid,
+                    tid=task.tid,
+                    fields=[
+                        TaskFieldInput(
+                            dataId=field.data_id,
+                            data=field.data,
+                        )
+                        for field in task.data
+                    ],
+                ).dict(),
+            }
+            async_tasks.append(client.execute(
+                query,
+                params,
+            ))
 
-                async_results = await asyncio.gather(*async_tasks)
-                logger.debug(async_results)
-        except (ClientError, TransportError) as e:
-            raise BridgeNotReachableError from e
-        finally:
-            await client.transport.close()
+        async_results = await asyncio.gather(*async_tasks)
 
         tasks_dict = {task.tid: task for task in tasks}
         results = TaskOperationResults()
@@ -346,35 +367,28 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> TaskOperationResults:
         query = gql(queries.SAVE_TASK_DATA_MUTATION)
 
-        client = self._get_client(self.workflow.bridge_url)
-        try:
-            async with client as session:
-                async_tasks = []
-                for task in tasks:
-                    params = {
-                        'saveTaskInput': TaskMutationSaveInput(
-                            iid=self.workflow.iid,
-                            tid=task.tid,
-                            fields=[
-                                TaskFieldInput(
-                                    dataId=field.data_id,
-                                    data=field.data,
-                                )
-                                for field in task.data
-                            ],
-                        ).dict(),
-                    }
-                    async_tasks.append(session.execute(
-                        query,
-                        variable_values=params,
-                    ))
+        client = GQLClient(self.workflow.bridge_url)
+        async_tasks = []
+        for task in tasks:
+            params = {
+                'saveTaskInput': TaskMutationSaveInput(
+                    iid=self.workflow.iid,
+                    tid=task.tid,
+                    fields=[
+                        TaskFieldInput(
+                            dataId=field.data_id,
+                            data=field.data,
+                        )
+                        for field in task.data
+                    ],
+                ).dict(),
+            }
+            async_tasks.append(client.execute(
+                query,
+                params,
+            ))
 
-                async_results = await asyncio.gather(*async_tasks)
-                logger.debug(async_results)
-        except (ClientError, TransportError) as e:
-            raise BridgeNotReachableError from e
-        finally:
-            await client.transport.close()
+        async_results = await asyncio.gather(*async_tasks)
 
         tasks_dict = {task.tid: task for task in tasks}
         results = TaskOperationResults()
@@ -400,28 +414,21 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
     ) -> TaskOperationResults:
         query = gql(queries.COMPLETE_TASK_MUTATION)
 
-        client = self._get_client(self.workflow.bridge_url)
-        try:
-            async with client as session:
-                async_tasks = []
-                for task in tasks:
-                    params = {
-                        'completeTaskInput': TaskMutationCompleteInput(
-                            iid=self.workflow.iid,
-                            tid=task.tid,
-                        ).dict(),
-                    }
-                    async_tasks.append(session.execute(
-                        query,
-                        variable_values=params,
-                    ))
+        client = GQLClient(self.workflow.bridge_url)
+        async_tasks = []
+        for task in tasks:
+            params = {
+                'completeTaskInput': TaskMutationCompleteInput(
+                    iid=self.workflow.iid,
+                    tid=task.tid,
+                ).dict(),
+            }
+            async_tasks.append(client.execute(
+                query,
+                params,
+            ))
 
-                async_results = await asyncio.gather(*async_tasks)
-                logger.debug(async_results)
-        except (ClientError, TransportError) as e:
-            raise BridgeNotReachableError from e
-        finally:
-            await client.transport.close()
+        async_results = await asyncio.gather(*async_tasks)
 
         tasks_dict = {task.tid: task for task in tasks}
         results = TaskOperationResults()
@@ -445,15 +452,8 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             ).dict(),
         }
 
-        client = self._get_client(self.workflow.bridge_url)
-        try:
-            async with client as session:
-                result = await session.execute(query, variable_values=params)
-                logger.debug(result)
-        except (ClientError, TransportError) as e:
-            raise BridgeNotReachableError from e
-        finally:
-            await client.transport.close()
+        client = GQLClient(self.workflow.bridge_url)
+        result = await client.execute(query, params)
 
         payload = CancelInstancePayload(
             **result['cancelInstance'],

@@ -4,6 +4,7 @@ channels:
   - defaults
   - rexchange
 dependencies:
+  - backoff
   - fastapi
   - flake8
   - httpx=0.17.*
