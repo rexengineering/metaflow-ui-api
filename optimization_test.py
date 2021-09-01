@@ -3,11 +3,12 @@ import os
 import random
 import secrets
 import timeit
+import traceback
 from statistics import fmean
 
 
 from gql import Client, gql
-from gql.transport.requests import RequestsHTTPTransport
+from gql.transport.aiohttp import AIOHTTPTransport
 
 
 NUMBER_OF_REQUESTS = 100
@@ -48,33 +49,36 @@ async def main():
     print(f'Starting test {session_id}')
     query = gql(QUERY)
 
-    transport = RequestsHTTPTransport(
+    transport = AIOHTTPTransport(
         url=TEST_URL,
         headers={'session_id': session_id},
     )
 
     client = Client(
         transport=transport,
-        fetch_schema_from_transport=True,
         execute_timeout=300,
     )
 
     times = []
     try:
-        for _ in range(NUMBER_OF_REQUESTS):
-            await asyncio.sleep(random.random())
-            t1 = timeit.default_timer()
-            client.execute(query)
-            t2 = timeit.default_timer()
-            result = t2 - t1
-            times.append(result)
-    except Exception as ex:
+        async with client as session:
+            for _ in range(NUMBER_OF_REQUESTS):
+                await asyncio.sleep(random.random())
+                t1 = timeit.default_timer()
+                await session.execute(query)
+                t2 = timeit.default_timer()
+                result = t2 - t1
+                times.append(result)
+    except Exception:
         print('Error!')
-        print(repr(ex))
-        client.transport.close()
+        traceback.print_exc()
+        await client.transport.close()
     print(times)
-    avgtime = fmean(times)
-    print(f'Finished with {session_id}, avg time {avgtime}')
+    if times:
+        avgtime = fmean(times)
+        print(f'Finished with {session_id}, avg time {avgtime}')
+    else:
+        print('Could not get data points')
 
 
 if __name__ == '__main__':
