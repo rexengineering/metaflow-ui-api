@@ -7,6 +7,8 @@ scalar WorkflowInstanceId
 
 scalar WorkflowDeploymentId
 
+scalar WorkflowMetadata
+
 scalar TaskId
 
 scalar DataId
@@ -97,6 +99,7 @@ type Workflow {
     name: String
     status: WorkflowStatus!
     metadata: [Metadata!]!
+    metadataDict: WorkflowMetadata!
     tasks(filter: TaskFilter): [Task!]!
 }
 
