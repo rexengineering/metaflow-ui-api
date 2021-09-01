@@ -85,6 +85,18 @@ class WorkflowResolver:
         )
         return available_workflows
 
+    @resolver_verify_token
+    async def deployments(self, *_):
+        available_workflows = await rexflow.get_available_workflows(
+            refresh=True
+        )
+        deployments = []
+        for workflow in available_workflows:
+            if workflow.deployments:
+                deployments.extend(workflow.deployments)
+
+        return deployments
+
 
 @resolver_verify_token
 @validate_arguments
