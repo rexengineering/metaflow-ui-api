@@ -91,10 +91,14 @@ async def start_workflow_by_name(
     metadata: List[MetaData] = [],
 ) -> Workflow:
     deployments = await get_available_workflows()
-    deployment_ids = [
-        deployment.deployments for deployment in deployments
-        if deployment.name == workflow_name
-    ].pop()
+    try:
+        deployment_ids = [
+            deployment.deployments for deployment in deployments
+            if deployment.name == workflow_name
+        ].pop()
+    except IndexError:
+        logger.exception(f'Could not find a deployment for {workflow_name}')
+        raise REXFlowError(f'Workflow {workflow_name} cannot be started')
 
     if deployment_ids:
         # Start first deployment
