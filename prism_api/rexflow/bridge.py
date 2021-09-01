@@ -3,17 +3,14 @@ import asyncio
 from collections import defaultdict
 import logging
 from urllib.parse import urljoin
-from typing import List
+from typing import Dict, List
 
 import backoff
-from aiohttp.client_exceptions import (
-    ClientError,
-    ContentTypeError,
-    ServerTimeoutError,
-)
+from aiohttp.client_exceptions import ClientError
 from gql import Client, gql
+from gql.client import AsyncClientSession
 from gql.transport import aiohttp
-from gql.transport.exceptions import TransportError
+from gql.transport.exceptions import TransportError, TransportServerError
 from httpx import AsyncClient, ConnectError
 from pydantic import validate_arguments
 
@@ -56,6 +53,7 @@ from .errors import (
     REXFlowNotReachable,
     ValidationErrorDetails,
 )
+from .schema import schema
 from prism_api import settings
 
 
@@ -148,15 +146,8 @@ class REXFlowBridgeABC(abc.ABC):
         raise NotImplementedError
 
 
-def backoff_hdlr(details):
-    message = ('Backing off {wait:0.1f} seconds after {tries} tries '
-               'calling function {target} with args {args} and kwargs '
-               '{kwargs}'.format(**details))
-    logger.warning(message)
-
-
 class GQLClient:
-    def __init__(self, url: str, path: str = 'graphql/'):
+    def __init__(self, url: str, path: str = '/graphql'):
         self.url = url
         self.path = path
 
@@ -174,28 +165,34 @@ class GQLClient:
 
     def _get_client(self):
         return Client(
+            schema=schema,
             transport=self._get_transport(),
-            fetch_schema_from_transport=True,
+            execute_timeout=settings.REXFLOW_EXECUTION_TIMEOUT,
         )
 
     @backoff.on_exception(
         backoff.expo,
-        (
-            ContentTypeError,
-            ServerTimeoutError,
-        ),
-        max_tries=7,
-        on_backoff=backoff_hdlr,
+        TransportServerError,
+        max_tries=3,
         logger=logger,
     )
-    async def _execute(self, client: Client, query, params) -> dict:
-        async with client as session:
+    async def _execute(
+        self,
+        session: AsyncClientSession,
+        query: str,
+        params: Dict,
+    ) -> Dict:
+        try:
             return await session.execute(query, variable_values=params)
+        except Exception:
+            logger.exception('We had an exception!')
+            raise
 
-    async def execute(self, query: str, params: dict = None) -> dict:
+    async def execute(self, query: str, params: Dict = None) -> Dict:
         client = self._get_client()
         try:
-            result = await self._execute(client, query, params)
+            async with client as session:
+                result = await self._execute(session, query, params)
             logger.debug(result)
         except (ClientError, TransportError) as e:
             raise BridgeNotReachableError from e
