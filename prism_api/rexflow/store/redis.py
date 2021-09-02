@@ -1,6 +1,7 @@
 import logging
 from typing import Dict, List
 
+from pydantic.error_wrappers import ValidationError
 from rexredis import RexRedis
 
 from .base import StoreABC
@@ -64,7 +65,10 @@ class Store(StoreABC):
         redis = cls._get_redis()
         workflow_data = redis.get_from_json(workflow_key)
         if workflow_data:
-            workflow = Workflow(**workflow_data)
+            try:
+                workflow = Workflow(**workflow_data)
+            except ValidationError:
+                redis.delete_keys(workflow_key)
         else:
             raise WorkflowNotFoundError
         tasks = cls.get_workflow_tasks(workflow.iid)
