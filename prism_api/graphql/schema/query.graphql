@@ -12,6 +12,7 @@ type WorkflowQuery {
     """Workflows available to start"""
     available: [WorkflowDeployment!]!
     deployments: [WorkflowDeploymentId!]!
+    directory: WorkflowDirectory!
 }
 
 

@@ -9,6 +9,8 @@ scalar WorkflowDeploymentId
 
 scalar WorkflowMetadata
 
+scalar WorkflowDirectory
+
 scalar TaskId
 
 scalar DataId
