@@ -7,6 +7,8 @@ from pydantic.decorator import validate_arguments
 from .decorators import resolver_verify_token
 from .entities.types import Session
 from .entities.wrappers import (
+    CancelWorkflowInput,
+    CancelWorkflowPayload,
     CompleteTaskPayload,
     CompleteTasksInput,
     GenericProblem,
@@ -332,6 +334,30 @@ class WorkflowMutations:
             did=workflow.did,
             iid=workflow.iid,
             workflow=workflow,
+        )
+
+    @resolver_verify_token
+    @validate_arguments
+    async def cancel(self, info, input: CancelWorkflowInput):
+        logger.info('Canceling workflows:')
+        logger.info(input.iid)
+
+        successful_iids = []
+        errors = []
+        for iid in input.iid:
+            success = await rexflow.cancel_workflow(iid)
+            if success:
+                successful_iids.append(iid)
+            else:
+                errors.append(GenericProblem(
+                    message=f'Failed to cancel workflow {iid}'
+                ))
+        status = OperationStatus.FAILURE if errors else OperationStatus.SUCCESS
+
+        return CancelWorkflowPayload(
+            status=status,
+            iid=successful_iids,
+            errors=errors,
         )
 
     async def tasks(self, info):
