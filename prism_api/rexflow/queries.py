@@ -39,6 +39,22 @@ query GetInstances{
 }
 '''
 
+GET_WORKFLOW_QUERY = '''
+query GetWorkflow ($workflowInput: GetInstanceInput!) {
+  getInstances (input: $workflowInput) {
+    did
+    iid_list {
+      iid
+      iid_status
+      meta_data {
+        key
+        value
+      }
+    }
+  }
+}
+'''
+
 GET_TASK_LIST_QUERY = '''
 query GetTaskList {
   getInstances {
