@@ -85,6 +85,7 @@ type Session {
 
 type WorkflowDeployment {
     name: String!
+    did: WorkflowDeploymentId
     deployments: [WorkflowDeploymentId!]!
 }
 
