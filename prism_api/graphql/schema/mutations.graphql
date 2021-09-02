@@ -22,6 +22,8 @@ type WorkflowMutations {
     start(input: StartWorkflowInput!): StartWorkflowPayload
     """Start a new workflow using its workflow name"""
     startByName(input: StartWorkflowByNameInput!): StartWorkflowByNamePayload
+    """Cancel a workflow"""
+    cancel(input: CancelWorkflowInput): CancelWorkflowPayload
     """Interact with workflow tasks"""
     tasks: TasksMutations
 }
@@ -50,6 +52,11 @@ input StartWorkflowInput {
 input StartWorkflowByNameInput {
     """Name of a workflow"""
     name: String!
+}
+
+input CancelWorkflowInput {
+    """Workflow instance ids to be cancelled"""
+    iid: [WorkflowInstanceId!]!
 }
 
 input ValidateTaskInput {
@@ -114,6 +121,13 @@ type StartWorkflowByNamePayload {
     did: WorkflowDeploymentId
     iid: WorkflowInstanceId
     workflow: Workflow
+    errors: [WorkflowProblems!]
+    query: Query
+}
+
+type CancelWorkflowPayload {
+    status: OperationStatus!
+    iid: [WorkflowInstanceId!]
     errors: [WorkflowProblems!]
     query: Query
 }

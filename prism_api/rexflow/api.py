@@ -73,15 +73,14 @@ async def start_workflow(
             metadata=metadata,
         )
         workflow.name = workflow_name
-        # Assigning metadata because it doesn't come back from create instance
-        workflow.metadata_dict = {
-            data.key: data.value
-            for data in metadata
-        }
     except BridgeNotReachableError:
         logger.error('Trying to connect to an unreacheable bridge')
         raise
-    workflow.status = WorkflowStatus.RUNNING
+    Store.add_workflow(workflow)
+    # refresh new workflow until running with metadata
+    bridge = REXFlowBridge(workflow)
+    while workflow.status == WorkflowStatus.STARTING:
+        workflow = await bridge.update_workflow_data()
     Store.add_workflow(workflow)
     return workflow
 

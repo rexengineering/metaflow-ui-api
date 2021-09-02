@@ -49,6 +49,10 @@ class CompleteWorkflowInput(BaseModel):
     iid: WorkflowInstanceId
 
 
+class CancelWorkflowInput(BaseModel):
+    iid: List[WorkflowInstanceId]
+
+
 class TaskDataInput(BaseModel):
     dataId: DataId
     data: str
@@ -126,6 +130,10 @@ class StartWorkflowByNamePayload(Payload):
 
 class CompleteWorkflowPayload(Payload):
     iid: Optional[WorkflowInstanceId]
+
+
+class CancelWorkflowPayload(Payload):
+    iid: Optional[List[WorkflowInstanceId]]
 
 
 class StartTasksPayload(Payload):

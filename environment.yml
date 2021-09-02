@@ -5,6 +5,7 @@ channels:
   - rexchange
 dependencies:
   - click
+  - backoff
   - fastapi
   - flake8
   - gunicorn

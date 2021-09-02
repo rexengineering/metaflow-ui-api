@@ -57,8 +57,6 @@ spec:
           value: "http://ui-bridge.{deployment_id}:5051/graphql"
         - name: REX_REXFLOW_FLOWD_HOST
           value: "http://flowd.rexflow:9002"
-        - name: REX_REXUI_SERVER_CALLBACK_HOST
-          value: "http://prism-api.default/callback/"
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
