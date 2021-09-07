@@ -320,6 +320,14 @@ class WorkflowMutations:
                     message='Could not reach rexflow bridge',
                 )]
             )
+        except REXFlowError as e:
+            logger.exception('Error when communicating with REXFlow')
+            return StartWorkflowPayload(
+                status=OperationStatus.FAILURE,
+                errors=[GenericProblem(
+                    message=str(e),
+                )]
+            )
 
         return StartWorkflowPayload(
             status=OperationStatus.SUCCESS,
