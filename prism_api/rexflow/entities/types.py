@@ -157,8 +157,7 @@ class WorkflowDeployment(BaseModel):
     def did(self):
         if self.deployments:
             return self.deployments[0]
-        else:
-            return None
+        return None
 
 
 class WorkflowInstanceInfo(BaseModel):
