@@ -9,6 +9,8 @@ scalar WorkflowDeploymentId
 
 scalar WorkflowMetadata
 
+scalar WorkflowDirectory
+
 scalar TaskId
 
 scalar DataId
@@ -83,6 +85,7 @@ type Session {
 
 type WorkflowDeployment {
     name: String!
+    did: WorkflowDeploymentId
     deployments: [WorkflowDeploymentId!]!
 }
 

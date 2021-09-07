@@ -153,6 +153,12 @@ class WorkflowDeployment(BaseModel):
     deployments: List[WorkflowDeploymentId]
     bridge_url: str
 
+    @property
+    def did(self):
+        if self.deployments:
+            return self.deployments[0]
+        return None
+
 
 class WorkflowInstanceInfo(BaseModel):
     iid: WorkflowInstanceId

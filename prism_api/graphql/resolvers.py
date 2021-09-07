@@ -99,6 +99,20 @@ class WorkflowResolver:
 
         return deployments
 
+    @resolver_verify_token
+    async def directory(self, *_):
+        available_workflows = await rexflow.get_available_workflows(
+            refresh=True
+        )
+
+        workflow_directory = {}
+        for workflow in available_workflows:
+            if workflow.deployments:
+                deployment = workflow.deployments.pop()
+                workflow_directory[workflow.name] = deployment
+
+        return workflow_directory
+
 
 @resolver_verify_token
 @validate_arguments
