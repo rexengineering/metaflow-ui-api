@@ -81,7 +81,11 @@ async def start_workflow(
     bridge = REXFlowBridge(workflow)
     while workflow.status == WorkflowStatus.STARTING:
         workflow = await bridge.update_workflow_data()
-    Store.add_workflow(workflow)
+    # prune workflow if started with error
+    if workflow.status == WorkflowStatus.ERROR:
+        Store.delete_workflow(workflow.iid)
+    else:
+        Store.add_workflow(workflow)
     return workflow
 
 
