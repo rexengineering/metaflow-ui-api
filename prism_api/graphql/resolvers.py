@@ -211,7 +211,7 @@ class TasksMutations:
                         validator=validation_error['validator'],
                     ))
             else:
-                errors.append(GenericProblem(str(error)))
+                errors.append(GenericProblem(message=error.message))
 
         if errors:
             status = OperationStatus.FAILURE
@@ -247,7 +247,7 @@ class TasksMutations:
                         validator=validation_error['validator'],
                     ))
             else:
-                errors.append(GenericProblem(str(error)))
+                errors.append(GenericProblem(message=error.message))
 
         if errors:
             status = OperationStatus.FAILURE
@@ -283,7 +283,7 @@ class TasksMutations:
                         validator=validation_error['validator'],
                     ))
             else:
-                errors.append(GenericProblem(str(error)))
+                errors.append(GenericProblem(message=error.message))
 
         if errors:
             status = OperationStatus.FAILURE
