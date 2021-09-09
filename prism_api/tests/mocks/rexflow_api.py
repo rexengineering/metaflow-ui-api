@@ -48,7 +48,7 @@ def _mock_task():
 
 
 def _mock_validation_error():
-    return ValidationErrorDetails(
+    return ValidationErrorDetails.init_from_payload(
         payload=ValidatedPayload(
             iid=MOCK_IID,
             tid=MOCK_TID,
