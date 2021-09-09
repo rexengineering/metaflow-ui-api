@@ -2,10 +2,18 @@ from typing import List
 
 from pydantic import validate_arguments
 
-from ..mocks import MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
+from ..mocks import (
+    MOCK_DATA_ID,
+    MOCK_DID,
+    MOCK_IID,
+    MOCK_NAME,
+    MOCK_TID,
+)
 from prism_api.graphql.entities.types import SessionId
 from prism_api.rexflow.entities.types import (
+    ErrorDetails,
     MetaData,
+    OperationStatus,
     Task,
     TaskFieldData,
     TaskId,
@@ -16,9 +24,13 @@ from prism_api.rexflow.entities.types import (
     WorkflowStatus
 )
 from prism_api.rexflow.entities.wrappers import (
+    FieldValidationResult,
     TaskChange,
     TaskOperationResults,
+    ValidatedPayload,
+    ValidatorResults,
 )
+from prism_api.rexflow.errors import ValidationErrorDetails
 
 
 def _mock_task():
@@ -33,6 +45,33 @@ def _mock_task():
             ),
         ],
     )
+
+
+def _mock_validation_error():
+    return ValidationErrorDetails(
+        payload=ValidatedPayload(
+            iid=MOCK_IID,
+            tid=MOCK_TID,
+            passed=False,
+            results=[
+                FieldValidationResult(
+                    dataId=MOCK_DATA_ID,
+                    passed=False,
+                    results=[
+                        ValidatorResults(
+                            passed=False,
+                            message='test failed validation',
+                        ),
+                    ],
+                ),
+            ],
+            status=OperationStatus.FAILURE,
+        ),
+    )
+
+
+def _mock_error():
+    return ErrorDetails(message='test error')
 
 
 def _mock_workflow(with_tasks=True):
@@ -118,19 +157,31 @@ async def get_task(iid: WorkflowInstanceId, tid: TaskId) -> Task:
 @validate_arguments
 async def validate_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     result = TaskOperationResults()
-    result.successful = [_mock_task()]
+    if tasks:
+        result.successful = [_mock_task()]
+    else:
+        result.errors = [_mock_validation_error(), _mock_error()]
+
     return result
 
 
 @validate_arguments
 async def save_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     result = TaskOperationResults()
-    result.successful = [_mock_task()]
+    if tasks:
+        result.successful = [_mock_task()]
+    else:
+        result.errors = [_mock_validation_error(), _mock_error()]
+
     return result
 
 
 @validate_arguments
 async def complete_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     result = TaskOperationResults()
-    result.successful = [_mock_task()]
+    if tasks:
+        result.successful = [_mock_task()]
+    else:
+        result.errors = [_mock_validation_error(), _mock_error()]
+
     return result

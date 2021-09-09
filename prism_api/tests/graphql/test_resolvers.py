@@ -34,6 +34,7 @@ from prism_api.graphql.resolvers import (
 from prism_api.graphql.entities.wrappers import (
     CompleteTaskPayload,
     CompleteTasksInput,
+    Problem,
     SaveTaskInput,
     SaveTasksPayload,
     StartWorkflowInput,
@@ -174,6 +175,62 @@ class TestRexflowResolvers(unittest.TestCase):
         )
         self.assertIsInstance(response, CompleteTaskPayload)
         self.assertEqual(response.status, OperationStatus.SUCCESS)
+
+
+@pytest.mark.ci
+@mock.patch(
+    'prism_api.graphql.resolvers.rexflow',
+    rexflow_api,
+)
+@mock.patch(
+    'prism_api.graphql.decorators.verify_access_token',
+    dummy_verification,
+)
+class TestRexflowResolversErrors(unittest.TestCase):
+    @run_async
+    async def test_validate_tasks_errors(self):
+        mutations = TasksMutations()
+        response = await mutations.validate(
+            MockInfo(),
+            input=ValidateTaskInput(
+                tasks=[],
+            ),
+        )
+        self.assertIsInstance(response, ValidateTasksPayload)
+        self.assertEqual(response.status, OperationStatus.FAILURE)
+        self.assertGreater(len(response.errors), 0)
+        for error in response.errors:
+            self.assertIsInstance(error, Problem)
+
+    @run_async
+    async def test_save_tasks_errors(self):
+        mutations = TasksMutations()
+        response = await mutations.save(
+            MockInfo(),
+            input=SaveTaskInput(
+                tasks=[],
+            ),
+        )
+        self.assertIsInstance(response, SaveTasksPayload)
+        self.assertEqual(response.status, OperationStatus.FAILURE)
+        self.assertGreater(len(response.errors), 0)
+        for error in response.errors:
+            self.assertIsInstance(error, Problem)
+
+    @run_async
+    async def test_complete_tasks_errors(self):
+        mutations = TasksMutations()
+        response = await mutations.complete(
+            MockInfo(),
+            input=CompleteTasksInput(
+                tasks=[]
+            )
+        )
+        self.assertIsInstance(response, CompleteTaskPayload)
+        self.assertEqual(response.status, OperationStatus.FAILURE)
+        self.assertGreater(len(response.errors), 0)
+        for error in response.errors:
+            self.assertIsInstance(error, Problem)
 
 
 @pytest.mark.ci
