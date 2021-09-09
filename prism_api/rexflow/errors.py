@@ -1,7 +1,9 @@
+from __future__ import annotations
 from typing import Dict, Union
 
 from .entities.types import (
     DataId,
+    ErrorDetails,
     TaskId,
     Validator,
     ValidatorEnum,
@@ -22,32 +24,34 @@ class BridgeNotReachableError(REXFlowError):
     """Exception when connection with rexflow bridge fails"""
 
 
-class ValidationErrorDetails:
+class ValidationErrorDetails(ErrorDetails):
     """Triggers when a validator fails on the bridge"""
     iid: WorkflowInstanceId
     tid: TaskId
-    errors: Dict[DataId, Dict[str, Union[str, Validator]]]
-    message: str
+    errors: Dict[DataId, Dict[str, Union[str, Validator]]] = {}
 
-    def __init__(
-        self,
+    @classmethod
+    def init_from_payload(
+        cls,
         payload: ValidatedPayload,
-    ) -> None:
-        self.iid = payload.iid
-        self.tid = payload.tid
-        self.errors = {}
+    ) -> ValidationErrorDetails:  # Requires future import
+        obj = cls(
+            iid=payload.iid,
+            tid=payload.tid,
+            message='validation errors',
+        )
         for field in payload.results:
             if not field.passed:
                 for validator in field.results:
                     if not validator.passed:
-                        self.add_error(
+                        obj.add_error(
                             data_id=field.dataId,
                             message=validator.message,
                             validator=Validator(
                                 type=ValidatorEnum.REGEX,
                             )
                         )
-        self.message = 'validation errors'
+        return obj
 
     def add_error(self, data_id: DataId, message: str, validator: Validator):
         self.errors[data_id] = {
