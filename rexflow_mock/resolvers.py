@@ -19,9 +19,10 @@ def _get_did(info):
     return request.query_params.get('did')
 
 
-async def resolve_get_instances(_, info):
+async def resolve_get_instances(_, info, input=None):
+    input = input or {}
     did = _get_did(info)
-    return await get_workflow_instances(did)
+    return await get_workflow_instances(did, iid=input.get('iid'))
 
 
 async def resolve_create_instance(_, info, input):

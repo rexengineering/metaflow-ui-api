@@ -68,11 +68,19 @@ async def available_workflows():
     }
 
 
-async def get_workflow_instances(did: str):
+async def get_workflow_instances(did: str, iid=None):
+    iid_list = list(workflow_instances.get(did, {}).values())
+    if iid:
+        iid_list = [
+            instance
+            for instance in iid_list
+            if instance['iid'] == iid
+        ]
+
     return {
         'did': did,
         'did_status': 'RUNNING',
-        'iid_list': list(workflow_instances.get(did, {}).values()),
+        'iid_list': iid_list,
         'tasks': [],
     }
 

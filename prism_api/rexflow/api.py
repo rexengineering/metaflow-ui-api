@@ -4,6 +4,7 @@ import logging
 from collections import defaultdict
 from typing import List, Optional
 
+import backoff
 from pydantic import validate_arguments
 
 from .bridge import (
@@ -51,6 +52,23 @@ async def _find_workflow_deployment(
     return None
 
 
+def backoff_giveup(details: dict):
+    raise REXFlowError(
+        'Gave up on retrying getting a succesful update on REXFlow'
+    )
+
+
+@backoff.on_predicate(
+    backoff.fibo,
+    lambda workflow: workflow.status == WorkflowStatus.STARTING,
+    max_value=13,
+    logger=logger,
+    on_giveup=backoff_giveup,
+)
+async def _update_workflow(bridge: REXFlowBridge) -> Workflow:
+    return await bridge.update_workflow_data()
+
+
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
     workflow_name: str = None,
@@ -79,8 +97,15 @@ async def start_workflow(
     Store.add_workflow(workflow)
     # refresh new workflow until running with metadata
     bridge = REXFlowBridge(workflow)
-    while workflow.status == WorkflowStatus.STARTING:
-        workflow = await bridge.update_workflow_data()
+    workflow = await _update_workflow(bridge)
+    # prune workflow if started with error
+    if workflow.status == WorkflowStatus.ERROR:
+        logger.error(f'Error when starting workflow: {workflow}')
+        Store.delete_workflow(workflow.iid)
+        raise REXFlowError(
+            f'Workflow {workflow.name} returned with ERROR status',
+        )
+
     Store.add_workflow(workflow)
     return workflow
 
