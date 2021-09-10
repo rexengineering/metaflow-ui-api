@@ -28,10 +28,10 @@ async def verify_access_token(info: GraphQLResolveInfo):
     try:
         token = await validate_access_token(access_token)
     except ValidationError as e:
-        print('Wrong token format')
+        logger.exception('Wrong token format')
         raise HttpUnauthorizedError from e
     except JWTError as e:
-        logger.error('Invalid Token')
+        logger.exception('Invalid Token')
         raise HttpUnauthorizedError from e
 
     info.context['access_token'] = token
