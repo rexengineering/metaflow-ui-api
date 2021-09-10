@@ -1,2 +1,3 @@
 [run]
+source = prism_api
 omit = prism_api/tests/*
