@@ -1,3 +1,10 @@
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+
 [run]
 source = prism_api
-omit = prism_api/tests/*
+omit = 
+    prism_api/__main__.py
+    prism_api/tests/*

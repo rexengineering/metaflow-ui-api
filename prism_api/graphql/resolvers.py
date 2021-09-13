@@ -65,7 +65,7 @@ async def resolve_session(_, info: GraphQLResolveInfo):
 
 
 class WorkflowResolver:
-    def __init__(self, *_):
+    def __init__(self, *_):  # pragma: no cover
         pass
 
     @resolver_verify_token
@@ -133,7 +133,7 @@ async def resolve_workflow_tasks(
 
 
 class TalkTrackResolver:
-    def __init__(self, *_):
+    def __init__(self, *_):  # pragma: no cover
         pass
 
     async def list(self, *_) -> List[WorkflowDeployment]:
@@ -161,7 +161,7 @@ class StateMutations:
 
 
 class SessionMutations:
-    def __init__(sel, *_) -> None:
+    def __init__(sel, *_) -> None:  # pragma: no cover
         pass
 
     @resolver_verify_token
