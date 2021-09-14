@@ -109,6 +109,7 @@ async def start_workflow(
 
 async def start_workflow_by_name(
     workflow_name: str,
+    metadata: List[MetaData] = [],
 ) -> Workflow:
     return _mock_workflow(with_tasks=False)
 

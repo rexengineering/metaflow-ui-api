@@ -343,8 +343,8 @@ class WorkflowMutations:
         session_metadata = MetaData(key='session_id', value=session_id)
         try:
             workflow = await rexflow.start_workflow_by_name(
-                input.name,
-                [session_metadata],
+                workflow_name=input.name,
+                metadata=[session_metadata],
             )
         except BridgeNotReachableError:
             logger.exception('Could not reach rexflow bridge')
