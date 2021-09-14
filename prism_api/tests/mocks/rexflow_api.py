@@ -9,7 +9,6 @@ from ..mocks import (
     MOCK_NAME,
     MOCK_TID,
 )
-from prism_api.graphql.entities.types import SessionId
 from prism_api.rexflow.entities.types import (
     ErrorDetails,
     MetaData,
@@ -31,6 +30,7 @@ from prism_api.rexflow.entities.wrappers import (
     ValidatorResults,
 )
 from prism_api.rexflow.errors import ValidationErrorDetails
+from prism_api.state_manager.entities import SessionId
 
 
 def _mock_task():

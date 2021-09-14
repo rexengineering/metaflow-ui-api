@@ -3,7 +3,6 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from .types import State
 from prism_api.rexflow.entities.types import (
     DataId,
     OperationStatus,
@@ -14,6 +13,7 @@ from prism_api.rexflow.entities.types import (
     WorkflowDeploymentId,
     TaskId,
 )
+from prism_api.state_manager.entities import State
 
 
 # GraphQL filter types

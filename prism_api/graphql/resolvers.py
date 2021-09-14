@@ -4,8 +4,8 @@ from typing import List, Optional
 from graphql.type.definition import GraphQLResolveInfo
 from pydantic.decorator import validate_arguments
 
+
 from .decorators import resolver_verify_token
-from .entities.types import Session
 from .entities.wrappers import (
     CancelWorkflowInput,
     CancelWorkflowPayload,
@@ -42,6 +42,7 @@ from prism_api.rexflow.entities.types import (
     WorkflowDeployment,
 )
 from prism_api.state_manager import store
+from prism_api.state_manager.entities import Session
 
 logger = logging.getLogger(__name__)
 
