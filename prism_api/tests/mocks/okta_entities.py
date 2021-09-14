@@ -1,8 +1,16 @@
+from .graphql_info import MockInfo
 from prism_api.okta.entities import (
     JWKS,
     JWKSResponse,
     Token,
 )
+from prism_api.okta.settings import AUTHORIZATION_HEADER
+
+
+def mock_info_with_token():
+    info = MockInfo()
+    info.context['request'].headers[AUTHORIZATION_HEADER] = 'MOCK_TOKEN'
+    return info
 
 
 def mock_token():
