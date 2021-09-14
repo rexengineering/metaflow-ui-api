@@ -24,12 +24,12 @@ app.add_middleware(
 
 
 @app.get('/health')
-async def health():
+async def health():  # pragma: no cover
     return Response(content='OK', media_type='text/plain')
 
 
 @app.get('/health/status')
-async def liveness():
+async def liveness():  # pragma: no cover
     services_status = services.check_status()
     response_status = 200
 
