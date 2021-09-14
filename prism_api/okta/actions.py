@@ -34,7 +34,7 @@ def get_id_token(request: Request) -> Union[str, None]:
     return id_token
 
 
-async def validate_access_token(access_token: str) -> Token:
+async def validate_access_token(access_token: str) -> Token:  # noqa E501 pragma: no cover
     headers = TokenHeader(**jwt.get_unverified_header(access_token))
     keys = await get_json_web_keys()
     key = jwk.construct(keys[headers.kid].dict())
@@ -48,7 +48,7 @@ async def validate_access_token(access_token: str) -> Token:
     return token
 
 
-async def validate_id_token(id_token: str, access_token: str):
+async def validate_id_token(id_token: str, access_token: str):  # noqa E501 pragma: no cover
     headers = TokenHeader(**jwt.get_unverified_header(id_token))
     keys = await get_json_web_keys()
     key = jwk.construct(keys[headers.kid].dict())

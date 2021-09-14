@@ -6,12 +6,12 @@ from rexredis import RexRedis
 from prism_api import settings
 
 
-def _check_redis_service():
+def _check_redis_service():  # pragma: no cover
     redis = RexRedis()
     return redis.ping()
 
 
-def _check_rexflow_service():
+def _check_rexflow_service():  # pragma: no cover
     if not settings.REXFLOW_FLOWD_HOST:
         return 'Not Configured'
 
@@ -28,7 +28,7 @@ services = {
 }
 
 
-def check_status():
+def check_status():  # pragma: no cover
     results = {}
     for name, status in services.items():
         results[name] = status()
