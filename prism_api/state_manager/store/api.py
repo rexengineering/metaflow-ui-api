@@ -1,10 +1,7 @@
 """Manages saving application state"""
 import json
 
-from .adapters import RedisStore
-
-
-Store = RedisStore
+from .adapters import RedisStore as Store
 
 
 def serialize_state(state: dict) -> str:
