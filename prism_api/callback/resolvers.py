@@ -1,6 +1,5 @@
 import logging
 
-from ariadne import QueryType, MutationType
 from pydantic import validate_arguments
 
 from .entities import (
@@ -19,15 +18,9 @@ from prism_api.rexflow.entities.types import (
 
 logger = logging.getLogger(__name__)
 
-query = QueryType()
 
-
-@query.field('health')
 def query_health(*_):
     return 'OK'
-
-
-mutation = MutationType()
 
 
 class TaskMutations:
@@ -65,9 +58,6 @@ class TaskMutations:
         )
 
 
-mutation.set_field('task', TaskMutations)
-
-
 class WorkflowMutations:
     def __init__(self, *_) -> None:
         pass
@@ -89,6 +79,3 @@ class WorkflowMutations:
         return CompleteWorkflowPayload(
             status=OperationStatus.SUCCESS,
         )
-
-
-mutation.set_field('workflow', WorkflowMutations)
