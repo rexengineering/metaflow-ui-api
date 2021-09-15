@@ -13,6 +13,7 @@ from .settings import (
     AUDIENCE,
 )
 from .entities import (
+    IdToken,
     Token,
     JWKSResponse,
     TokenHeader,
@@ -59,7 +60,8 @@ async def validate_id_token(id_token: str, access_token: str):  # noqa E501 prag
         audience=CLIENT_ID,
         access_token=access_token,
     )
-    return decoded  # TODO Add a entity for decoded id token
+    token = IdToken(**decoded)
+    return token
 
 
 async def get_json_web_keys():
