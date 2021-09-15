@@ -17,7 +17,7 @@ from prism_api.rexflow.entities.types import (
     WorkflowInstanceInfo,
     WorkflowStatus,
 )
-from prism_api.rexflow.bridge import REXFlowBridgeABC
+from prism_api.rexflow.bridge.base import REXFlowBridgeABC
 from prism_api.rexflow.store import Store, TaskNotFoundError
 
 

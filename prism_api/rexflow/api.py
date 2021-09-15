@@ -9,7 +9,7 @@ from pydantic import validate_arguments
 
 from .bridge import (
     get_deployments,
-    REXFlowBridgeGQL as REXFlowBridge,
+    REXFlowBridge,
 )
 from .entities.types import (
     MetaData,
