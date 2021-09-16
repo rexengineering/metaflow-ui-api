@@ -1,6 +1,4 @@
-import abc
 import asyncio
-from collections import defaultdict
 import logging
 from urllib.parse import urljoin
 from typing import Dict, List
@@ -11,11 +9,11 @@ from gql import Client, gql
 from gql.client import AsyncClientSession
 from gql.transport import aiohttp
 from gql.transport.exceptions import TransportError, TransportServerError
-from httpx import AsyncClient, ConnectError
 from pydantic import validate_arguments
 
-from . import queries
-from .entities.types import (
+from .. import queries
+from .base import REXFlowBridgeABC
+from ..entities.types import (
     ErrorDetails,
     MetaData,
     OperationStatus,
@@ -25,13 +23,10 @@ from .entities.types import (
     TaskStatus,
     Validator,
     Workflow,
-    WorkflowDeployment,
-    WorkflowDeploymentId,
-    WorkflowInstanceId,
     WorkflowInstanceInfo,
     WorkflowStatus,
 )
-from .entities.wrappers import (
+from ..entities.wrappers import (
     CancelInstancePayload,
     CancelWorkflowInstanceInput,
     CreateInstancePayload,
@@ -48,12 +43,11 @@ from .entities.wrappers import (
     TaskSavePayload,
     TaskValidatePayload,
 )
-from .errors import (
+from ..errors import (
     BridgeNotReachableError,
-    REXFlowNotReachable,
     ValidationErrorDetails,
 )
-from .schema import schema
+from ..schema import schema
 from prism_api import settings
 
 
@@ -62,88 +56,6 @@ logger = logging.getLogger(__name__)
 # aiohttp info logs are too verbose, forcing them to debug level
 if settings.LOG_LEVEL != 'DEBUG':
     aiohttp.log.setLevel(logging.WARNING)
-
-
-async def get_deployments() -> List[WorkflowDeployment]:
-    async with AsyncClient() as client:
-        try:
-            result = await client.get(
-                f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
-            )
-        except ConnectError as e:
-            raise REXFlowNotReachable from e
-
-    result.raise_for_status()
-    data = result.json()['wf_map']
-
-    deployments_info = defaultdict(lambda: {
-        'deployment_ids': [],
-        'bridge_url': '',
-    })
-    for name, deployments in data.items():
-        for deployment in deployments:
-            if 'id' in deployment:
-                deployments_info[name]['deployment_ids'].append(
-                    deployment['id'],
-                )
-            elif 'bridge_url' in deployment:
-                deployments_info[name]['bridge_url'] = deployment['bridge_url']  # noqa E501
-
-    return [
-        WorkflowDeployment(
-            name=name,
-            deployments=deployment['deployment_ids'],
-            bridge_url=deployment['bridge_url'],
-        )
-        for name, deployment in deployments_info.items()
-    ]
-
-
-class REXFlowBridgeABC(abc.ABC):
-    @classmethod
-    @abc.abstractmethod
-    async def start_workflow(
-        cls,
-        deployment_id: WorkflowDeploymentId
-    ) -> Workflow:
-        raise NotImplementedError
-
-    @classmethod
-    @abc.abstractmethod
-    async def get_instances(
-        cls,
-        deployment_id: WorkflowDeploymentId,
-    ) -> List[WorkflowInstanceId]:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def __init__(self, workflow: Workflow) -> None:
-        self.workflow = workflow
-
-    @abc.abstractmethod
-    async def update_workflow_data(self) -> Workflow:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    async def get_task_data(
-        self,
-        task_ids: List[TaskId] = [],
-    ) -> List[Task]:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    async def save_task_data(
-        self,
-        tasks: List[Task],
-    ) -> List[Task]:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    async def complete_task(
-        self,
-        tasks: List[Task],
-    ) -> List[Task]:
-        raise NotImplementedError
 
 
 class GQLClient:

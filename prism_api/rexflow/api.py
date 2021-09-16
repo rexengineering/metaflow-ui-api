@@ -9,7 +9,7 @@ from pydantic import validate_arguments
 
 from .bridge import (
     get_deployments,
-    REXFlowBridgeGQL as REXFlowBridge,
+    REXFlowBridge,
 )
 from .entities.types import (
     MetaData,
@@ -28,7 +28,7 @@ from .entities.wrappers import (
 from .errors import BridgeNotReachableError, REXFlowError
 from .store import Store, WorkflowNotFoundError
 from prism_api import settings
-from prism_api.graphql.entities.types import SessionId
+from prism_api.state_manager.entities import SessionId
 
 logger = logging.getLogger()
 

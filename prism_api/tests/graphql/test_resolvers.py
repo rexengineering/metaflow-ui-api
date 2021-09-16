@@ -81,7 +81,7 @@ async def dummy_verification(*args, **kwargs):
     FakeStore,
 )
 @mock.patch(
-    'prism_api.graphql.decorators.verify_access_token',
+    'prism_api.graphql.decorators._verify_access_token',
     dummy_verification,
 )
 class TestSessionResolvers(unittest.TestCase):
@@ -100,7 +100,7 @@ class TestSessionResolvers(unittest.TestCase):
     rexflow_api,
 )
 @mock.patch(
-    'prism_api.graphql.decorators.verify_access_token',
+    'prism_api.graphql.decorators._verify_access_token',
     dummy_verification,
 )
 class TestRexflowResolvers(unittest.TestCase):
@@ -257,7 +257,7 @@ class TestRexflowResolvers(unittest.TestCase):
     rexflow_api,
 )
 @mock.patch(
-    'prism_api.graphql.decorators.verify_access_token',
+    'prism_api.graphql.decorators._verify_access_token',
     dummy_verification,
 )
 class TestRexflowResolversErrors(unittest.TestCase):

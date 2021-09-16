@@ -12,7 +12,7 @@ from ..mocks.rexflow_entities import (
     mock_workflow,
 )
 from prism_api.rexflow import api
-from prism_api.rexflow.bridge import REXFlowBridgeGQL
+from prism_api.rexflow.bridge.gql import REXFlowBridgeGQL
 from prism_api.rexflow.errors import BridgeNotReachableError
 from prism_api.rexflow.store.memory import Store
 
@@ -31,7 +31,7 @@ async def get_deployments():
 
 
 @mock.patch(
-    'prism_api.rexflow.bridge.settings.REXFLOW_HOST',
+    'prism_api.rexflow.bridge.gql.settings.REXFLOW_HOST',
     FAKE_REXFLOW_HOST,
 )
 @mock.patch('prism_api.rexflow.api.Store', Store)
