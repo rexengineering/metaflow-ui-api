@@ -11,6 +11,10 @@ from .resolvers import (
     resolve_session,
     resolve_workflow_tasks,
 )
+from .subscriptions import (
+    active_workflows_subscription,
+    counter_generator,
+)
 
 
 basepath = path.dirname(__file__)
@@ -27,6 +31,10 @@ query.set_field('talktracks', TalkTrackResolver)
 mutation = ariadne.MutationType()
 mutation.set_field('session', SessionMutations)
 mutation.set_field('workflow', WorkflowMutations)
+
+subscription = ariadne.SubscriptionType()
+subscription.set_source('activeWorkflows', counter_generator)
+subscription.set_field('activeWorkflows', active_workflows_subscription)
 
 workflow_object = ariadne.ObjectType('Workflow')
 workflow_object.set_field('tasks', resolve_workflow_tasks)
@@ -63,6 +71,7 @@ schema = ariadne.make_executable_schema(
     # object resolvers
     query,
     mutation,
+    subscription,
     workflow_object,
     # error resolvers
     problem_interface,
