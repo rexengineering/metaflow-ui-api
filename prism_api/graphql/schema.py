@@ -12,8 +12,10 @@ from .resolvers import (
     resolve_workflow_tasks,
 )
 from .subscriptions import (
-    active_workflows_subscription,
-    counter_generator,
+    broadcast_event_subscription,
+    event_generator,
+    keep_alive_subscription_mutation,
+    trigger_event_mutation,
 )
 
 
@@ -33,8 +35,10 @@ mutation.set_field('session', SessionMutations)
 mutation.set_field('workflow', WorkflowMutations)
 
 subscription = ariadne.SubscriptionType()
-subscription.set_source('activeWorkflows', counter_generator)
-subscription.set_field('activeWorkflows', active_workflows_subscription)
+subscription.set_source('eventBroadcast', event_generator)
+subscription.set_field('eventBroadcast', broadcast_event_subscription)
+mutation.set_field('keepAlive', keep_alive_subscription_mutation)
+mutation.set_field('triggerEvent', trigger_event_mutation)
 
 workflow_object = ariadne.ObjectType('Workflow')
 workflow_object.set_field('tasks', resolve_workflow_tasks)

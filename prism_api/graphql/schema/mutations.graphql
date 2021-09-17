@@ -1,6 +1,12 @@
 type Mutation {
     session: SessionMutations
     workflow: WorkflowMutations
+    keepAlive: SubscriptionPayload
+    triggerEvent: SubscriptionPayload
+}
+
+type SubscriptionPayload {
+    status: String!
 }
 
 type SessionMutations {

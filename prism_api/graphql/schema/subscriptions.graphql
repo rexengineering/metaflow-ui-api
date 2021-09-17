@@ -1,3 +1,8 @@
 type Subscription {
-    activeWorkflows: [Workflow!]!
+    eventBroadcast: EventBroadcastPayload
+}
+
+type EventBroadcastPayload {
+    status: String!
+    event: String
 }
