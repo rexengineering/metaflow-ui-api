@@ -5,4 +5,5 @@ type Subscription {
 type EventBroadcastPayload {
     status: String!
     event: String
+    data: EventData
 }

@@ -29,6 +29,7 @@ from .entities.wrappers import (
     WorkflowFilter,
 )
 from prism_api import settings
+from prism_api.events import Event, EventManager
 from prism_api.rexflow import api as rexflow
 from prism_api.rexflow.errors import (
     BridgeNotReachableError,
@@ -228,6 +229,9 @@ class TasksMutations:
     @resolver_verify_token
     @validate_arguments
     async def save(self, info, input: SaveTaskInput):
+        session_id = info.context['session_id']
+        events = EventManager.get_manager(session_id)
+
         try:
             result = await rexflow.save_tasks(input.tasks)
         except REXFlowError as e:
@@ -255,6 +259,12 @@ class TasksMutations:
         else:
             status = OperationStatus.SUCCESS
 
+        for task in result.successful:
+            await events.dispatch(
+                Event.UPDATE_TASK,
+                data=task.dict(),
+            )
+
         return SaveTasksPayload(
             status=status,
             tasks=result.successful,
@@ -264,6 +274,9 @@ class TasksMutations:
     @resolver_verify_token
     @validate_arguments
     async def complete(self, info, input: CompleteTasksInput):
+        session_id = info.context['session_id']
+        events = EventManager.get_manager(session_id)
+
         try:
             result = await rexflow.complete_tasks(input.tasks)
         except REXFlowError as e:
@@ -291,6 +304,12 @@ class TasksMutations:
         else:
             status = OperationStatus.SUCCESS
 
+        for task in result.successful:
+            await events.dispatch(
+                Event.FINISH_TASK,
+                data=task.dict(),
+            )
+
         return CompleteTaskPayload(
             status=status,
             tasks=result.successful,
@@ -307,6 +326,7 @@ class WorkflowMutations:
     async def start(self, info, input: StartWorkflowInput):
         logger.info(input)
         session_id = info.context['session_id']
+        events = EventManager.get_manager(session_id)
         session_metadata = MetaData(key='session_id', value=session_id)
         try:
             workflow = await rexflow.start_workflow(
@@ -330,6 +350,11 @@ class WorkflowMutations:
                 )]
             )
 
+        await events.dispatch(
+            Event.START_WORKFLOW,
+            data=workflow.dict(),
+        )
+
         return StartWorkflowPayload(
             status=OperationStatus.SUCCESS,
             iid=workflow.iid,
@@ -341,6 +366,7 @@ class WorkflowMutations:
     async def start_by_name(self, info, input: StartWorkflowByNameInput):
         logger.info(input)
         session_id = info.context['session_id']
+        events = EventManager.get_manager(session_id)
         session_metadata = MetaData(key='session_id', value=session_id)
         try:
             workflow = await rexflow.start_workflow_by_name(
@@ -364,6 +390,11 @@ class WorkflowMutations:
                 )]
             )
 
+        await events.dispatch(
+            Event.START_WORKFLOW,
+            data=workflow.dict()
+        )
+
         return StartWorkflowByNamePayload(
             status=OperationStatus.SUCCESS,
             did=workflow.did,
@@ -377,6 +408,9 @@ class WorkflowMutations:
         logger.info('Canceling workflows:')
         logger.info(input.iid)
 
+        session_id = info.context['session_id']
+        events = EventManager.get_manager(session_id)
+
         successful_iids = []
         errors = []
         for iid in input.iid:
@@ -388,6 +422,12 @@ class WorkflowMutations:
                     message=f'Failed to cancel workflow {iid}'
                 ))
         status = OperationStatus.FAILURE if errors else OperationStatus.SUCCESS
+
+        for iid in successful_iids:
+            await events.dispatch(
+                Event.FINISH_WORKFLOW,
+                data={'iid': iid},
+            )
 
         return CancelWorkflowPayload(
             status=status,
