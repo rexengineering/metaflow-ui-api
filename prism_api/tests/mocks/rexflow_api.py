@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import validate_arguments
 
@@ -98,6 +98,16 @@ async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
             bridge_url='',
         )
     ]
+
+
+async def find_workflow_deployment(
+    deployment_id: WorkflowDeploymentId,
+) -> Optional[WorkflowDeployment]:
+    return WorkflowDeployment(
+        name=MOCK_NAME,
+        deployments=[deployment_id],
+        bridge_url='',
+    )
 
 
 async def start_workflow(

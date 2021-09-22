@@ -27,7 +27,6 @@ from .entities.wrappers import (
 )
 from .errors import BridgeNotReachableError, REXFlowError
 from .store import Store, WorkflowNotFoundError
-from prism_api import settings
 from prism_api.state_manager.entities import SessionId
 
 logger = logging.getLogger()
@@ -41,7 +40,7 @@ async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
     return deployments
 
 
-async def _find_workflow_deployment(
+async def find_workflow_deployment(
     deployment_id: WorkflowDeploymentId,
 ) -> Optional[WorkflowDeployment]:
     workflows = await get_available_workflows()
@@ -74,16 +73,10 @@ async def start_workflow(
     workflow_name: str = None,
     metadata: List[MetaData] = [],
 ) -> Workflow:
-    deployment = await _find_workflow_deployment(deployment_id)
+    deployment = await find_workflow_deployment(deployment_id)
 
     if workflow_name is None:
         workflow_name = deployment.name
-
-    if workflow_name in settings.TALKTRACK_WORKFLOWS:  # TODO this is not good
-        metadata.append(MetaData(
-            key='type',
-            value='talktrack',
-        ))
 
     try:
         workflow = await REXFlowBridge.start_workflow(

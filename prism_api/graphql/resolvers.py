@@ -306,12 +306,22 @@ class WorkflowMutations:
     @validate_arguments
     async def start(self, info, input: StartWorkflowInput):
         logger.info(input)
+        metadata = []
+
         session_id = info.context['session_id']
-        session_metadata = MetaData(key='session_id', value=session_id)
+        metadata.append(MetaData(key='session_id', value=session_id))
+
+        deployment = await rexflow.find_workflow_deployment(input.did)
+        if deployment.name in settings.TALKTRACK_WORKFLOWS:
+            metadata.append(MetaData(
+                key='type',
+                value='talktrack',
+            ))
+
         try:
             workflow = await rexflow.start_workflow(
                 input.did,
-                metadata=[session_metadata],
+                metadata=metadata,
             )
         except BridgeNotReachableError:
             logger.exception('Could not reach rexflow bridge')
@@ -340,12 +350,21 @@ class WorkflowMutations:
     @validate_arguments
     async def start_by_name(self, info, input: StartWorkflowByNameInput):
         logger.info(input)
+        metadata = []
+
         session_id = info.context['session_id']
-        session_metadata = MetaData(key='session_id', value=session_id)
+        metadata.append(MetaData(key='session_id', value=session_id))
+
+        if input.name in settings.TALKTRACK_WORKFLOWS:
+            metadata.append(MetaData(
+                key='type',
+                value='talktrack',
+            ))
+
         try:
             workflow = await rexflow.start_workflow_by_name(
                 workflow_name=input.name,
-                metadata=[session_metadata],
+                metadata=metadata,
             )
         except BridgeNotReachableError:
             logger.exception('Could not reach rexflow bridge')
