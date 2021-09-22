@@ -1,11 +1,11 @@
 import asyncio
-from prism_api.rexflow.entities.wrappers import TaskOperationResults
+from rexflow_ui.entities.wrappers import TaskOperationResults
 from typing import List
 
 from pydantic import validate_arguments
 
 from . import MOCK_DID, MOCK_IID
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     DataType,
     MetaData,
     Task,
@@ -17,8 +17,8 @@ from prism_api.rexflow.entities.types import (
     WorkflowInstanceInfo,
     WorkflowStatus,
 )
-from prism_api.rexflow.bridge.base import REXFlowBridgeABC
-from prism_api.rexflow.store import Store, TaskNotFoundError
+from rexflow_ui.bridge.base import REXFlowBridgeABC
+from rexflow_ui.store import Store, TaskNotFoundError
 
 
 class FakeREXFlowBridge(REXFlowBridgeABC):

@@ -1,6 +1,6 @@
 from ariadne import QueryType, MutationType, ObjectType
 
-from prism_api.rexflow.schema import schema
+from rexflow_ui.schema import schema
 
 from . import (
     MOCK_DID,

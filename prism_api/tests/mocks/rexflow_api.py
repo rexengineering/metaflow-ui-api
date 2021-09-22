@@ -9,7 +9,7 @@ from ..mocks import (
     MOCK_NAME,
     MOCK_TID,
 )
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     ErrorDetails,
     MetaData,
     OperationStatus,
@@ -22,14 +22,14 @@ from prism_api.rexflow.entities.types import (
     WorkflowInstanceId,
     WorkflowStatus
 )
-from prism_api.rexflow.entities.wrappers import (
+from rexflow_ui.entities.wrappers import (
     FieldValidationResult,
     TaskChange,
     TaskOperationResults,
     ValidatedPayload,
     ValidatorResults,
 )
-from prism_api.rexflow.errors import ValidationErrorDetails
+from rexflow_ui.errors import ValidationErrorDetails
 from prism_api.state_manager.entities import SessionId
 
 

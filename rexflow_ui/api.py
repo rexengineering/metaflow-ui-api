@@ -79,7 +79,7 @@ async def start_workflow(
     if workflow_name is None:
         workflow_name = deployment.name
 
-    if workflow_name in settings.TALKTRACK_WORKFLOWS:
+    if workflow_name in settings.TALKTRACK_WORKFLOWS:  # TODO this is not good
         metadata.append(MetaData(
             key='type',
             value='talktrack',

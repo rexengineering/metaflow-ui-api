@@ -2,7 +2,7 @@ import asyncio
 import click
 
 from prism_api import settings
-from prism_api.rexflow import api as rexflow
+from rexflow_ui import api as rexflow
 
 
 async def _a_cancel_workflows():

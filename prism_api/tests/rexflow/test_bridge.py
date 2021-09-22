@@ -13,8 +13,8 @@ from ..mocks import (
 from ..mocks.rexflow_schema import schema
 from ..utils import run_async
 from prism_api import settings
-from prism_api.rexflow.bridge.gql import REXFlowBridgeGQL
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.bridge.gql import REXFlowBridgeGQL
+from rexflow_ui.entities.types import (
     Task,
     TaskFieldData,
     TaskStatus,
@@ -57,7 +57,7 @@ def mock_get_client(*_):
 
 @pytest.mark.ci
 @mock.patch(
-    'prism_api.rexflow.bridge.gql.GQLClient._get_client',
+    'rexflow_ui.bridge.gql.GQLClient._get_client',
     mock_get_client,
 )
 class TestBridgeIntegration(unittest.TestCase):

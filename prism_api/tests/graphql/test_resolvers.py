@@ -42,7 +42,7 @@ from prism_api.graphql.entities.wrappers import (
     ValidateTaskInput,
     ValidateTasksPayload,
 )
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     OperationStatus,
     Workflow,
     WorkflowDeployment,

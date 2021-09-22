@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     OperationStatus,
     TaskId,
     WorkflowInstanceId,

@@ -29,13 +29,13 @@ from .entities.wrappers import (
     WorkflowFilter,
 )
 from prism_api import settings
-from prism_api.rexflow import api as rexflow
-from prism_api.rexflow.errors import (
+from rexflow_ui import api as rexflow
+from rexflow_ui.errors import (
     BridgeNotReachableError,
     REXFlowError,
     ValidationErrorDetails,
 )
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     MetaData,
     OperationStatus,
     Workflow,
