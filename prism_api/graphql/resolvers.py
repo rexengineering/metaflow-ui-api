@@ -78,7 +78,12 @@ class WorkflowResolver:
     ):
         session_id = info.context['session_id']
         iids = [] if filter is None else filter.ids
-        workflows = await rexflow.get_active_workflows(session_id, iids)
+        workflows = await rexflow.get_active_workflows(
+            iids,
+            metadata={
+                'session_id': session_id,
+            },
+        )
         return workflows
 
     @resolver_verify_token

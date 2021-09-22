@@ -2,7 +2,7 @@
 import asyncio
 import logging
 from collections import defaultdict
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import backoff
 from pydantic import validate_arguments
@@ -27,7 +27,6 @@ from .entities.wrappers import (
 )
 from .errors import BridgeNotReachableError, REXFlowError
 from .store import Store, WorkflowNotFoundError
-from prism_api.state_manager.entities import SessionId
 
 logger = logging.getLogger()
 
@@ -194,14 +193,14 @@ async def refresh_workflows() -> None:
 
 
 async def get_active_workflows(
-    session_id: SessionId,
-    iids: List[WorkflowInstanceId],
+    iids: List[WorkflowInstanceId] = [],
+    metadata: Dict = {},
 ) -> List[Workflow]:
     workflows = [
         workflow
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
-        and workflow.metadata_dict.get('session_id') == session_id
+        and workflow.verify_metadata(metadata)
     ]
 
     for workflow in workflows:

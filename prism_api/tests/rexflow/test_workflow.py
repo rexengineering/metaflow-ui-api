@@ -44,7 +44,11 @@ class TestWorkflow(unittest.TestCase):
         )
         self.assertIsNotNone(workflow)
         self.assertEqual(len(workflow.tasks), 0)
-        self.assertIn(workflow, await api.get_active_workflows('anon', []))
+        self.assertIn(workflow, await api.get_active_workflows(
+            metadata={
+                'session_id': 'anon',
+            },
+        ))
 
         created = await api.start_tasks(workflow.iid, [MOCK_TID])
         new_task = created.pop()
@@ -119,7 +123,11 @@ class TestWorkflow(unittest.TestCase):
 
         # Finish workflow
         await api.complete_workflow(workflow.iid)
-        self.assertNotIn(workflow, await api.get_active_workflows('anon', []))
+        self.assertNotIn(workflow, await api.get_active_workflows(
+            metadata={
+                'session_id': 'anon',
+            }
+        ))
 
     @run_async
     @mock.patch('rexflow_ui.api.Store', Store)

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import validate_arguments
 
@@ -30,7 +30,6 @@ from rexflow_ui.entities.wrappers import (
     ValidatorResults,
 )
 from rexflow_ui.errors import ValidationErrorDetails
-from prism_api.state_manager.entities import SessionId
 
 
 def _mock_task():
@@ -130,8 +129,8 @@ async def refresh_workflows():
 
 @validate_arguments
 async def get_active_workflows(
-    session_id: SessionId,
-    iids: List[WorkflowInstanceId]
+    iids: List[WorkflowInstanceId] = [],
+    metadata: Dict = {},
 ) -> List[Workflow]:
     return [_mock_workflow()]
 
