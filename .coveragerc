@@ -4,7 +4,10 @@ exclude_lines =
     raise NotImplementedError
 
 [run]
-source = prism_api
+source = 
+    prism_api
+    rexflow_ui
 omit = 
     prism_api/__main__.py
     prism_api/tests/*
+    rexflow_ui/tests/*
