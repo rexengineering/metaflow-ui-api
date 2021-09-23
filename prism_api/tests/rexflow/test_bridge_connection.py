@@ -17,9 +17,6 @@ from rexflow_ui.errors import BridgeNotReachableError
 from rexflow_ui.store.memory import Store
 
 
-FAKE_REXFLOW_HOST = 'http://ui-bridge.example'
-
-
 async def get_deployments():
     return [
         WorkflowDeployment(
@@ -30,10 +27,6 @@ async def get_deployments():
     ]
 
 
-@mock.patch(
-    'rexflow_ui.bridge.gql.settings.REXFLOW_HOST',
-    FAKE_REXFLOW_HOST,
-)
 @mock.patch('rexflow_ui.api.Store', Store)
 @mock.patch('rexflow_ui.api.get_deployments', get_deployments)
 @pytest.mark.ci

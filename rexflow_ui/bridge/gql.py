@@ -48,13 +48,17 @@ from ..errors import (
     ValidationErrorDetails,
 )
 from ..schema import schema
-from prism_api import settings
+from ..settings import (
+    LOG_LEVEL,
+    REXUI_CALLBACK_HOST,
+    REXFLOW_EXECUTION_TIMEOUT,
+)
 
 
 logger = logging.getLogger(__name__)
 
 # aiohttp info logs are too verbose, forcing them to debug level
-if settings.LOG_LEVEL != 'DEBUG':
+if LOG_LEVEL != 'DEBUG':
     aiohttp.log.setLevel(logging.WARNING)
 
 
@@ -79,7 +83,7 @@ class GQLClient:
         return Client(
             schema=schema,
             transport=self._get_transport(),
-            execute_timeout=settings.REXFLOW_EXECUTION_TIMEOUT,
+            execute_timeout=REXFLOW_EXECUTION_TIMEOUT,
         )
 
     @backoff.on_exception(
@@ -125,7 +129,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         query = gql(queries.START_WORKFLOW_MUTATION)
         params = {
             'createWorkflow': CreateWorkflowInstanceInput(
-                graphqlUri=settings.REXUI_CALLBACK_HOST,
+                graphqlUri=REXUI_CALLBACK_HOST,
                 meta_data=[
                     MetaDataInput(
                         key=data.key,
