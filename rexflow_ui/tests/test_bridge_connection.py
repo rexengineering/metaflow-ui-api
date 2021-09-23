@@ -17,6 +17,9 @@ from rexflow_ui.entities.types import WorkflowDeployment
 from rexflow_ui.store.memory import Store
 
 
+REXUI_CALLBACK_HOST = 'http://test/callback'
+
+
 async def get_deployments():
     return [
         WorkflowDeployment(
@@ -29,6 +32,10 @@ async def get_deployments():
 
 @mock.patch('rexflow_ui.api.Store', Store)
 @mock.patch('rexflow_ui.api.get_deployments', get_deployments)
+@mock.patch(
+    'rexflow_ui.bridge.gql.bridge.REXUI_CALLBACK_HOST',
+    REXUI_CALLBACK_HOST,
+)
 @pytest.mark.ci
 class TestBridgeConnection(unittest.TestCase):
 

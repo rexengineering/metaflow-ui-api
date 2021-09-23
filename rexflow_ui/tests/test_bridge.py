@@ -12,7 +12,6 @@ from .mocks import (
 )
 from .mocks.rexflow_schema import schema
 from .utils import run_async
-from rexflow_ui import settings
 from rexflow_ui.bridge.gql import REXFlowBridgeGQL
 from rexflow_ui.entities.types import (
     Task,
@@ -22,7 +21,7 @@ from rexflow_ui.entities.types import (
     WorkflowStatus,
 )
 
-settings.REXUI_CALLBACK_HOST = 'http://test/callback'
+REXUI_CALLBACK_HOST = 'http://test/callback'
 
 
 @pytest.mark.ci
@@ -59,6 +58,10 @@ def mock_get_client(*_):
 @mock.patch(
     'rexflow_ui.bridge.gql.client.GQLClient._get_client',
     mock_get_client,
+)
+@mock.patch(
+    'rexflow_ui.bridge.gql.bridge.REXUI_CALLBACK_HOST',
+    REXUI_CALLBACK_HOST,
 )
 class TestBridgeIntegration(unittest.TestCase):
     @run_async
