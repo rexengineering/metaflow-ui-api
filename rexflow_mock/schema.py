@@ -1,6 +1,6 @@
 from ariadne import QueryType, MutationType
 
-from rexflow_ui.schema import schema
+from rexflow_ui.bridge.gql.schema import schema
 
 from .resolvers import (
     TaskResolver,

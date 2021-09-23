@@ -57,7 +57,7 @@ def mock_get_client(*_):
 
 @pytest.mark.ci
 @mock.patch(
-    'rexflow_ui.bridge.gql.GQLClient._get_client',
+    'rexflow_ui.bridge.gql.client.GQLClient._get_client',
     mock_get_client,
 )
 class TestBridgeIntegration(unittest.TestCase):

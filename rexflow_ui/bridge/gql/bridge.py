@@ -1,19 +1,14 @@
 import asyncio
 import logging
-from urllib.parse import urljoin
-from typing import Dict, List
+from typing import List
 
-import backoff
-from aiohttp.client_exceptions import ClientError
-from gql import Client, gql
-from gql.client import AsyncClientSession
-from gql.transport import aiohttp
-from gql.transport.exceptions import TransportError, TransportServerError
+from gql import gql
 from pydantic import validate_arguments
 
-from .. import queries
-from .base import REXFlowBridgeABC
-from ..entities.types import (
+from . import queries
+from .client import GQLClient
+from ..base import REXFlowBridgeABC
+from ...entities.types import (
     ErrorDetails,
     MetaData,
     OperationStatus,
@@ -26,7 +21,7 @@ from ..entities.types import (
     WorkflowInstanceInfo,
     WorkflowStatus,
 )
-from ..entities.wrappers import (
+from ...entities.wrappers import (
     CancelInstancePayload,
     CancelWorkflowInstanceInput,
     CreateInstancePayload,
@@ -43,79 +38,11 @@ from ..entities.wrappers import (
     TaskSavePayload,
     TaskValidatePayload,
 )
-from ..errors import (
-    BridgeNotReachableError,
-    ValidationErrorDetails,
-)
-from ..schema import schema
-from ..settings import (
-    LOG_LEVEL,
-    REXUI_CALLBACK_HOST,
-    REXFLOW_EXECUTION_TIMEOUT,
-)
+from ...errors import ValidationErrorDetails
+from ...settings import REXUI_CALLBACK_HOST
 
 
 logger = logging.getLogger(__name__)
-
-# aiohttp info logs are too verbose, forcing them to debug level
-if LOG_LEVEL != 'DEBUG':
-    aiohttp.log.setLevel(logging.WARNING)
-
-
-class GQLClient:
-    def __init__(self, url: str, path: str = '/graphql'):
-        self.url = url
-        self.path = path
-
-    def _get_transport(self):
-        if '?' in self.url:
-            # Do not set path when url has a query string
-            # This is required for mock bridge
-            graphql_url = self.url
-        else:
-            graphql_url = urljoin(self.url, self.path)
-        transport = aiohttp.AIOHTTPTransport(
-            url=graphql_url,
-        )
-        return transport
-
-    def _get_client(self):
-        return Client(
-            schema=schema,
-            transport=self._get_transport(),
-            execute_timeout=REXFLOW_EXECUTION_TIMEOUT,
-        )
-
-    @backoff.on_exception(
-        backoff.expo,
-        TransportServerError,
-        max_tries=3,
-        logger=logger,
-    )
-    async def _execute(
-        self,
-        session: AsyncClientSession,
-        query: str,
-        params: Dict,
-    ) -> Dict:
-        try:
-            return await session.execute(query, variable_values=params)
-        except Exception:
-            logger.exception('We had an exception!')
-            raise
-
-    async def execute(self, query: str, params: Dict = None) -> Dict:
-        client = self._get_client()
-        try:
-            async with client as session:
-                result = await self._execute(session, query, params)
-            logger.debug(result)
-        except (ClientError, TransportError) as e:
-            raise BridgeNotReachableError from e
-        finally:
-            await client.transport.close()
-
-        return result
 
 
 class REXFlowBridgeGQL(REXFlowBridgeABC):

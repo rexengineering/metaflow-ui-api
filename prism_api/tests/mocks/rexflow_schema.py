@@ -1,6 +1,6 @@
 from ariadne import QueryType, MutationType, ObjectType
 
-from rexflow_ui.schema import schema
+from rexflow_ui.bridge.gql.schema import schema
 
 from . import (
     MOCK_DID,
