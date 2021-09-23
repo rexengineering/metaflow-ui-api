@@ -3,9 +3,9 @@ from unittest import mock
 
 import pytest
 
-from ..mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_NAME, MOCK_TID
-from ..mocks.rexflow_bridge import FakeREXFlowBridge
-from ..utils import run_async
+from .mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_NAME, MOCK_TID
+from .mocks.rexflow_bridge import FakeREXFlowBridge
+from .utils import run_async
 from rexflow_ui import api
 from rexflow_ui.entities.types import MetaData, WorkflowDeployment
 from rexflow_ui.entities.wrappers import TaskChange, TaskDataChange

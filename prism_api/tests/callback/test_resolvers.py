@@ -6,7 +6,6 @@ import pytest
 from ..mocks import (
     MOCK_IID,
     MOCK_TID,
-    rexflow_api,
 )
 from ..mocks.graphql_info import MockInfo
 from ..utils import run_async
@@ -24,6 +23,7 @@ from rexflow_ui.entities.types import (
     OperationStatus,
 )
 from rexflow_ui.errors import BridgeNotReachableError
+from rexflow_ui.tests.mocks import rexflow_api
 
 
 def _raise_bridge_exception(*_, **__):

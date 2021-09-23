@@ -1,12 +1,11 @@
-from rexflow_ui.entities.types import WorkflowDeployment
 import unittest
 from unittest import mock
 
 import pytest
 
-from ..utils import run_async
-from ..mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
-from ..mocks.rexflow_entities import (
+from .utils import run_async
+from .mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
+from .mocks.rexflow_entities import (
     mock_task,
     mock_task_change,
     mock_workflow,
@@ -14,6 +13,7 @@ from ..mocks.rexflow_entities import (
 from rexflow_ui import api
 from rexflow_ui.bridge.gql import REXFlowBridgeGQL
 from rexflow_ui.errors import BridgeNotReachableError
+from rexflow_ui.entities.types import WorkflowDeployment
 from rexflow_ui.store.memory import Store
 
 

@@ -10,10 +10,8 @@ from ..mocks import (
     MOCK_IID,
     MOCK_NAME,
     MOCK_TID,
-    rexflow_api,
 )
 from ..mocks.graphql_info import MockInfo
-from ..mocks.rexflow_entities import mock_workflow
 from ..mocks.state_store import FakeStore
 from ..utils import run_async
 from prism_api.graphql.resolvers import (
@@ -47,6 +45,8 @@ from rexflow_ui.entities.types import (
     Workflow,
     WorkflowDeployment,
 )
+from rexflow_ui.tests.mocks import rexflow_api
+from rexflow_ui.tests.mocks.rexflow_entities import mock_workflow
 
 
 async def mock_get_deployments():

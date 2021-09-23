@@ -4,15 +4,15 @@ from unittest import mock
 import pytest
 from gql import Client, gql
 
-from ..mocks import (
+from .mocks import (
     MOCK_BRIDGE_URL,
     MOCK_DID,
     MOCK_IID,
     MOCK_TID,
 )
-from ..mocks.rexflow_schema import schema
-from ..utils import run_async
-from prism_api import settings
+from .mocks.rexflow_schema import schema
+from .utils import run_async
+from rexflow_ui import settings
 from rexflow_ui.bridge.gql import REXFlowBridgeGQL
 from rexflow_ui.entities.types import (
     Task,

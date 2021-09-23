@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 from rexredis import RexRedis
 
-from ..mocks.rexflow_entities import mock_task, mock_workflow
+from .mocks.rexflow_entities import mock_task, mock_workflow
 from rexflow_ui.store.errors import WorkflowNotFoundError
 from rexflow_ui.store.redis import Store as RedisStore
 

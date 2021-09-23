@@ -4,11 +4,11 @@ from unittest import mock
 import pytest
 from click.testing import CliRunner
 
-from ..mocks import rexflow_api as rexflow
 from prism_api.cli.commands import (
     cancel_workflows,
     refresh_workflows,
 )
+from rexflow_ui.tests.mocks import rexflow_api as rexflow
 
 
 @pytest.mark.ci
