@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     DataId,
     OperationStatus,
     Task,

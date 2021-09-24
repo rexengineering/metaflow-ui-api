@@ -7,7 +7,7 @@ from .errors import (
     WorkflowNotFoundError,
     TaskNotFoundError,
 )
-from prism_api.rexflow.entities.types import (
+from ..entities.types import (
     Task,
     TaskId,
     Workflow,

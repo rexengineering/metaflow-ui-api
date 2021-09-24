@@ -3,13 +3,13 @@ from unittest import mock
 
 import pytest
 
-from ..mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_NAME, MOCK_TID
-from ..mocks.rexflow_bridge import FakeREXFlowBridge
-from ..utils import run_async
-from prism_api.rexflow import api
-from prism_api.rexflow.entities.types import MetaData, WorkflowDeployment
-from prism_api.rexflow.entities.wrappers import TaskChange, TaskDataChange
-from prism_api.rexflow.store.memory import Store
+from .mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_NAME, MOCK_TID
+from .mocks.rexflow_bridge import FakeREXFlowBridge
+from .utils import run_async
+from rexflow_ui import api
+from rexflow_ui.entities.types import MetaData, WorkflowDeployment
+from rexflow_ui.entities.wrappers import TaskChange, TaskDataChange
+from rexflow_ui.store.memory import Store
 
 
 FakeREXFlowBridge.sleep_time = 0.1
@@ -32,9 +32,9 @@ class TestWorkflow(unittest.TestCase):
         Store.clear()
 
     @run_async
-    @mock.patch('prism_api.rexflow.api.Store', Store)
-    @mock.patch('prism_api.rexflow.api.REXFlowBridge', FakeREXFlowBridge)
-    @mock.patch('prism_api.rexflow.api.get_deployments', get_deployments)
+    @mock.patch('rexflow_ui.api.Store', Store)
+    @mock.patch('rexflow_ui.api.REXFlowBridge', FakeREXFlowBridge)
+    @mock.patch('rexflow_ui.api.get_deployments', get_deployments)
     async def test_happy_workflow(self):
         metadata = [MetaData(key='session_id', value='anon')]
         # Instance a new workflow
@@ -44,7 +44,11 @@ class TestWorkflow(unittest.TestCase):
         )
         self.assertIsNotNone(workflow)
         self.assertEqual(len(workflow.tasks), 0)
-        self.assertIn(workflow, await api.get_active_workflows('anon', []))
+        self.assertIn(workflow, await api.get_active_workflows(
+            metadata={
+                'session_id': 'anon',
+            },
+        ))
 
         created = await api.start_tasks(workflow.iid, [MOCK_TID])
         new_task = created.pop()
@@ -119,12 +123,16 @@ class TestWorkflow(unittest.TestCase):
 
         # Finish workflow
         await api.complete_workflow(workflow.iid)
-        self.assertNotIn(workflow, await api.get_active_workflows('anon', []))
+        self.assertNotIn(workflow, await api.get_active_workflows(
+            metadata={
+                'session_id': 'anon',
+            }
+        ))
 
     @run_async
-    @mock.patch('prism_api.rexflow.api.Store', Store)
-    @mock.patch('prism_api.rexflow.api.REXFlowBridge', FakeREXFlowBridge)
-    @mock.patch('prism_api.rexflow.api.get_deployments', get_deployments)
+    @mock.patch('rexflow_ui.api.Store', Store)
+    @mock.patch('rexflow_ui.api.REXFlowBridge', FakeREXFlowBridge)
+    @mock.patch('rexflow_ui.api.get_deployments', get_deployments)
     async def test_cancel_workflow(self):
         workflow = await api.start_workflow(deployment_id=MOCK_DID)
         result = await api.cancel_workflow(workflow.iid)

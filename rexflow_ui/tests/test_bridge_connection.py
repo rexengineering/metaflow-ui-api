@@ -1,23 +1,23 @@
-from prism_api.rexflow.entities.types import WorkflowDeployment
 import unittest
 from unittest import mock
 
 import pytest
 
-from ..utils import run_async
-from ..mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
-from ..mocks.rexflow_entities import (
+from .utils import run_async
+from .mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
+from .mocks.rexflow_entities import (
     mock_task,
     mock_task_change,
     mock_workflow,
 )
-from prism_api.rexflow import api
-from prism_api.rexflow.bridge.gql import REXFlowBridgeGQL
-from prism_api.rexflow.errors import BridgeNotReachableError
-from prism_api.rexflow.store.memory import Store
+from rexflow_ui import api
+from rexflow_ui.bridge.gql import REXFlowBridgeGQL
+from rexflow_ui.errors import BridgeNotReachableError
+from rexflow_ui.entities.types import WorkflowDeployment
+from rexflow_ui.store.memory import Store
 
 
-FAKE_REXFLOW_HOST = 'http://ui-bridge.example'
+REXUI_CALLBACK_HOST = 'http://test/callback'
 
 
 async def get_deployments():
@@ -30,12 +30,12 @@ async def get_deployments():
     ]
 
 
+@mock.patch('rexflow_ui.api.Store', Store)
+@mock.patch('rexflow_ui.api.get_deployments', get_deployments)
 @mock.patch(
-    'prism_api.rexflow.bridge.gql.settings.REXFLOW_HOST',
-    FAKE_REXFLOW_HOST,
+    'rexflow_ui.bridge.gql.bridge.REXUI_CALLBACK_HOST',
+    REXUI_CALLBACK_HOST,
 )
-@mock.patch('prism_api.rexflow.api.Store', Store)
-@mock.patch('prism_api.rexflow.api.get_deployments', get_deployments)
 @pytest.mark.ci
 class TestBridgeConnection(unittest.TestCase):
 

@@ -2,7 +2,7 @@
 import asyncio
 import logging
 from collections import defaultdict
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import backoff
 from pydantic import validate_arguments
@@ -27,8 +27,6 @@ from .entities.wrappers import (
 )
 from .errors import BridgeNotReachableError, REXFlowError
 from .store import Store, WorkflowNotFoundError
-from prism_api import settings
-from prism_api.state_manager.entities import SessionId
 
 logger = logging.getLogger()
 
@@ -41,7 +39,7 @@ async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
     return deployments
 
 
-async def _find_workflow_deployment(
+async def find_workflow_deployment(
     deployment_id: WorkflowDeploymentId,
 ) -> Optional[WorkflowDeployment]:
     workflows = await get_available_workflows()
@@ -74,16 +72,10 @@ async def start_workflow(
     workflow_name: str = None,
     metadata: List[MetaData] = [],
 ) -> Workflow:
-    deployment = await _find_workflow_deployment(deployment_id)
+    deployment = await find_workflow_deployment(deployment_id)
 
     if workflow_name is None:
         workflow_name = deployment.name
-
-    if workflow_name in settings.TALKTRACK_WORKFLOWS:
-        metadata.append(MetaData(
-            key='type',
-            value='talktrack',
-        ))
 
     try:
         workflow = await REXFlowBridge.start_workflow(
@@ -201,14 +193,14 @@ async def refresh_workflows() -> None:
 
 
 async def get_active_workflows(
-    session_id: SessionId,
-    iids: List[WorkflowInstanceId],
+    iids: List[WorkflowInstanceId] = [],
+    metadata: Dict = {},
 ) -> List[Workflow]:
     workflows = [
         workflow
         for workflow in Store.get_workflow_list(iids)
         if workflow.status == WorkflowStatus.RUNNING
-        and workflow.metadata_dict.get('session_id') == session_id
+        and workflow.verify_metadata(metadata)
     ]
 
     for workflow in workflows:

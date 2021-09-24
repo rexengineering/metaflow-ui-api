@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, Optional
 
 from pydantic import validate_arguments
 
@@ -9,7 +9,7 @@ from ..mocks import (
     MOCK_NAME,
     MOCK_TID,
 )
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     ErrorDetails,
     MetaData,
     OperationStatus,
@@ -22,15 +22,14 @@ from prism_api.rexflow.entities.types import (
     WorkflowInstanceId,
     WorkflowStatus
 )
-from prism_api.rexflow.entities.wrappers import (
+from rexflow_ui.entities.wrappers import (
     FieldValidationResult,
     TaskChange,
     TaskOperationResults,
     ValidatedPayload,
     ValidatorResults,
 )
-from prism_api.rexflow.errors import ValidationErrorDetails
-from prism_api.state_manager.entities import SessionId
+from rexflow_ui.errors import ValidationErrorDetails
 
 
 def _mock_task():
@@ -100,6 +99,16 @@ async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
     ]
 
 
+async def find_workflow_deployment(
+    deployment_id: WorkflowDeploymentId,
+) -> Optional[WorkflowDeployment]:
+    return WorkflowDeployment(
+        name=MOCK_NAME,
+        deployments=[deployment_id],
+        bridge_url='',
+    )
+
+
 async def start_workflow(
     deployment_id: WorkflowDeploymentId,
     metadata: List[MetaData] = [],
@@ -120,8 +129,8 @@ async def refresh_workflows():
 
 @validate_arguments
 async def get_active_workflows(
-    session_id: SessionId,
-    iids: List[WorkflowInstanceId]
+    iids: List[WorkflowInstanceId] = [],
+    metadata: Dict = {},
 ) -> List[Workflow]:
     return [_mock_workflow()]
 

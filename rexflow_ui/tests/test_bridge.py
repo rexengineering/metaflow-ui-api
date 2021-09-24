@@ -4,17 +4,16 @@ from unittest import mock
 import pytest
 from gql import Client, gql
 
-from ..mocks import (
+from .mocks import (
     MOCK_BRIDGE_URL,
     MOCK_DID,
     MOCK_IID,
     MOCK_TID,
 )
-from ..mocks.rexflow_schema import schema
-from ..utils import run_async
-from prism_api import settings
-from prism_api.rexflow.bridge.gql import REXFlowBridgeGQL
-from prism_api.rexflow.entities.types import (
+from .mocks.rexflow_schema import schema
+from .utils import run_async
+from rexflow_ui.bridge.gql import REXFlowBridgeGQL
+from rexflow_ui.entities.types import (
     Task,
     TaskFieldData,
     TaskStatus,
@@ -22,7 +21,7 @@ from prism_api.rexflow.entities.types import (
     WorkflowStatus,
 )
 
-settings.REXUI_CALLBACK_HOST = 'http://test/callback'
+REXUI_CALLBACK_HOST = 'http://test/callback'
 
 
 @pytest.mark.ci
@@ -57,8 +56,12 @@ def mock_get_client(*_):
 
 @pytest.mark.ci
 @mock.patch(
-    'prism_api.rexflow.bridge.gql.GQLClient._get_client',
+    'rexflow_ui.bridge.gql.client.GQLClient._get_client',
     mock_get_client,
+)
+@mock.patch(
+    'rexflow_ui.bridge.gql.bridge.REXUI_CALLBACK_HOST',
+    REXUI_CALLBACK_HOST,
 )
 class TestBridgeIntegration(unittest.TestCase):
     @run_async

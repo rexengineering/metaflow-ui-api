@@ -8,7 +8,7 @@ from gql.transport import aiohttp
 
 from ..utils import run_async
 from prism_api import settings
-from prism_api.rexflow.entities.types import OperationStatus
+from rexflow_ui.entities.types import OperationStatus
 
 AMORT_WORKFLOW_ID = 'AmortTable'
 

@@ -1,6 +1,6 @@
 from ariadne import QueryType, MutationType
 
-from prism_api.rexflow.schema import schema
+from rexflow_ui.bridge.gql.schema import schema
 
 from .resolvers import (
     TaskResolver,

@@ -4,12 +4,12 @@ from unittest import mock
 import pytest
 from rexredis import RexRedis
 
-from ..mocks.rexflow_entities import mock_task, mock_workflow
-from prism_api.rexflow.store.errors import WorkflowNotFoundError
-from prism_api.rexflow.store.redis import Store as RedisStore
+from .mocks.rexflow_entities import mock_task, mock_workflow
+from rexflow_ui.store.errors import WorkflowNotFoundError
+from rexflow_ui.store.redis import Store as RedisStore
 
 
-REXREDIS_PATH = 'prism_api.rexflow.store.redis.Store._get_redis'
+REXREDIS_PATH = 'rexflow_ui.store.redis.Store._get_redis'
 
 
 def mock_redis_client():

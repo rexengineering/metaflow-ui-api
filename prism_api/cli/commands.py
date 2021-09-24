@@ -2,17 +2,14 @@ import asyncio
 import click
 
 from prism_api import settings
-from prism_api.rexflow import api as rexflow
+from rexflow_ui import api as rexflow
 
 
 async def _a_cancel_workflows():
     click.echo('Refreshing workflows')
     await rexflow.refresh_workflows()
     click.echo('Canceling running workflows')
-    running_workflows = await rexflow.get_active_workflows(
-        'anon',
-        [],
-    )
+    running_workflows = await rexflow.get_active_workflows()
     count = 0
     for workflow in running_workflows:
         click.echo(f'Canceling workflow {workflow.iid}')
@@ -33,10 +30,7 @@ def cancel_workflows():
 async def _a_refresh_workflows():
     click.echo('Refreshing workflows')
     await rexflow.refresh_workflows()
-    running_workflows = await rexflow.get_active_workflows(
-        'anon',
-        [],
-    )
+    running_workflows = await rexflow.get_active_workflows()
     click.echo(str(running_workflows))
 
 
