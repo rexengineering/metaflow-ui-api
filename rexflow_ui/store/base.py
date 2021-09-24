@@ -2,7 +2,7 @@
 import abc
 from typing import Dict, List
 
-from prism_api.rexflow.entities.types import (
+from ..entities.types import (
     Task,
     TaskId,
     Workflow,

@@ -5,14 +5,14 @@ from httpx import AsyncClient, ConnectError
 
 from ..entities.types import WorkflowDeployment
 from ..errors import REXFlowNotReachable
-from prism_api import settings
+from ..settings import REXFLOW_FLOWD_HOST
 
 
 async def get_deployments() -> List[WorkflowDeployment]:
     async with AsyncClient() as client:
         try:
             result = await client.get(
-                f'{settings.REXFLOW_FLOWD_HOST}/wf_map',
+                f'{REXFLOW_FLOWD_HOST}/wf_map',
             )
         except ConnectError as e:
             raise REXFlowNotReachable from e

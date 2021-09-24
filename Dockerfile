@@ -25,6 +25,7 @@ RUN yes | anaconda login --username $REX_ANACONDA_MACHINE_USER_USERNAME --passwo
 
 FROM req as build
 # Copy the code files.
+COPY rexflow_ui /code/rexflow_ui
 COPY prism_api /code/prism_api
 COPY setup.py /code/setup.py
 COPY scripts /code/scripts

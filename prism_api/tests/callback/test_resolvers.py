@@ -6,7 +6,6 @@ import pytest
 from ..mocks import (
     MOCK_IID,
     MOCK_TID,
-    rexflow_api,
 )
 from ..mocks.graphql_info import MockInfo
 from ..utils import run_async
@@ -20,10 +19,11 @@ from prism_api.callback.entities import (
     StartTaskInput,
     StartTaskPayload,
 )
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     OperationStatus,
 )
-from prism_api.rexflow.errors import BridgeNotReachableError
+from rexflow_ui.errors import BridgeNotReachableError
+from rexflow_ui.tests.mocks import rexflow_api
 
 
 def _raise_bridge_exception(*_, **__):

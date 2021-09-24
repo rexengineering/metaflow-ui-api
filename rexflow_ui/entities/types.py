@@ -141,6 +141,13 @@ class Workflow(BaseModel):
             for key, value in self.metadata_dict.items()
         ]
 
+    def verify_metadata(self, metadata: Dict) -> bool:
+        for key, value in metadata.items():
+            if self.metadata_dict[key] != value:
+                return False
+
+        return True
+
     def get_task_dict(self):
         return {
             task.tid: task

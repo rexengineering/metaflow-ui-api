@@ -9,9 +9,9 @@ from .entities import (
     StartTaskInput,
     StartTaskPayload,
 )
-from prism_api.rexflow import api
-from prism_api.rexflow.errors import BridgeNotReachableError
-from prism_api.rexflow.entities.types import (
+from rexflow_ui import api
+from rexflow_ui.errors import BridgeNotReachableError
+from rexflow_ui.entities.types import (
     OperationStatus,
 )
 

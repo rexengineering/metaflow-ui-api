@@ -8,7 +8,7 @@ from . import (
     MOCK_TID,
     MOCK_TID_BASE,
 )
-from prism_api.rexflow.entities.types import (
+from rexflow_ui.entities.types import (
     WorkflowStatus,
     TaskStatus,
     ValidatorEnum,
@@ -18,7 +18,7 @@ from prism_api.rexflow.entities.types import (
     Task,
     Workflow,
 )
-from prism_api.rexflow.entities.wrappers import TaskChange, TaskDataChange
+from rexflow_ui.entities.wrappers import TaskChange, TaskDataChange
 
 
 def mock_task_field_data(
