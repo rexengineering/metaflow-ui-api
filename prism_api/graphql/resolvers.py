@@ -234,9 +234,6 @@ class TasksMutations:
     @resolver_verify_token
     @validate_arguments
     async def save(self, info, input: SaveTaskInput):
-        session_id = info.context['session_id']
-        events = EventManager.get_manager(session_id)
-
         try:
             result = await rexflow.save_tasks(input.tasks)
         except REXFlowError as e:
@@ -265,7 +262,7 @@ class TasksMutations:
             status = OperationStatus.SUCCESS
 
         for task in result.successful:
-            await events.dispatch(
+            await EventManager.dispatch(
                 Event.UPDATE_TASK,
                 data=task.dict(),
             )
@@ -279,9 +276,6 @@ class TasksMutations:
     @resolver_verify_token
     @validate_arguments
     async def complete(self, info, input: CompleteTasksInput):
-        session_id = info.context['session_id']
-        events = EventManager.get_manager(session_id)
-
         try:
             result = await rexflow.complete_tasks(input.tasks)
         except REXFlowError as e:
@@ -310,7 +304,7 @@ class TasksMutations:
             status = OperationStatus.SUCCESS
 
         for task in result.successful:
-            await events.dispatch(
+            await EventManager.dispatch(
                 Event.FINISH_TASK,
                 data=task.dict(),
             )
@@ -333,7 +327,6 @@ class WorkflowMutations:
         metadata = []
 
         session_id = info.context['session_id']
-        events = EventManager.get_manager(session_id)
         metadata.append(MetaData(key='session_id', value=session_id))
 
         deployment = await rexflow.find_workflow_deployment(input.did)
@@ -365,7 +358,7 @@ class WorkflowMutations:
                 )]
             )
 
-        await events.dispatch(
+        await EventManager.dispatch(
             Event.START_WORKFLOW,
             data=workflow.dict(),
         )
@@ -383,7 +376,6 @@ class WorkflowMutations:
         metadata = []
 
         session_id = info.context['session_id']
-        events = EventManager.get_manager(session_id)
         metadata.append(MetaData(key='session_id', value=session_id))
 
         if input.name in settings.TALKTRACK_WORKFLOWS:
@@ -414,7 +406,7 @@ class WorkflowMutations:
                 )]
             )
 
-        await events.dispatch(
+        await EventManager.dispatch(
             Event.START_WORKFLOW,
             data=workflow.dict()
         )
@@ -432,9 +424,6 @@ class WorkflowMutations:
         logger.info('Canceling workflows:')
         logger.info(input.iid)
 
-        session_id = info.context['session_id']
-        events = EventManager.get_manager(session_id)
-
         successful_iids = []
         errors = []
         for iid in input.iid:
@@ -448,7 +437,7 @@ class WorkflowMutations:
         status = OperationStatus.FAILURE if errors else OperationStatus.SUCCESS
 
         for iid in successful_iids:
-            await events.dispatch(
+            await EventManager.dispatch(
                 Event.FINISH_WORKFLOW,
                 data={'iid': iid},
             )

@@ -12,8 +12,7 @@ class Subscription:
 async def event_generator(obj, info):
     await _verify_access_token(info)
     session_id = info.context['session_id']
-    events = EventManager.get_manager(session_id)
-    events.start_listening()
+    events = EventManager.start_listening(listener=session_id)
 
     Subscription.keep_alive = datetime.now() + timedelta(seconds=60)
     yield EventWrapper(event=Event.START_BROADCAST)
@@ -24,7 +23,7 @@ async def event_generator(obj, info):
         except asyncio.TimeoutError:
             pass
 
-    events.stop_listening()
+    EventManager.stop_listening(session_id)
     yield EventWrapper(event=Event.FINISH_BROADCAST)
 
 
@@ -41,9 +40,7 @@ async def broadcast_event_subscription(event: EventWrapper, info):
 
 @resolver_verify_token
 async def trigger_event_mutation(_, info):
-    session_id = info.context['session_id']
-    events = EventManager.get_manager(session_id)
-    await events.dispatch(Event.START_WORKFLOW)
+    await EventManager.dispatch(Event.START_WORKFLOW)
     return {'status': 'Ok'}
 
 

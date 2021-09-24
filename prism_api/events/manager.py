@@ -13,39 +13,36 @@ class EventManager:
     managers: dict[SessionId, EventManager] = {}
 
     @classmethod
-    def get_manager(cls, session_id: SessionId) -> EventManager:
-        if session_id not in cls.managers:
-            cls.managers[session_id] = cls(session_id=session_id)
+    def get_manager(cls, listener='singleton') -> EventManager:
+        if listener not in cls.managers:
+            raise NotListeningError
 
-        return cls.managers[session_id]
+        return cls.managers[listener]
 
-    def __init__(self, session_id: SessionId):
-        self.event_queue: asyncio.Queue = None
-        self.session_id: SessionId = session_id
-        self.listeners = []
+    @classmethod
+    def start_listening(cls, listener='singleton') -> EventManager:
+        if listener not in cls.managers:
+            cls.managers[listener] = cls()
 
-    def start_listening(self, listener='singleton'):
-        if self.listeners == []:
-            self.event_queue = asyncio.Queue()
-        self.listeners.append(listener)
+        return cls.managers[listener]
 
-    def stop_listening(self, listener='singleton'):
-        self.listeners.remove(listener)
-        if self.listeners == []:
-            self.event_queue = None
+    @classmethod
+    def stop_listening(cls, listener='singleton'):
+        del cls.managers[listener]
 
-    async def dispatch(self, event: Event, data: dict = {}):
-        if self.listeners:
+    @classmethod
+    async def dispatch(cls, event: Event, data: dict = {}):
+        for manager in cls.managers.values():
             wrapper = EventWrapper(
                 event=event,
                 data=data,
             )
-            await self.event_queue.put(wrapper)
+            await manager.event_queue.put(wrapper)
+
+    def __init__(self):
+        self.event_queue: asyncio.Queue = asyncio.Queue()
 
     async def get(self, timeout=60) -> EventWrapper:
-        if not self.listeners:
-            raise NotListeningError
-
         return await asyncio.wait_for(
             self.event_queue.get(),
             timeout=timeout,
