@@ -1,8 +1,11 @@
 from __future__ import annotations
 import asyncio
+import logging
 
 from .entities import Event, EventWrapper
 from prism_api.state_manager.entities import SessionId
+
+logger = logging.getLogger(__name__)
 
 
 class NotListeningError(Exception):
@@ -31,13 +34,16 @@ class EventManager:
         del cls.managers[listener]
 
     @classmethod
-    async def dispatch(cls, event: Event, data: dict = {}):
+    def dispatch(cls, event: Event, data: dict = {}):
         for manager in cls.managers.values():
             wrapper = EventWrapper(
                 event=event,
                 data=data,
             )
-            await manager.event_queue.put(wrapper)
+            try:
+                manager.event_queue.put_nowait(wrapper)
+            except asyncio.queues.QueueFull:
+                logger.exception(f'Could not put an event in queue: {event}')
 
     def __init__(self):
         self.event_queue: asyncio.Queue = asyncio.Queue()
