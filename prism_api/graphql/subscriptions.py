@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 from .decorators import _verify_access_token, resolver_verify_token
-from prism_api.events import Event, EventManager, EventWrapper
+from rexflow_ui.events import Event, EventManager, EventWrapper
 
 
 class Subscription:

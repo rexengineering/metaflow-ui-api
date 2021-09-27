@@ -29,7 +29,6 @@ from .entities.wrappers import (
     WorkflowFilter,
 )
 from prism_api import settings
-from prism_api.events import Event, EventManager
 from rexflow_ui import api as rexflow
 from rexflow_ui.errors import (
     BridgeNotReachableError,
@@ -261,12 +260,6 @@ class TasksMutations:
         else:
             status = OperationStatus.SUCCESS
 
-        for task in result.successful:
-            await EventManager.dispatch(
-                Event.UPDATE_TASK,
-                data=task.dict(),
-            )
-
         return SaveTasksPayload(
             status=status,
             tasks=result.successful,
@@ -302,12 +295,6 @@ class TasksMutations:
             status = OperationStatus.FAILURE
         else:
             status = OperationStatus.SUCCESS
-
-        for task in result.successful:
-            await EventManager.dispatch(
-                Event.FINISH_TASK,
-                data=task.dict(),
-            )
 
         return CompleteTaskPayload(
             status=status,
@@ -358,11 +345,6 @@ class WorkflowMutations:
                 )]
             )
 
-        await EventManager.dispatch(
-            Event.START_WORKFLOW,
-            data=workflow.dict(),
-        )
-
         return StartWorkflowPayload(
             status=OperationStatus.SUCCESS,
             iid=workflow.iid,
@@ -406,11 +388,6 @@ class WorkflowMutations:
                 )]
             )
 
-        await EventManager.dispatch(
-            Event.START_WORKFLOW,
-            data=workflow.dict()
-        )
-
         return StartWorkflowByNamePayload(
             status=OperationStatus.SUCCESS,
             did=workflow.did,
@@ -435,12 +412,6 @@ class WorkflowMutations:
                     message=f'Failed to cancel workflow {iid}'
                 ))
         status = OperationStatus.FAILURE if errors else OperationStatus.SUCCESS
-
-        for iid in successful_iids:
-            await EventManager.dispatch(
-                Event.FINISH_WORKFLOW,
-                data={'iid': iid},
-            )
 
         return CancelWorkflowPayload(
             status=status,
