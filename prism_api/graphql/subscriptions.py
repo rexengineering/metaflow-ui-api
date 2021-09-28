@@ -1,8 +1,13 @@
 import asyncio
+import logging
 from datetime import datetime, timedelta
 
-from .decorators import _verify_access_token, resolver_verify_token
+from .decorators import _verify_access_token
+from .entities.wrappers import EventBroadcastPayload, KeepAlivePayload
 from rexflow_ui.events import Event, EventManager, EventWrapper
+from rexflow_ui.entities.types import OperationStatus
+
+logger = logging.getLogger(__name__)
 
 
 class Subscription:
@@ -29,21 +34,15 @@ async def event_generator(obj, info):
 
 async def broadcast_event_subscription(event: EventWrapper, info):
     if event:
-        return {
-            'status': 'Active',
-            'event': event.event,
-            'data': event.data,
-        }
+        return EventBroadcastPayload(
+            event=event.event,
+            data=event.data,
+        )
 
-    return {'status': 'Error'}
-
-
-@resolver_verify_token
-async def trigger_event_mutation(_, info):
-    await EventManager.dispatch(Event.START_WORKFLOW)
-    return {'status': 'Ok'}
+    logger.error('Unexpected event broadcast termination')
+    return EventBroadcastPayload(event=Event.ERROR_BROADCAST)
 
 
 async def keep_alive_subscription_mutation(_, info):
     Subscription.keep_alive = datetime.now() + timedelta(seconds=60)
-    return {'status': 'Ok'}
+    return KeepAlivePayload(status=OperationStatus.SUCCESS)

@@ -15,7 +15,6 @@ from .subscriptions import (
     broadcast_event_subscription,
     event_generator,
     keep_alive_subscription_mutation,
-    trigger_event_mutation,
 )
 
 
@@ -38,7 +37,6 @@ subscription = ariadne.SubscriptionType()
 subscription.set_source('eventBroadcast', event_generator)
 subscription.set_field('eventBroadcast', broadcast_event_subscription)
 mutation.set_field('keepAlive', keep_alive_subscription_mutation)
-mutation.set_field('triggerEvent', trigger_event_mutation)
 
 workflow_object = ariadne.ObjectType('Workflow')
 workflow_object.set_field('tasks', resolve_workflow_tasks)

@@ -1,12 +1,7 @@
 type Mutation {
     session: SessionMutations
     workflow: WorkflowMutations
-    keepAlive: SubscriptionPayload
-    triggerEvent: SubscriptionPayload
-}
-
-type SubscriptionPayload {
-    status: String!
+    keepAlive: KeepAlivePayload
 }
 
 type SessionMutations {
@@ -93,6 +88,10 @@ input CompleteTasksInput {
 }
 
 # Response payloads
+
+type KeepAlivePayload {
+    status: OperationStatus!
+}
 
 type StartSessionPayload {
     status: OperationStatus!
