@@ -32,17 +32,18 @@ class EventManager(BaseEventManager):
 
     @classmethod
     def dispatch(cls, event: Event, data: dict = {}):
+        wrapper = EventWrapper(
+            event=event,
+            data=data,
+        )
         for manager in cls.managers.values():
-            wrapper = EventWrapper(
-                event=event,
-                data=data,
-            )
             try:
                 manager.event_queue.put_nowait(wrapper)
             except asyncio.queues.QueueFull:
                 logger.exception(f'Could not put an event in queue: {event}')
 
     def __init__(self):
+        super().__init__()
         self.event_queue: asyncio.Queue = asyncio.Queue()
 
     async def get(self, timeout=60) -> EventWrapper:

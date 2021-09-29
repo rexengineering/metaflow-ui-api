@@ -1,1 +1,1 @@
-from .queue import EventManager  # noqa F501
+from .redis import EventManager  # noqa F501
