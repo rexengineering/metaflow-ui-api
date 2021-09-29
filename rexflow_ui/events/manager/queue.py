@@ -2,13 +2,14 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from .base import EventManager as BaseEventManager
 from ..entities import Event, EventWrapper
 from ..errors import NotListeningError
 
 logger = logging.getLogger(__name__)
 
 
-class EventManager:
+class EventManager(BaseEventManager):
     managers: dict[str, EventManager] = {}
 
     @classmethod
