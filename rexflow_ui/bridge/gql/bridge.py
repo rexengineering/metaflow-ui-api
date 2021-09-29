@@ -228,7 +228,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                 results.errors.append(ErrorDetails(message=str(payload)))
             elif not payload.passed:
                 results.errors.append(
-                    ValidationErrorDetails(payload=payload)
+                    ValidationErrorDetails.init_from_payload(payload=payload)
                 )
             else:
                 results.successful.append(tasks_dict[payload.tid])
@@ -275,7 +275,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                 results.errors.append(ErrorDetails(message=str(payload)))
             elif not payload.passed:
                 results.errors.append(
-                    ValidationErrorDetails(payload=payload)
+                    ValidationErrorDetails.init_from_payload(payload=payload)
                 )
             else:
                 results.successful.append(tasks_dict[payload.tid])
