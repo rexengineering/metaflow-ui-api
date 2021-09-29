@@ -1,6 +1,7 @@
 from __future__ import annotations
 import asyncio
 import json
+import logging
 
 from rexredis import RexRedis
 
@@ -8,11 +9,15 @@ from .base import EventManager as BaseEventManager
 from ..entities import Event, EventWrapper
 from ..errors import NotListeningError
 
+logger = logging.getLogger(__name__)
+
 
 class EventManager(BaseEventManager):
     _redis = None
 
     _listeners: dict[str, EventManager] = {}
+
+    LISTENER_CHANNEL = 'rexflow-events'
 
     @classmethod
     def get_manager(cls, listener='singleton') -> EventManager:
@@ -36,11 +41,9 @@ class EventManager(BaseEventManager):
             event=event,
             data=data,
         )
-        for listener in cls._listeners.values():
-            listener._redis._conn.publish(
-                listener._listener_key,
-                wrapper.json(),
-            )
+        logger.info(f'Dispatching {event} to Redis')
+        redis = cls._get_redis()
+        redis._conn.publish(cls.LISTENER_CHANNEL, wrapper.json())
 
     @classmethod
     def _get_redis(cls):
@@ -53,10 +56,10 @@ class EventManager(BaseEventManager):
         self._redis = self._get_redis()
         self._listener_key = listener_key
         self._subscription = self._redis._conn.pubsub()
-        self._subscription.subscribe(self._listener_key)
+        self._subscription.subscribe(self.LISTENER_CHANNEL)
 
     def __del__(self):
-        self._subscription.unsubscribe(self._listener_key)
+        self._subscription.unsubscribe(self.LISTENER_CHANNEL)
 
     async def get(self, timeout=60) -> EventWrapper:
         return await asyncio.wait_for(
