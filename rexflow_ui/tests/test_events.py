@@ -4,7 +4,8 @@ from asyncio.exceptions import TimeoutError
 import pytest
 
 from .utils import run_async
-from rexflow_ui.events.manager import EventManager, NotListeningError
+from rexflow_ui.events.manager import EventManager
+from rexflow_ui.events.errors import NotListeningError
 from rexflow_ui.events.entities import Event
 
 

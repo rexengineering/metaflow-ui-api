@@ -2,18 +2,14 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from .entities import Event, EventWrapper
-from prism_api.state_manager.entities import SessionId
+from ..entities import Event, EventWrapper
+from ..errors import NotListeningError
 
 logger = logging.getLogger(__name__)
 
 
-class NotListeningError(Exception):
-    """Trying to get events from a manager that is not listening"""
-
-
 class EventManager:
-    managers: dict[SessionId, EventManager] = {}
+    managers: dict[str, EventManager] = {}
 
     @classmethod
     def get_manager(cls, listener='singleton') -> EventManager:
