@@ -1,4 +1,5 @@
 from starlette.requests import Request
+from starlette.background import BackgroundTasks
 
 from .task_scheduler import Scheduler
 from .workflows import (
@@ -32,7 +33,8 @@ async def resolve_create_instance(_, info, input):
     iid = await start_workflow(did, callback, metadata)
 
     scheduler = Scheduler(iid, callback, await get_task_list(did))
-    await scheduler.start()
+    background: BackgroundTasks = info.context['background']
+    background.add_task(scheduler.start)
 
     return {
         'did': did,
@@ -107,15 +109,19 @@ class TaskResolver:
             ],
         }
 
-    async def complete(self, _, input):
-        iid = input['iid']
-        tid = input['tid']
-
+    async def _go_to_next_task(self, iid, tid):
         scheduler: Scheduler = Scheduler.get_scheduler(iid)
         if scheduler:
             result = await scheduler.next_task(tid)
             if result is False:
                 await cancel_workflow(self.did, iid)
+
+    async def complete(self, info, input):
+        iid = input['iid']
+        tid = input['tid']
+
+        background: BackgroundTasks = info.context['background']
+        background.add_task(self._go_to_next_task, iid=iid, tid=tid)
 
         return {
             'iid': iid,
