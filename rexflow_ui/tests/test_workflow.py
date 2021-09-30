@@ -9,6 +9,7 @@ from .utils import run_async
 from rexflow_ui import api
 from rexflow_ui.entities.types import MetaData, WorkflowDeployment
 from rexflow_ui.entities.wrappers import TaskChange, TaskDataChange
+from rexflow_ui.events.manager.queue import EventManager
 from rexflow_ui.store.memory import Store
 
 
@@ -35,6 +36,7 @@ class TestWorkflow(unittest.TestCase):
     @mock.patch('rexflow_ui.api.Store', Store)
     @mock.patch('rexflow_ui.api.REXFlowBridge', FakeREXFlowBridge)
     @mock.patch('rexflow_ui.api.get_deployments', get_deployments)
+    @mock.patch('rexflow_ui.api.EventManager', EventManager)
     async def test_happy_workflow(self):
         metadata = [MetaData(key='session_id', value='anon')]
         # Instance a new workflow
@@ -133,6 +135,7 @@ class TestWorkflow(unittest.TestCase):
     @mock.patch('rexflow_ui.api.Store', Store)
     @mock.patch('rexflow_ui.api.REXFlowBridge', FakeREXFlowBridge)
     @mock.patch('rexflow_ui.api.get_deployments', get_deployments)
+    @mock.patch('rexflow_ui.api.EventManager', EventManager)
     async def test_cancel_workflow(self):
         workflow = await api.start_workflow(deployment_id=MOCK_DID)
         result = await api.cancel_workflow(workflow.iid)
