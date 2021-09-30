@@ -84,6 +84,10 @@ async def start_workflow(
             metadata=metadata,
         )
         workflow.name = workflow_name
+        workflow.metadata_dict = {
+            data.key: data.value
+            for data in metadata
+        }
         EventManager.dispatch(
             Event.START_WORKFLOW,
             data={

@@ -24,9 +24,15 @@ async def event_generator(obj, info):
 
     while Subscription.keep_alive > datetime.now():
         try:
-            yield await events.get()
+            event = await events.get()
         except asyncio.TimeoutError:
             pass
+        else:
+            workflow: dict = event.data.get('workflow')
+            if workflow is None:
+                yield event
+            if workflow.get('metadata_dict', {}).get('session_id') == session_id:  # noqa E501
+                yield event
 
     EventManager.stop_listening(session_id)
     yield EventWrapper(event=Event.FINISH_BROADCAST)
