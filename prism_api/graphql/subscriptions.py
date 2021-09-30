@@ -2,7 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
-from .decorators import _verify_access_token
+from .decorators import _verify_access_token, resolver_verify_token
 from .entities.wrappers import EventBroadcastPayload, KeepAlivePayload
 from rexflow_ui.events import Event, EventManager, EventWrapper
 from rexflow_ui.entities.types import OperationStatus
@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 class Subscription:
     keep_alive = None
+
+    @classmethod
+    def refresh(cls):
+        cls.keep_alive = datetime.now() + timedelta(seconds=60)
 
 
 async def event_generator(obj, info):
@@ -28,11 +32,16 @@ async def event_generator(obj, info):
         except asyncio.TimeoutError:
             pass
         else:
-            workflow: dict = event.data.get('workflow')
-            if workflow is None:
-                yield event
-            if workflow.get('metadata_dict', {}).get('session_id') == session_id:  # noqa E501
-                yield event
+            if event.event == Event.KEEP_ALIVE:
+                if event.data.get('session_id') == session_id:
+                    Subscription.refresh()
+            else:
+                workflow: dict = event.data.get('workflow')
+                if workflow is None or workflow.get(
+                    'metadata_dict',
+                    {},
+                ).get('session_id') == session_id:
+                    yield event
 
     EventManager.stop_listening(session_id)
     yield EventWrapper(event=Event.FINISH_BROADCAST)
@@ -49,6 +58,8 @@ async def broadcast_event_subscription(event: EventWrapper, info):
     return EventBroadcastPayload(event=Event.ERROR_BROADCAST)
 
 
+@resolver_verify_token
 async def keep_alive_subscription_mutation(_, info):
-    Subscription.keep_alive = datetime.now() + timedelta(seconds=60)
+    session_id = info.context['session_id']
+    EventManager.dispatch(Event.KEEP_ALIVE, data={'session_id': session_id})
     return KeepAlivePayload(status=OperationStatus.SUCCESS)

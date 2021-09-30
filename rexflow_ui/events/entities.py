@@ -4,6 +4,8 @@ from pydantic import BaseModel
 
 
 class Event(str, Enum):
+    KEEP_ALIVE = 'KEEP_ALIVE'
+
     START_WORKFLOW = 'START_WORKFLOW'
     UPDATE_WORKFLOW = 'UPDATE_WORKFLOW'
     FINISH_WORKFLOW = 'FINISH_WORKFLOW'
