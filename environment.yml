@@ -22,3 +22,5 @@ dependencies:
     - ariadne==0.13.0
     - gql[aiohttp]==3.0.0a5
     - python-jose[cryptography]==3.3.0
+    - redis==3.5.3
+    - redis-py-cluster==2.1.3
