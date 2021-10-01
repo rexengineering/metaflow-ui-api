@@ -4,21 +4,21 @@ channels:
   - defaults
   - rexchange
 dependencies:
-  - click
-  - backoff
-  - fastapi
-  - flake8
-  - gunicorn
+  - click==8.0.*
+  - backoff==1.11.*
+  - fastapi==0.68.*
+  - flake8=3.9.*
+  - gunicorn==20.1.*
   - httpx=0.17.*
-  - pip
+  - pip==21.2.*
   - pydantic=1.8.*
-  - pytest
-  - pytest-cov
+  - pytest==6.2.*
+  - pytest-cov==2.12.*
   - python>=3.9
-  - requests
-  - rexredis
-  - uvicorn
+  - requests==2.26.*
+  - rexredis==2.7.4
+  - uvicorn==0.15.*
   - pip:
-    - ariadne
+    - ariadne==0.13.0
     - gql[aiohttp]==3.0.0a5
-    - python-jose[cryptography]
+    - python-jose[cryptography]==3.3.0
