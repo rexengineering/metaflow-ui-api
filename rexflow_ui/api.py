@@ -328,6 +328,9 @@ async def _save_tasks(
             errors=[{'message': 'Unreachable bridge'}]
         )
 
+    for task in result.successful:
+        Store.add_task(task)
+
     return result
 
 
