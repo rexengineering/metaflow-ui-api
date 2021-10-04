@@ -57,6 +57,8 @@ spec:
           value: "http://ui-bridge.{deployment_id}:5051/graphql"
         - name: REX_REXFLOW_FLOWD_HOST
           value: "http://flowd.rexflow:9002"
+        - name: APP_DISABLE_AUTHENTICATION
+          value: "TRUE"
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
