@@ -16,6 +16,10 @@ class TaskId(str):
     """Identifier for Task"""
 
 
+class ExchangeId(str):
+    """Identifier for an specific instance of a task"""
+
+
 class DataId(str):
     """Identifier for data element"""
 
@@ -35,6 +39,12 @@ class WorkflowStatus(str, Enum):
 class TaskStatus(str, Enum):
     UP = 'UP'
     DOWN = 'DOWN'
+
+
+class ExchangeState(str, Enum):
+    STARTED = 'STARTED'
+    SAVED = 'SAVED'
+    COMPLETE = 'COMPLETE'
 
 
 class OperationStatus(str, Enum):
@@ -167,8 +177,19 @@ class WorkflowDeployment(BaseModel):
         return None
 
 
+class ExchangeInfo(BaseModel):
+    xid: ExchangeId
+    xid_state: ExchangeState
+
+
+class TaskExchangeInfo(BaseModel):
+    xid: TaskId
+    xid_list: List[ExchangeInfo]
+
+
 class WorkflowInstanceInfo(BaseModel):
     iid: WorkflowInstanceId
     iid_status: WorkflowStatus
     meta_data: Optional[List[MetaData]]
     graphqlUri: Optional[str]
+    tid_list: Optional[List[TaskExchangeInfo]]

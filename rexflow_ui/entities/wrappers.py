@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from .types import (
     DataId,
     ErrorDetails,
+    ExchangeId,
     OperationStatus,
     TaskFieldData,
     TaskId,
@@ -47,6 +48,7 @@ class GetInstanceInput(BaseModel):
 class CreateWorkflowInstanceInput(BaseModel):
     did: Optional[str]
     graphqlUri: str
+    create_stopped: bool = True
     meta_data: Optional[List[MetaDataInput]]
 
 
@@ -82,6 +84,26 @@ class TaskMutationCompleteInput(BaseModel):
     tid: TaskId
 
 
+class TaskExchangeMutationFormInput(BaseModel):
+    xid: ExchangeId
+    reset: Optional[bool]
+
+
+class TaskExchangeMutationValidateInput(BaseModel):
+    xid: ExchangeId
+    entire: Optional[bool]
+    fields: List[TaskFieldInput]
+
+
+class TaskExchangeMutationSaveInput(BaseModel):
+    xid: ExchangeId
+    fields: List[TaskFieldInput]
+
+
+class TaskExchangeMutationCompleteInput(BaseModel):
+    xid: ExchangeId
+
+
 # GraphQL payload types
 
 class Payload(BaseModel):
@@ -109,6 +131,7 @@ class GetInstancePayload(BaseModel):
 class TaskFormPayload(Payload):
     iid: WorkflowInstanceId
     tid: TaskId
+    xid: Optional[ExchangeId]
     fields: List[TaskFieldData]
 
 
@@ -126,6 +149,7 @@ class FieldValidationResult(BaseModel):
 class ValidatedPayload(Payload):
     iid: WorkflowInstanceId
     tid: TaskId
+    xid: Optional[ExchangeId]
     passed: bool
     results: List[FieldValidationResult]
 
@@ -140,4 +164,5 @@ class TaskSavePayload(ValidatedPayload):
 
 class TaskCompletePayload(Payload):
     iid: WorkflowInstanceId
-    tid: TaskId
+    tid: Optional[TaskId]
+    xid: Optional[ExchangeId]
