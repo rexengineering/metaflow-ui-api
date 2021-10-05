@@ -12,6 +12,7 @@ from .bridge import (
     REXFlowBridge,
 )
 from .entities.types import (
+    ExchangeId,
     MetaData,
     Task,
     TaskId,
@@ -230,6 +231,29 @@ async def cancel_workflow(
         Store.add_workflow(workflow)
 
     return result
+
+
+@validate_arguments
+async def start_task_exchange(
+    iid: WorkflowInstanceId,
+    xid: ExchangeId
+) -> Task:
+    try:
+        workflow = Store.get_workflow(iid)
+    except WorkflowNotFoundError:
+        await _refresh_instances()
+        workflow = Store.get_workflow(iid)
+
+    bridge = REXFlowBridge(workflow)
+    try:
+        task = await bridge.get_task_exchange_data(xid, reset_values=True)
+    except BridgeNotReachableError:
+        logger.error('Trying to connect to an unreachable bridge')
+        raise
+
+    await bridge.save_task_exchange_data([task])
+    Store.add_task(task)
+    return task
 
 
 @validate_arguments

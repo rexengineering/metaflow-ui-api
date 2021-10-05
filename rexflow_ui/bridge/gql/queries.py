@@ -1,4 +1,6 @@
 """Query definitions for GraphQL"""
+# ignore long line on this file
+# flake8: noqa: E501
 
 
 START_WORKFLOW_MUTATION = '''
@@ -34,6 +36,13 @@ query GetInstances{
         key
         value
       }
+      tid_list {
+        tid
+        xid_list {
+          xid
+          xid_state
+        }
+      }
     }
   }
 }
@@ -49,6 +58,13 @@ query GetWorkflow ($workflowInput: GetInstanceInput!) {
       meta_data {
         key
         value
+      }
+      tid_list {
+        tid
+        xid_list {
+          xid
+          xid_state
+        }
       }
     }
   }
@@ -139,6 +155,99 @@ mutation CompleteTask($completeTaskInput: TaskMutationCompleteInput!) {
       iid
       tid
       status
+    }
+  }
+}
+'''
+
+GET_TASK_EXCHANGE_DATA_QUERY = '''
+mutation GetTaskData($formInput: TaskExchangeMutationFormInput!) {
+  tasks {
+    exchange {
+      form(input: $formInput) {
+        iid
+        tid
+        xid
+        status
+        fields {
+          dataId
+          type
+          order
+          label
+          data
+          variant
+          encrypted
+          validators {
+            type
+            constraint
+          }
+        }
+      }
+    }
+  }
+}
+'''
+
+
+VALIDATE_TASK_EXCHANGE_DATA_MUTATION = '''
+mutation ValidateTaskData($validateTaskInput: TaskExchangeMutationValidateInput!) {
+  tasks {
+    exchange {
+      validate(input: $validateTaskInput) {
+        iid
+        tid
+        xid
+        status
+        passed
+        results {
+          dataId
+          passed
+          results {
+            passed
+            message
+          }
+        }
+      }
+    }
+  }
+}
+'''
+
+
+SAVE_TASK_EXCHANGE_DATA_MUTATION = '''
+mutation SaveTaskData($saveTaskInput: TaskExchangeMutationSaveInput!) {
+  tasks {
+    exchange {
+      save(input: $saveTaskInput) {
+        iid
+        tid
+        xid
+        status
+        passed
+        results {
+          dataId
+          passed
+          results {
+            passed
+            message
+          }
+        }
+      }
+    }
+  }
+}
+'''
+
+COMPLETE_TASK_EXCHANGE_MUTATION = '''
+mutation CompleteTask($completeTaskInput: TaskExchangeMutationCompleteInput!) {
+  tasks {
+    exchange {
+      complete(input: $completeTaskInput) {
+        iid
+        tid
+        xid
+        status
+      }
     }
   }
 }

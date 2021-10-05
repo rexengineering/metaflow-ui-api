@@ -119,10 +119,12 @@ class TaskFieldData(BaseModel):
 
 
 class Task(BaseModel):
+    xid: Optional[ExchangeId]
     iid: WorkflowInstanceId
     tid: TaskId
     data: List[TaskFieldData] = []
     status: TaskStatus = TaskStatus.UP
+    xid_state: ExchangeState = ExchangeState.STARTED
 
     def get_data_dict(self):
         return {

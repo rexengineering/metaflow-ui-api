@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from rexflow_ui.entities.types import (
+    ExchangeId,
     OperationStatus,
     TaskId,
     WorkflowInstanceId,
@@ -18,6 +19,7 @@ class Problem(BaseModel):
 class StartTaskInput(BaseModel):
     iid: WorkflowInstanceId
     tid: TaskId
+    xid: Optional[ExchangeId]
 
 
 class StartTaskPayload(BaseModel):

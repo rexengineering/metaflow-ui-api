@@ -33,7 +33,10 @@ class TaskMutations:
             logger.info(
                 f'Starting task {input.tid} for instance {input.iid}'
             )
-            await api.start_tasks(input.iid, [input.tid])
+            if input.xid:
+                await api.start_task_exchange(input.iid, input.xid)
+            else:
+                await api.start_tasks(input.iid, [input.tid])
         except BridgeNotReachableError:
             logger.exception('Could not reach rexflow bridge')
             return StartTaskPayload(

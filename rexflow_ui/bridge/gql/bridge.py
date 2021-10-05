@@ -10,6 +10,7 @@ from .client import GQLClient
 from ..base import REXFlowBridgeABC
 from ...entities.types import (
     ErrorDetails,
+    ExchangeId,
     MetaData,
     OperationStatus,
     Task,
@@ -29,7 +30,10 @@ from ...entities.wrappers import (
     GetInstancePayload,
     MetaDataInput,
     TaskCompletePayload,
+    TaskExchangeMutationFormInput,
+    TaskExchangeMutationSaveInput,
     TaskFieldInput,
+    TaskFormPayload,
     TaskMutationCompleteInput,
     TaskMutationFormInput,
     TaskMutationSaveInput,
@@ -128,6 +132,31 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         )
         self.workflow = workflow
         return workflow
+
+    @validate_arguments
+    async def get_task_exchange_data(
+        self,
+        xid: ExchangeId,
+        reset_values: bool = False,
+    ) -> Task:
+        query = gql(queries.GET_TASK_EXCHANGE_DATA_QUERY)
+
+        client = GQLClient(self.workflow.bridge_url)
+        params = {
+            'formInput': TaskExchangeMutationFormInput(
+                xid=xid,
+                reset=reset_values,
+            ),
+        }
+        result = await client.execute(query, params)
+        payload = TaskFormPayload(**result['tasks']['exchange']['form'])
+        task = Task(
+            xid=payload.xid,
+            iid=payload.iid,
+            tid=payload.tid,
+            data=payload.fields,
+        )
+        return task
 
     @validate_arguments
     async def get_task_data(
@@ -232,6 +261,52 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
                 )
             else:
                 results.successful.append(tasks_dict[payload.tid])
+
+        return results
+
+    @validate_arguments
+    async def save_task_exchange_data(
+        self,
+        tasks: List[Task],
+    ) -> TaskOperationResults:
+        query = gql(queries.SAVE_TASK_EXCHANGE_DATA_MUTATION)
+
+        client = GQLClient(self.workflow.bridge_url)
+        async_tasks = []
+        for task in tasks:
+            params = {
+                'saveTaskInput': TaskExchangeMutationSaveInput(
+                    xid=task.xid,
+                    fields=[
+                        TaskFieldInput(
+                            dataId=field.data_id,
+                            data=field.data,
+                        )
+                        for field in task.data
+                    ],
+                ).dict(),
+            }
+            async_tasks.append(client.execute(
+                query,
+                params,
+            ))
+
+        async_results = await asyncio.gather(*async_tasks)
+
+        tasks_dict = {task.xid: task for task in tasks}
+        results = TaskOperationResults()
+        for result in async_results:
+            payload = TaskSavePayload(
+                **result['tasks']['exchange']['save'],
+            )
+            if payload.status != OperationStatus.SUCCESS:
+                results.errors.append(ErrorDetails(message=str(payload)))
+            elif not payload.passed:
+                results.errors.append(
+                    ValidationErrorDetails.init_from_payload(payload=payload)
+                )
+            else:
+                results.successful.append(tasks_dict[payload.xid])
 
         return results
 
