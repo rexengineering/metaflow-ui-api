@@ -374,6 +374,7 @@ async def _save_tasks(
                 'task': task.dict(),
             },
         )
+        Store.add_task(task)
 
     return result
 
