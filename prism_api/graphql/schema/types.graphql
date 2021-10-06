@@ -17,8 +17,6 @@ scalar DataId
 
 scalar State
 
-scalar EventData
-
 # Enum types
 
 enum WorkflowStatus {
@@ -95,6 +93,11 @@ enum EventType {
 type Session {
     id: SessionId!
     state: State!
+}
+
+type EventData {
+    workflow: Workflow
+    task: Task
 }
 
 type WorkflowDeployment {
