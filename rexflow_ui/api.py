@@ -381,9 +381,9 @@ async def validate_tasks_exchange(
 
     async_tasks = []
     for iid, tasks in workflow_instances.items():
-        async_tasks.append(iid, _validate_tasks(tasks))
+        async_tasks.append(_validate_tasks(iid, tasks))
 
-    results: list[TaskOperationResults] = asyncio.gather(*async_tasks)
+    results: list[TaskOperationResults] = await asyncio.gather(*async_tasks)
     final_result = TaskOperationResults()
     for result in results:
         final_result.successful.extend(result.successful)

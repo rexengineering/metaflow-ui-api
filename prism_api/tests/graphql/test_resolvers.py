@@ -10,12 +10,14 @@ from ..mocks import (
     MOCK_IID,
     MOCK_NAME,
     MOCK_TID,
+    MOCK_XID,
 )
 from ..mocks.graphql_info import MockInfo
 from ..mocks.state_store import FakeStore
 from ..utils import run_async
 from prism_api.graphql.resolvers import (
     TalkTrackResolver,
+    TaskExchangeMutations,
     resolve_session,
     WorkflowResolver,
     WorkflowMutations,
@@ -25,9 +27,11 @@ from prism_api.graphql.resolvers import (
 from prism_api.graphql.entities.wrappers import (
     CancelWorkflowInput,
     CancelWorkflowPayload,
+    CompleteTaskExchangeInput,
     CompleteTaskPayload,
     CompleteTasksInput,
     Problem,
+    SaveTaskExchangeInput,
     SaveTaskInput,
     SaveTasksPayload,
     StartWorkflowByNameInput,
@@ -35,8 +39,10 @@ from prism_api.graphql.entities.wrappers import (
     StartWorkflowInput,
     StartWorkflowPayload,
     TaskDataInput,
+    TaskExchangeInput,
     TaskFilter,
     TaskInput,
+    ValidateTaskExchangeInput,
     ValidateTaskInput,
     ValidateTasksPayload,
 )
@@ -63,6 +69,18 @@ def get_task_input():
     return TaskInput(
         iid=MOCK_IID,
         tid=MOCK_TID,
+        data=[
+            TaskDataInput(
+                dataId='uname',
+                data='test',
+            ),
+        ],
+    )
+
+
+def get_task_exchange_input():
+    return TaskExchangeInput(
+        xid=MOCK_XID,
         data=[
             TaskDataInput(
                 dataId='uname',
@@ -245,6 +263,46 @@ class TestRexflowResolvers(unittest.TestCase):
             MockInfo(),
             input=CompleteTasksInput(
                 tasks=[get_task_input()]
+            )
+        )
+        self.assertIsInstance(response, CompleteTaskPayload)
+        self.assertEqual(response.status, OperationStatus.SUCCESS)
+
+    @run_async
+    async def test_validate_tasks_exchange(self):
+        mutations = TaskExchangeMutations()
+        response = await mutations.validate(
+            MockInfo(),
+            input=ValidateTaskExchangeInput(
+                tasks=[
+                    get_task_exchange_input(),
+                ],
+            ),
+        )
+        self.assertIsInstance(response, ValidateTasksPayload)
+        self.assertEqual(response.status, OperationStatus.SUCCESS)
+
+    @run_async
+    async def test_save_tasks_exchange(self):
+        mutations = TaskExchangeMutations()
+        response = await mutations.save(
+            MockInfo(),
+            input=SaveTaskExchangeInput(
+                tasks=[
+                    get_task_exchange_input(),
+                ],
+            ),
+        )
+        self.assertIsInstance(response, SaveTasksPayload)
+        self.assertEqual(response.status, OperationStatus.SUCCESS)
+
+    @run_async
+    async def test_complete_tasks_exchange(self):
+        mutations = TaskExchangeMutations()
+        response = await mutations.complete(
+            MockInfo(),
+            input=CompleteTaskExchangeInput(
+                tasks=[get_task_exchange_input()]
             )
         )
         self.assertIsInstance(response, CompleteTaskPayload)

@@ -3,12 +3,16 @@ from unittest import mock
 
 import pytest
 
-from .mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_NAME, MOCK_TID
+from .mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_NAME, MOCK_TID, MOCK_XID
 from .mocks.rexflow_bridge import FakeREXFlowBridge
 from .utils import run_async
 from rexflow_ui import api
 from rexflow_ui.entities.types import MetaData, WorkflowDeployment
-from rexflow_ui.entities.wrappers import TaskChange, TaskDataChange
+from rexflow_ui.entities.wrappers import (
+    TaskChange,
+    TaskDataChange,
+    TaskExchangeChange,
+)
 from rexflow_ui.events.manager.queue import EventManager
 from rexflow_ui.store.memory import Store
 
@@ -143,3 +147,67 @@ class TestWorkflow(unittest.TestCase):
 
         workflow = api.Store.get_workflow(workflow.iid)
         self.assertEqual(workflow.status, api.WorkflowStatus.CANCELED)
+
+    @run_async
+    @mock.patch('rexflow_ui.api.Store', Store)
+    @mock.patch('rexflow_ui.api.REXFlowBridge', FakeREXFlowBridge)
+    @mock.patch('rexflow_ui.api.get_deployments', get_deployments)
+    @mock.patch('rexflow_ui.api.EventManager', EventManager)
+    async def test_task_exchange(self):
+        metadata = [MetaData(key='session_id', value='anon')]
+        workflow = await api.start_workflow(
+            deployment_id=MOCK_DID,
+            metadata=metadata,
+        )
+
+        task = await api.start_task_exchange(workflow.iid, MOCK_XID)
+
+        answer = 'this is the answer'
+        # Answer all questions
+        for field in task.data:
+            field.data = answer
+
+        validated_tasks = await api.validate_tasks_exchange([
+            TaskExchangeChange(
+                xid=task.xid,
+                data=[
+                    TaskDataChange(
+                        dataId=field.data_id,
+                        data=field.data
+                    )
+                    for field in task.data
+                ],
+            )
+        ])
+        self.assertIn(task, validated_tasks.successful)
+        self.assertEqual(answer, validated_tasks.successful[0].data[0].data)
+
+        saved_tasks = await api.save_tasks_exchange([
+            TaskExchangeChange(
+                xid=task.xid,
+                data=[
+                    TaskDataChange(
+                        dataId=field.data_id,
+                        data=field.data
+                    )
+                    for field in task.data
+                ],
+            )
+        ])
+        self.assertIn(task, saved_tasks.successful)
+        self.assertEqual(answer, saved_tasks.successful[0].data[0].data)
+
+        completed_tasks = await api.complete_tasks_exchange([
+            TaskExchangeChange(
+                xid=task.xid,
+                data=[
+                    TaskDataChange(
+                        dataId=field.data_id,
+                        data=field.data
+                    )
+                    for field in task.data
+                ],
+            )
+        ])
+        self.assertIn(task, completed_tasks.successful)
+        self.assertEqual(answer, completed_tasks.successful[0].data[0].data)

@@ -4,9 +4,10 @@ from typing import List
 
 from pydantic import validate_arguments
 
-from . import MOCK_DID, MOCK_IID
+from . import MOCK_DID, MOCK_IID, MOCK_TID
 from rexflow_ui.entities.types import (
     DataType,
+    ExchangeId,
     MetaData,
     Task,
     TaskFieldData,
@@ -65,6 +66,39 @@ class FakeREXFlowBridge(REXFlowBridgeABC):
     @validate_arguments
     async def update_workflow_data(self) -> Workflow:
         return self.workflow
+
+    @validate_arguments
+    async def get_task_exchange_data(
+        self,
+        xid: ExchangeId,
+        reset_values: bool = False,
+    ) -> Task:
+        await asyncio.sleep(self.sleep_time)
+
+        try:
+            task = self.Store.get_task_exchange(xid)
+        except TaskNotFoundError:
+            if reset_values:
+                task = Task(
+                    iid=self.workflow.iid,
+                    tid=MOCK_TID,
+                    xid=xid,
+                    data=[
+                        TaskFieldData(
+                            dataId='fname',
+                            type=DataType.TEXT,
+                            order=1,
+                            label='First Name',
+                            validators=[
+                                Validator(
+                                    type=ValidatorEnum.REGEX,
+                                    constraint=r'.*',
+                                )
+                            ]
+                        )
+                    ],
+                )
+        return task
 
     @validate_arguments
     async def get_task_data(

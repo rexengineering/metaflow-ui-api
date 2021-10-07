@@ -11,6 +11,7 @@ from ..mocks import (
 )
 from rexflow_ui.entities.types import (
     ErrorDetails,
+    ExchangeId,
     MetaData,
     OperationStatus,
     Task,
@@ -25,6 +26,7 @@ from rexflow_ui.entities.types import (
 from rexflow_ui.entities.wrappers import (
     FieldValidationResult,
     TaskChange,
+    TaskExchangeChange,
     TaskOperationResults,
     ValidatedPayload,
     ValidatorResults,
@@ -160,6 +162,18 @@ async def start_tasks(
 
 
 @validate_arguments
+async def start_task_exchange(
+    iid: WorkflowInstanceId,
+    xid: ExchangeId
+) -> Task:
+    return Task(
+        iid=iid,
+        tid=MOCK_TID,
+        xid=xid,
+    )
+
+
+@validate_arguments
 async def get_task(iid: WorkflowInstanceId, tid: TaskId) -> Task:
     return _mock_task()
 
@@ -190,6 +204,45 @@ async def save_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
 async def complete_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     result = TaskOperationResults()
     if tasks:
+        result.successful = [_mock_task()]
+    else:
+        result.errors = [_mock_validation_error(), _mock_error()]
+
+    return result
+
+
+@validate_arguments
+async def validate_tasks_exchange(
+    task_changes: List[TaskExchangeChange],
+) -> TaskOperationResults:
+    result = TaskOperationResults()
+    if task_changes:
+        result.successful = [_mock_task()]
+    else:
+        result.errors = [_mock_validation_error(), _mock_error()]
+
+    return result
+
+
+@validate_arguments
+async def save_tasks_exchange(
+    task_changes: List[TaskExchangeChange],
+) -> TaskOperationResults:
+    result = TaskOperationResults()
+    if task_changes:
+        result.successful = [_mock_task()]
+    else:
+        result.errors = [_mock_validation_error(), _mock_error()]
+
+    return result
+
+
+@validate_arguments
+async def complete_tasks_exchange(
+    task_changes: List[TaskExchangeChange],
+) -> TaskOperationResults:
+    result = TaskOperationResults()
+    if task_changes:
         result.successful = [_mock_task()]
     else:
         result.errors = [_mock_validation_error(), _mock_error()]

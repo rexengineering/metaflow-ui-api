@@ -18,7 +18,7 @@ def resolve_version(*_):
 
 
 @query.field('getInstances')
-def resolve_get_instances(*_):
+def resolve_get_instances(*_, input=None):
     return {
         'did': MOCK_DID,
         'did_status': 'RUNNING',
@@ -114,5 +114,65 @@ def resolve_complete(*_, input):
     }
 
 
+task_mutation.set_field('exchange', lambda *_: {})
+exchange_mutation = ObjectType('TaskExchangeMutation')
+
+
+@exchange_mutation.field('form')
+def resolve_form_exchange(*_, input):
+    return {
+        'iid': MOCK_IID,
+        'tid': MOCK_TID,
+        'xid': input['xid'],
+        'status': 'SUCCESS',
+        'fields': [
+            {
+                'dataId': 'uname',
+                'type': 'TEXT',
+                'order': 1,
+                'label': 'username',
+                'data': '',
+                'encrypted': False,
+                'validators': [],
+            },
+        ]
+    }
+
+
+@exchange_mutation.field('validate')
+def resolve_validate_exchange(*_, input):
+    return {
+        'iid': MOCK_IID,
+        'tid': MOCK_TID,
+        'xid': input['xid'],
+        'status': 'SUCCESS',
+        'passed': True,
+        'results': [],
+    }
+
+
+@exchange_mutation.field('save')
+def resolve_save_exchange(*_, input):
+    return {
+        'iid': MOCK_IID,
+        'tid': MOCK_TID,
+        'xid': input['xid'],
+        'status': 'SUCCESS',
+        'passed': True,
+        'results': [],
+    }
+
+
+@exchange_mutation.field('complete')
+def resolve_complete_exchange(*_, input):
+    return {
+        'iid': MOCK_IID,
+        'tid': MOCK_TID,
+        'xid': input['xid'],
+        'status': 'SUCCESS',
+    }
+
+
 mutation.bind_to_schema(schema)
 task_mutation.bind_to_schema(schema)
+exchange_mutation.bind_to_schema(schema)

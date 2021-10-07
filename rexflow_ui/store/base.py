@@ -3,6 +3,7 @@ import abc
 from typing import Dict, List
 
 from ..entities.types import (
+    ExchangeId,
     Task,
     TaskId,
     Workflow,
@@ -83,5 +84,21 @@ class StoreABC(abc.ABC):
         cls,
         workflow_id: WorkflowInstanceId,
         task_id: TaskId,
+    ) -> None:
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def get_task_exchange(
+        cls,
+        xid: ExchangeId,
+    ) -> Task:
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def delete_task_exchange(
+        cls,
+        xid: ExchangeId
     ) -> None:
         raise NotImplementedError

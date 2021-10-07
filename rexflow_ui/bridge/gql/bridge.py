@@ -148,7 +148,7 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             'formInput': TaskExchangeMutationFormInput(
                 xid=xid,
                 reset=reset_values,
-            ),
+            ).dict(),
         }
         result = await client.execute(query, params)
         payload = TaskFormPayload(**result['tasks']['exchange']['form'])
@@ -269,8 +269,12 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         tasks_dict = {task.tid: task for task in tasks}
         results = TaskOperationResults()
         for result in async_results:
+            if 'exchange' in result['tasks']:
+                data = result['tasks']['exchange']['validate']
+            else:
+                data = result['tasks']['validate']
             payload = TaskValidatePayload(
-                **result['tasks']['validate'],
+                **data,
             )
             if payload.status != OperationStatus.SUCCESS:
                 results.errors.append(ErrorDetails(message=str(payload)))
@@ -333,8 +337,12 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         tasks_dict = {task.tid: task for task in tasks}
         results = TaskOperationResults()
         for result in async_results:
+            if 'exchange' in result['tasks']:
+                data = result['tasks']['exchange']['save']
+            else:
+                data = result['tasks']['save']
             payload = TaskSavePayload(
-                **result['tasks']['save'],
+                **data,
             )
             if payload.status != OperationStatus.SUCCESS:
                 results.errors.append(ErrorDetails(message=str(payload)))
@@ -383,8 +391,12 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         tasks_dict = {task.tid: task for task in tasks}
         results = TaskOperationResults()
         for result in async_results:
+            if 'exchange' in result['tasks']:
+                data = result['tasks']['exchange']['complete']
+            else:
+                data = result['tasks']['complete']
             payload = TaskCompletePayload(
-                **result['tasks']['complete'],
+                **data,
             )
             if payload.status != OperationStatus.SUCCESS:
                 results.errors.append(ErrorDetails(message=str(payload)))

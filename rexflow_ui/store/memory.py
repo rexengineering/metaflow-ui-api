@@ -8,6 +8,7 @@ from .errors import (
     TaskNotFoundError,
 )
 from ..entities.types import (
+    ExchangeId,
     Task,
     TaskId,
     Workflow,
@@ -25,6 +26,8 @@ class Store(StoreABC):
         WorkflowInstanceId,
         Dict[str, Union[Workflow, Dict[TaskId, Task]]]
     ] = {}
+
+    _all_tasks: Dict[ExchangeId, Task] = {}
 
     @classmethod
     def save_deployments(cls, deployments: List[WorkflowDeployment]):
@@ -74,12 +77,16 @@ class Store(StoreABC):
         if task.tid not in [t.tid for t in workflow.tasks]:
             workflow.tasks.append(task)
         cls._data[task.iid]['tasks'][task.tid] = task
+        if task.xid:
+            cls._all_tasks[task.xid] = task
 
     @classmethod
     def update_task(cls, task: Task):
         workflow_data = cls._data.get(task.iid)
         if workflow_data and workflow_data['tasks'].get(task.tid):
             cls._data[task.iid]['tasks'][task.tid] = task
+        if task.xid:
+            cls._all_tasks[task.xid] = task
 
     @classmethod
     def get_workflow_tasks(
@@ -121,5 +128,26 @@ class Store(StoreABC):
             del cls._data[workflow_id]['tasks'][task_id]
 
     @classmethod
+    def get_task_exchange(
+        cls,
+        xid: ExchangeId,
+    ) -> Task:
+        try:
+            return cls._all_tasks[xid]
+        except KeyError as e:
+            raise TaskNotFoundError from e
+
+    @classmethod
+    def delete_task_exchange(
+        cls,
+        xid: ExchangeId
+    ) -> None:
+        try:
+            del cls._all_tasks[xid]
+        except KeyError:
+            pass
+
+    @classmethod
     def clear(cls):
         cls._data = {}
+        cls._all_tasks = {}

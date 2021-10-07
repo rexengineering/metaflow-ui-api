@@ -2,12 +2,14 @@ import abc
 from typing import List
 
 from ..entities.types import (
+    ExchangeId,
     Task,
     TaskId,
     Workflow,
     WorkflowDeploymentId,
     WorkflowInstanceId
 )
+from ..entities.wrappers import TaskOperationResults
 
 
 class REXFlowBridgeABC(abc.ABC):
@@ -36,6 +38,14 @@ class REXFlowBridgeABC(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    async def get_task_exchange_data(
+        self,
+        xid: ExchangeId,
+        reset_values: bool = False,
+    ) -> Task:
+        raise NotImplementedError
+
+    @abc.abstractmethod
     async def get_task_data(
         self,
         task_ids: List[TaskId] = [],
@@ -46,12 +56,19 @@ class REXFlowBridgeABC(abc.ABC):
     async def save_task_data(
         self,
         tasks: List[Task],
-    ) -> List[Task]:
+    ) -> TaskOperationResults:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def validate_task_data(
+        self,
+        tasks: List[Task],
+    ) -> TaskOperationResults:
         raise NotImplementedError
 
     @abc.abstractmethod
     async def complete_task(
         self,
         tasks: List[Task],
-    ) -> List[Task]:
+    ) -> TaskOperationResults:
         raise NotImplementedError

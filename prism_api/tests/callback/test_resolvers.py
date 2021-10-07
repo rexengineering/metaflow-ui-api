@@ -6,6 +6,7 @@ import pytest
 from ..mocks import (
     MOCK_IID,
     MOCK_TID,
+    MOCK_XID,
 )
 from ..mocks.graphql_info import MockInfo
 from ..utils import run_async
@@ -49,6 +50,20 @@ class TestCallBackResolvers(unittest.TestCase):
                 iid=MOCK_IID,
                 tid=MOCK_TID,
             ),
+        )
+        self.assertIsInstance(response, StartTaskPayload)
+        self.assertEqual(response.status, OperationStatus.SUCCESS)
+
+    @run_async
+    async def test_tast_task_exchange_callback(self):
+        mutations = TaskCallbackMutations()
+        response = await mutations.start(
+            MockInfo(),
+            input=StartTaskInput(
+                iid=MOCK_IID,
+                tid=MOCK_TID,
+                xid=MOCK_XID,
+            )
         )
         self.assertIsInstance(response, StartTaskPayload)
         self.assertEqual(response.status, OperationStatus.SUCCESS)

@@ -1,5 +1,6 @@
 from rexflow_ui.entities.types import (
     DataId,
+    ExchangeId,
     WorkflowDeploymentId,
     WorkflowInstanceId,
     TaskId,
@@ -14,4 +15,5 @@ MOCK_NAME: str = 'process'
 MOCK_DID: WorkflowDeploymentId = 'process-123-abc'
 MOCK_IID: WorkflowInstanceId = 'process-123-abc-12345678'
 MOCK_TID: TaskId = MOCK_TID_BASE.format(n=0)
+MOCK_XID: ExchangeId = '0123456789abcdf'
 MOCK_DATA_ID: DataId = MOCK_DATA_ID_BASE.format(n=0)
