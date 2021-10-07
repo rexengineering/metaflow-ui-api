@@ -76,11 +76,28 @@ enum TextVariant {
     SUBTITLE2
 }
 
+enum EventType {
+    START_WORKFLOW
+    UPDATE_WORKFLOW
+    FINISH_WORKFLOW
+    START_TASK
+    UPDATE_TASK
+    FINISH_TASK
+    START_BROADCAST
+    FINISH_BROADCAST
+    ERROR_BROADCAST
+}
+
 # Data structures
 
 type Session {
     id: SessionId!
     state: State!
+}
+
+type EventData {
+    workflow: Workflow
+    task: Task
 }
 
 type WorkflowDeployment {

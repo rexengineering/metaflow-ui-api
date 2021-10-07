@@ -13,6 +13,7 @@ from rexflow_ui.entities.types import (
     WorkflowDeploymentId,
     TaskId,
 )
+from rexflow_ui.events.entities import Event
 from prism_api.state_manager.entities import State
 
 
@@ -106,6 +107,20 @@ class ServiceNotAvailableProblem(Problem):
 
 
 # GraphQL payload types
+
+class KeepAlivePayload(BaseModel):
+    status: OperationStatus
+
+
+class EventData(BaseModel):
+    workflow: Optional[Workflow]
+    task: Optional[Task]
+
+
+class EventBroadcastPayload(BaseModel):
+    event: Event
+    data: Optional[EventData]
+
 
 class Payload(BaseModel):
     status: OperationStatus

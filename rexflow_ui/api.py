@@ -26,9 +26,10 @@ from .entities.wrappers import (
     TaskOperationResults
 )
 from .errors import BridgeNotReachableError, REXFlowError
+from .events import Event, EventManager
 from .store import Store, WorkflowNotFoundError
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 async def get_available_workflows(refresh=False) -> List[WorkflowDeployment]:
@@ -83,6 +84,16 @@ async def start_workflow(
             metadata=metadata,
         )
         workflow.name = workflow_name
+        workflow.metadata_dict = {
+            data.key: data.value
+            for data in metadata
+        }
+        EventManager.dispatch(
+            Event.START_WORKFLOW,
+            data={
+                'workflow': workflow.dict(),
+            },
+        )
     except BridgeNotReachableError:
         logger.error('Trying to connect to an unreacheable bridge')
         raise
@@ -99,6 +110,12 @@ async def start_workflow(
         )
 
     Store.add_workflow(workflow)
+    EventManager.dispatch(
+        Event.UPDATE_WORKFLOW,
+        data={
+            'workflow': workflow.dict(),
+        },
+    )
     return workflow
 
 
@@ -216,6 +233,12 @@ async def complete_workflow(
     workflow = Store.get_workflow(instance_id)
     workflow.status = WorkflowStatus.COMPLETED
     Store.add_workflow(workflow)
+    EventManager.dispatch(
+        Event.FINISH_WORKFLOW,
+        data={
+            'workflow': workflow.dict(),
+        },
+    )
 
 
 async def cancel_workflow(
@@ -228,6 +251,13 @@ async def cancel_workflow(
     if result:
         workflow.status = WorkflowStatus.CANCELED
         Store.add_workflow(workflow)
+
+    EventManager.dispatch(
+        Event.FINISH_WORKFLOW,
+        data={
+            'workflow': workflow.dict(),
+        },
+    )
 
     return result
 
@@ -254,6 +284,13 @@ async def start_tasks(
     await bridge.save_task_data(created_tasks)
     for task in created_tasks:
         Store.add_task(task)
+        EventManager.dispatch(
+            Event.START_TASK,
+            data={
+                'workflow': workflow.dict(),
+                'task': task.dict(),
+            },
+        )
     return created_tasks
 
 
@@ -311,7 +348,8 @@ async def _save_tasks(
     iid: WorkflowInstanceId,
     tasks: List[TaskChange],
 ) -> TaskOperationResults:
-    bridge = REXFlowBridge(Store.get_workflow(iid))
+    workflow = Store.get_workflow(iid)
+    bridge = REXFlowBridge(workflow)
     updated_tasks = []
     for task_input in tasks:
         task = Store.get_task(iid, task_input.tid)
@@ -329,6 +367,13 @@ async def _save_tasks(
         )
 
     for task in result.successful:
+        EventManager.dispatch(
+            Event.UPDATE_TASK,
+            data={
+                'workflow': workflow.dict(),
+                'task': task.dict(),
+            },
+        )
         Store.add_task(task)
 
     return result
@@ -357,7 +402,8 @@ async def _complete_tasks(
     tasks: List[TaskChange],
 ) -> TaskOperationResults:
     updated_tasks = await _save_tasks(iid, tasks)
-    bridge = REXFlowBridge(Store.get_workflow(iid))
+    workflow = Store.get_workflow(iid)
+    bridge = REXFlowBridge(workflow)
 
     try:
         result = await bridge.complete_task(updated_tasks.successful)
@@ -370,6 +416,13 @@ async def _complete_tasks(
     result.errors.extend(updated_tasks.errors)
     for task in result.successful:
         Store.delete_task(iid, task.tid)
+        EventManager.dispatch(
+            Event.FINISH_TASK,
+            data={
+                'workflow': workflow.dict(),
+                'task': task.dict(),
+            },
+        )
     return result
 
 
