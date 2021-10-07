@@ -1,6 +1,7 @@
 type Mutation {
     session: SessionMutations
     workflow: WorkflowMutations
+    keepAlive: KeepAlivePayload
 }
 
 type SessionMutations {
@@ -115,6 +116,10 @@ input TaskDataInput {
 }
 
 # Response payloads
+
+type KeepAlivePayload {
+    status: OperationStatus!
+}
 
 type StartSessionPayload {
     status: OperationStatus!

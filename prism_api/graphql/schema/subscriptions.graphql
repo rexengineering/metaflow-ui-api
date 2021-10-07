@@ -1,0 +1,8 @@
+type Subscription {
+    eventBroadcast: EventBroadcastPayload
+}
+
+type EventBroadcastPayload {
+    event: EventType!
+    data: EventData
+}

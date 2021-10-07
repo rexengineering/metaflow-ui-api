@@ -18,6 +18,7 @@ dependencies:
   - requests==2.26.*
   - rexredis>=2.7.6
   - uvicorn==0.15.*
+  - websockets==10.*
   - pip:
     - ariadne==0.13.0
     - gql[aiohttp]==3.0.0a5
