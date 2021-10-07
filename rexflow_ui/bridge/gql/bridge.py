@@ -30,8 +30,10 @@ from ...entities.wrappers import (
     GetInstancePayload,
     MetaDataInput,
     TaskCompletePayload,
+    TaskExchangeMutationCompleteInput,
     TaskExchangeMutationFormInput,
     TaskExchangeMutationSaveInput,
+    TaskExchangeMutationValidateInput,
     TaskFieldInput,
     TaskFormPayload,
     TaskMutationCompleteInput,
@@ -222,24 +224,41 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         self,
         tasks: List[Task],
     ) -> TaskOperationResults:
-        query = gql(queries.VALIDATE_TASK_DATA_MUTATION)
+        query_tid = gql(queries.VALIDATE_TASK_DATA_MUTATION)
+        query_xid = gql(queries.VALIDATE_TASK_EXCHANGE_DATA_MUTATION)
 
         client = GQLClient(self.workflow.bridge_url)
         async_tasks = []
         for task in tasks:
-            params = {
-                'validateTaskInput': TaskMutationValidateInput(
-                    iid=self.workflow.iid,
-                    tid=task.tid,
-                    fields=[
-                        TaskFieldInput(
-                            dataId=field.data_id,
-                            data=field.data,
-                        )
-                        for field in task.data
-                    ],
-                ).dict(),
-            }
+            if task.xid:
+                query = query_xid
+                params = {
+                    'validateTaskInput': TaskExchangeMutationValidateInput(
+                        xid=task.xid,
+                        fields=[
+                            TaskFieldInput(
+                                dataId=field.data_id,
+                                data=field.data,
+                            )
+                            for field in task.data
+                        ],
+                    ).dict(),
+                }
+            else:
+                query = query_tid
+                params = {
+                    'validateTaskInput': TaskMutationValidateInput(
+                        iid=self.workflow.iid,
+                        tid=task.tid,
+                        fields=[
+                            TaskFieldInput(
+                                dataId=field.data_id,
+                                data=field.data,
+                            )
+                            for field in task.data
+                        ],
+                    ).dict(),
+                }
             async_tasks.append(client.execute(
                 query,
                 params,
@@ -265,74 +284,45 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         return results
 
     @validate_arguments
-    async def save_task_exchange_data(
-        self,
-        tasks: List[Task],
-    ) -> TaskOperationResults:
-        query = gql(queries.SAVE_TASK_EXCHANGE_DATA_MUTATION)
-
-        client = GQLClient(self.workflow.bridge_url)
-        async_tasks = []
-        for task in tasks:
-            params = {
-                'saveTaskInput': TaskExchangeMutationSaveInput(
-                    xid=task.xid,
-                    fields=[
-                        TaskFieldInput(
-                            dataId=field.data_id,
-                            data=field.data,
-                        )
-                        for field in task.data
-                    ],
-                ).dict(),
-            }
-            async_tasks.append(client.execute(
-                query,
-                params,
-            ))
-
-        async_results = await asyncio.gather(*async_tasks)
-
-        tasks_dict = {task.xid: task for task in tasks}
-        results = TaskOperationResults()
-        for result in async_results:
-            payload = TaskSavePayload(
-                **result['tasks']['exchange']['save'],
-            )
-            if payload.status != OperationStatus.SUCCESS:
-                results.errors.append(ErrorDetails(message=str(payload)))
-            elif not payload.passed:
-                results.errors.append(
-                    ValidationErrorDetails.init_from_payload(payload=payload)
-                )
-            else:
-                results.successful.append(tasks_dict[payload.xid])
-
-        return results
-
-    @validate_arguments
     async def save_task_data(
         self,
         tasks: List[Task],
     ) -> TaskOperationResults:
-        query = gql(queries.SAVE_TASK_DATA_MUTATION)
+        query_tid = gql(queries.SAVE_TASK_DATA_MUTATION)
+        query_xid = gql(queries.SAVE_TASK_EXCHANGE_DATA_MUTATION)
 
         client = GQLClient(self.workflow.bridge_url)
         async_tasks = []
         for task in tasks:
-            params = {
-                'saveTaskInput': TaskMutationSaveInput(
-                    iid=self.workflow.iid,
-                    tid=task.tid,
-                    fields=[
-                        TaskFieldInput(
-                            dataId=field.data_id,
-                            data=field.data,
-                        )
-                        for field in task.data
-                    ],
-                ).dict(),
-            }
+            if task.xid:
+                query = query_xid
+                params = {
+                    'saveTaskInput': TaskExchangeMutationSaveInput(
+                        xid=task.xid,
+                        fields=[
+                            TaskFieldInput(
+                                dataId=field.data_id,
+                                data=field.data,
+                            )
+                            for field in task.data
+                        ],
+                    ).dict(),
+                }
+            else:
+                query = query_tid
+                params = {
+                    'saveTaskInput': TaskMutationSaveInput(
+                        iid=self.workflow.iid,
+                        tid=task.tid,
+                        fields=[
+                            TaskFieldInput(
+                                dataId=field.data_id,
+                                data=field.data,
+                            )
+                            for field in task.data
+                        ],
+                    ).dict(),
+                }
             async_tasks.append(client.execute(
                 query,
                 params,
@@ -362,17 +352,27 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
         self,
         tasks: List[Task],
     ) -> TaskOperationResults:
-        query = gql(queries.COMPLETE_TASK_MUTATION)
+        query_tid = gql(queries.COMPLETE_TASK_MUTATION)
+        query_xid = gql(queries.COMPLETE_TASK_EXCHANGE_MUTATION)
 
         client = GQLClient(self.workflow.bridge_url)
         async_tasks = []
         for task in tasks:
-            params = {
-                'completeTaskInput': TaskMutationCompleteInput(
-                    iid=self.workflow.iid,
-                    tid=task.tid,
-                ).dict(),
-            }
+            if task.xid:
+                query = query_xid
+                params = {
+                    'completeTaskInput': TaskExchangeMutationCompleteInput(
+                        xid=task.xid,
+                    ).dict(),
+                }
+            else:
+                query = query_tid
+                params = {
+                    'completeTaskInput': TaskMutationCompleteInput(
+                        iid=self.workflow.iid,
+                        tid=task.tid,
+                    ).dict(),
+                }
             async_tasks.append(client.execute(
                 query,
                 params,

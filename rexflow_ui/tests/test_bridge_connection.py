@@ -7,7 +7,6 @@ from .utils import run_async
 from .mocks import MOCK_BRIDGE_URL, MOCK_DID, MOCK_IID, MOCK_NAME, MOCK_TID
 from .mocks.rexflow_entities import (
     mock_task,
-    mock_task_change,
     mock_workflow,
 )
 from rexflow_ui import api
@@ -87,16 +86,15 @@ class TestBridgeConnection(unittest.TestCase):
 
         task = mock_task()
         Store.add_task(task)
-        task_change = mock_task_change()
 
-        result = await api._validate_tasks(MOCK_IID, [task_change])
+        result = await api._validate_tasks(MOCK_IID, [task])
         self.assertGreater(len(result.errors), 0)
         self.assertEqual(len(result.successful), 0)
 
-        result = await api._save_tasks(MOCK_IID, [task_change])
+        result = await api._save_tasks(MOCK_IID, [task])
         self.assertGreater(len(result.errors), 0)
         self.assertEqual(len(result.successful), 0)
 
-        result = await api._complete_tasks(MOCK_IID, [task_change])
+        result = await api._complete_tasks(MOCK_IID, [task])
         self.assertGreater(len(result.errors), 0)
         self.assertEqual(len(result.successful), 0)

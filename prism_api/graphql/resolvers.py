@@ -9,10 +9,12 @@ from .decorators import resolver_verify_token
 from .entities.wrappers import (
     CancelWorkflowInput,
     CancelWorkflowPayload,
+    CompleteTaskExchangeInput,
     CompleteTaskPayload,
     CompleteTasksInput,
     GenericProblem,
     Problem,
+    SaveTaskExchangeInput,
     SaveTaskInput,
     SaveTasksPayload,
     StartWorkflowByNameInput,
@@ -22,6 +24,7 @@ from .entities.wrappers import (
     TaskFilter,
     UpdateStateInput,
     UpdateStatePayload,
+    ValidateTaskExchangeInput,
     ValidateTaskInput,
     ValidateTasksPayload,
     ValidationProblem,
@@ -303,6 +306,116 @@ class TasksMutations:
         )
 
 
+class TaskExchangeMutations:
+    @resolver_verify_token
+    @validate_arguments
+    async def validate(self, info, input: ValidateTaskExchangeInput):
+        try:
+            result = await rexflow.validate_tasks_exchange(input.tasks)
+        except REXFlowError as e:
+            return SaveTasksPayload(
+                status=OperationStatus.FAILURE,
+                errors=[GenericProblem(message=e)],
+            )
+
+        errors = []
+        for error in result.errors:
+            if isinstance(error, ValidationErrorDetails):
+                for dataId, validation_error in error.errors.items():
+                    errors.append(ValidationProblem(
+                        message=validation_error['message'],
+                        iid=error.iid,
+                        tid=error.tid,
+                        dataId=dataId,
+                        validator=validation_error['validator'],
+                    ))
+            else:
+                errors.append(GenericProblem(message=error.message))
+
+        if errors:
+            status = OperationStatus.FAILURE
+        else:
+            status = OperationStatus.SUCCESS
+
+        return ValidateTasksPayload(
+            status=status,
+            tasks=result.successful,
+            errors=errors
+        )
+
+    @resolver_verify_token
+    @validate_arguments
+    async def save(self, info, input: SaveTaskExchangeInput):
+        try:
+            result = await rexflow.save_tasks_exchange(input.tasks)
+        except REXFlowError as e:
+            return SaveTasksPayload(
+                status=OperationStatus.FAILURE,
+                errors=[GenericProblem(message=e)],
+            )
+
+        errors = []
+        for error in result.errors:
+            if isinstance(error, ValidationErrorDetails):
+                for dataId, validation_error in error.errors.items():
+                    errors.append(ValidationProblem(
+                        message=validation_error['message'],
+                        iid=error.iid,
+                        tid=error.tid,
+                        dataId=dataId,
+                        validator=validation_error['validator'],
+                    ))
+            else:
+                errors.append(GenericProblem(message=error.message))
+
+        if errors:
+            status = OperationStatus.FAILURE
+        else:
+            status = OperationStatus.SUCCESS
+
+        return SaveTasksPayload(
+            status=status,
+            tasks=result.successful,
+            errors=errors,
+        )
+
+    @resolver_verify_token
+    @validate_arguments
+    async def complete(self, info, input: CompleteTaskExchangeInput):
+        try:
+            result = await rexflow.complete_tasks_exchange(input.tasks)
+        except REXFlowError as e:
+            return SaveTasksPayload(
+                status=OperationStatus.FAILURE,
+                errors=[GenericProblem(message=e)],
+            )
+
+        errors = []
+        for error in result.errors:
+            if isinstance(error, ValidationErrorDetails):
+                for dataId, validation_error in error.errors.items():
+                    errors.append(ValidationProblem(
+                        message=validation_error['message'],
+                        iid=error.iid,
+                        tid=error.tid,
+                        dataId=dataId,
+                        validator=validation_error['validator'],
+                    ))
+            else:
+                errors.append(GenericProblem(message=error.message))
+
+        if errors:
+            status = OperationStatus.FAILURE
+        else:
+            status = OperationStatus.SUCCESS
+
+        return CompleteTaskPayload(
+            status=status,
+            tasks=result.successful,
+            errors=errors
+        )
+
+
 class WorkflowMutations:
     def __init__(self, *_) -> None:
         pass
@@ -421,3 +534,6 @@ class WorkflowMutations:
 
     async def tasks(self, info):
         return TasksMutations()
+
+    async def tasks_exchange(self, info):
+        return TaskExchangeMutations()

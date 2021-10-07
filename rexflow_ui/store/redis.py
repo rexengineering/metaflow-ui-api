@@ -10,6 +10,7 @@ from .errors import (
     TaskNotFoundError,
 )
 from ..entities.types import (
+    ExchangeId,
     Task,
     TaskId,
     Workflow,
@@ -116,14 +117,25 @@ class Store(StoreABC):
         return f'{cls.TASK_PREFIX}{iid}:{tid}'
 
     @classmethod
+    def _get_task_exchange_key(cls, xid: ExchangeId):
+        return f'{cls.TASK_PREFIX}{xid}'
+
+    @classmethod
     def add_task(cls, task: Task):
         redis = cls._get_redis()
-        redis.set_json(cls._get_task_key(task.iid, task.tid), task.dict())
+        if task.xid:
+            task_key = cls._get_task_exchange_key(task.xid)
+        else:
+            task_key = cls._get_task_key(task.iid, task.tid)
+        redis.set_json(task_key, task.dict())
 
     @classmethod
     def update_task(cls, task: Task):
         redis = cls._get_redis()
-        task_key = cls._get_task_key(task.iid, task.tid)
+        if task.xid:
+            task_key = cls._get_task_exchange_key(task.xid)
+        else:
+            task_key = cls._get_task_key(task.iid, task.tid)
         if redis.exists(task_key):
             redis.set_json(task_key, task.dict())
 
@@ -167,4 +179,28 @@ class Store(StoreABC):
         if not redis.exists(cls.WORKFLOW_PREFIX + workflow_id):
             raise WorkflowNotFoundError
         task_key = cls._get_task_key(workflow_id, task_id)
+        redis.delete_keys(task_key)
+
+    @classmethod
+    def get_task_exchange(
+        cls,
+        xid: ExchangeId,
+    ) -> Task:
+        task_key = cls._get_task_exchange_key(xid)
+        redis = cls._get_redis()
+        task_data = redis.get_from_json(task_key)
+        if task_data is None:
+            raise TaskNotFoundError
+        return Task(**task_data)
+
+    @classmethod
+    def delete_task_exchange(
+        cls,
+        xid: ExchangeId
+    ) -> None:
+        redis = cls._get_redis()
+        task = cls.get_task_exchange(xid)
+        if not redis.exists(cls.WORKFLOW_PREFIX + task.iid):
+            raise WorkflowNotFoundError
+        task_key = cls._get_task_exchange_key(xid)
         redis.delete_keys(task_key)

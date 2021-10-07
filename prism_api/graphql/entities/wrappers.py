@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from rexflow_ui.entities.types import (
     DataId,
+    ExchangeId,
     OperationStatus,
     Task,
     Validator,
@@ -74,6 +75,23 @@ class SaveTaskInput(BaseModel):
 
 class CompleteTasksInput(BaseModel):
     tasks: List[TaskInput]
+
+
+class TaskExchangeInput(BaseModel):
+    xid: ExchangeId
+    data: List[TaskDataInput]
+
+
+class ValidateTaskExchangeInput(BaseModel):
+    tasks: List[TaskExchangeInput]
+
+
+class SaveTaskExchangeInput(BaseModel):
+    tasks: List[TaskExchangeInput]
+
+
+class CompleteTaskExchangeInput(BaseModel):
+    tasks: List[TaskExchangeInput]
 
 
 # GraphQL error types

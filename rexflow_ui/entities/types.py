@@ -132,6 +132,11 @@ class Task(BaseModel):
             for d in self.data
         }
 
+    def update_task_data(self, data: Dict[DataId, str]):
+        data_dict = self.get_data_dict()
+        for data_id, value in data.items():
+            data_dict[data_id].data = value  # This update the reference
+
 
 class Workflow(BaseModel):
     iid: WorkflowInstanceId

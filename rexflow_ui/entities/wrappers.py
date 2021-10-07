@@ -28,6 +28,11 @@ class TaskChange(BaseModel):
     data: List[TaskDataChange]
 
 
+class TaskExchangeChange(BaseModel):
+    xid: ExchangeId
+    data: List[TaskDataChange]
+
+
 class TaskOperationResults(BaseModel):
     successful: List[Task] = []
     errors: List[ErrorDetails] = []

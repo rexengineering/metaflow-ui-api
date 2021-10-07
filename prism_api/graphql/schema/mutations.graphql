@@ -25,7 +25,9 @@ type WorkflowMutations {
     """Cancel a workflow"""
     cancel(input: CancelWorkflowInput): CancelWorkflowPayload
     """Interact with workflow tasks"""
-    tasks: TasksMutations
+    tasks: TasksMutations @deprecated
+    """Workflow task exchange"""
+    tasksExchange: TaskExchangeMutations
 }
 
 type TasksMutations {
@@ -35,6 +37,12 @@ type TasksMutations {
     save(input: SaveTasksInput!): SaveTasksPayload
     """Finish the task"""
     complete(input: CompleteTasksInput!): CompleteTasksPayload
+}
+
+type TaskExchangeMutations {
+    validate(input: ValidateTaskExchangeInput!): ValidateTaskPayload
+    save(input: SaveTasksExchangeInput!): SaveTasksPayload
+    complete(input: CompleteTasksExchangeInput!): CompleteTasksPayload
 }
 
 # Mutations inputs
@@ -69,6 +77,11 @@ input SaveTasksInput {
     tasks: [TaskInput!]!
 }
 
+input CompleteTasksInput {
+    """Ids of task to be completed"""
+    tasks: [TaskInput!]!
+}
+
 input TaskInput {
     iid: WorkflowInstanceId!
     tid: TaskId!
@@ -76,14 +89,29 @@ input TaskInput {
     data: [TaskDataInput!]!
 }
 
+input ValidateTaskExchangeInput {
+    """List of tasks to be validated"""
+    tasks: [TaskExchangeInput!]!
+}
+
+input SaveTasksExchangeInput {
+    """List of tasks to be modified"""
+    tasks: [TaskExchangeInput!]!
+}
+
+input CompleteTasksExchangeInput {
+    """Ids of task to be completed"""
+    tasks: [TaskExchangeInput!]!
+}
+
+input TaskExchangeInput {
+    xid: ExchangeId!
+    data: [TaskDataInput!]!
+}
+
 input TaskDataInput {
     dataId: DataId!
     data: String!
-}
-
-input CompleteTasksInput {
-    """Ids of task to be completed"""
-    tasks: [TaskInput!]!
 }
 
 # Response payloads

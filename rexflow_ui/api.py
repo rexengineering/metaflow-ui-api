@@ -24,6 +24,7 @@ from .entities.types import (
 )
 from .entities.wrappers import (
     TaskChange,
+    TaskExchangeChange,
     TaskOperationResults
 )
 from .errors import BridgeNotReachableError, REXFlowError
@@ -251,7 +252,7 @@ async def start_task_exchange(
         logger.error('Trying to connect to an unreachable bridge')
         raise
 
-    await bridge.save_task_exchange_data([task])
+    await bridge.save_task_data([task])
     Store.add_task(task)
     return task
 
@@ -291,19 +292,11 @@ async def get_task(iid: WorkflowInstanceId, tid: TaskId) -> Task:
 
 async def _validate_tasks(
     iid: WorkflowInstanceId,
-    tasks: List[TaskChange],
+    tasks: List[Task],
 ) -> TaskOperationResults:
     bridge = REXFlowBridge(Store.get_workflow(iid))
-    updated_tasks = []
-    for task_input in tasks:
-        task = Store.get_task(iid, task_input.tid)
-        task_data = task.get_data_dict()
-        for task_data_input in task_input.data:
-            task_data[task_data_input.dataId].data = task_data_input.data
-        updated_tasks.append(task)
-
     try:
-        result = await bridge.validate_task_data(updated_tasks)
+        result = await bridge.validate_task_data(tasks)
     except BridgeNotReachableError:
         logger.exception('Trying to connect to an unreachable bridge')
         result = TaskOperationResults(
@@ -316,7 +309,12 @@ async def _validate_tasks(
 @validate_arguments
 async def validate_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     workflow_instances = defaultdict(list)
-    for task in tasks:
+    for task_change in tasks:
+        task = Store.get_task(task_change.iid, task_change.tid)
+        task.update_task_data({
+            field.dataId: field.data
+            for field in task_change.data
+        })
         workflow_instances[task.iid].append(task)
     results = await asyncio.gather(*[
         _validate_tasks(iid, tasks)
@@ -331,21 +329,39 @@ async def validate_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
     return final_result
 
 
+@validate_arguments
+async def validate_tasks_exchange(
+    task_changes: List[TaskExchangeChange],
+) -> TaskOperationResults:
+    workflow_instances = defaultdict(list)
+    for task_change in task_changes:
+        task = Store.get_task_exchange(task_change.xid)
+        task.update_task_data({
+            field.dataId: field.data
+            for field in task_change.data
+        })
+        workflow_instances[task.iid].append(task)
+
+    async_tasks = []
+    for iid, tasks in workflow_instances.items():
+        async_tasks.append(iid, _validate_tasks(tasks))
+
+    results: list[TaskOperationResults] = asyncio.gather(*async_tasks)
+    final_result = TaskOperationResults()
+    for result in results:
+        final_result.successful.extend(result.successful)
+        final_result.errors.extend(result.errors)
+
+    return final_result
+
+
 async def _save_tasks(
     iid: WorkflowInstanceId,
-    tasks: List[TaskChange],
+    tasks: List[Task],
 ) -> TaskOperationResults:
     bridge = REXFlowBridge(Store.get_workflow(iid))
-    updated_tasks = []
-    for task_input in tasks:
-        task = Store.get_task(iid, task_input.tid)
-        task_data = task.get_data_dict()
-        for task_data_input in task_input.data:
-            task_data[task_data_input.dataId].data = task_data_input.data
-        updated_tasks.append(task)
-
     try:
-        result = await bridge.save_task_data(updated_tasks)
+        result = await bridge.save_task_data(tasks)
     except BridgeNotReachableError:
         logger.exception('Trying to connect to an unreachable bridge')
         result = TaskOperationResults(
@@ -353,15 +369,45 @@ async def _save_tasks(
         )
 
     for task in result.successful:
-        Store.add_task(task)
+        Store.update_task(task)
 
     return result
 
 
 @validate_arguments
-async def save_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
+async def save_tasks(task_changes: List[TaskChange]) -> TaskOperationResults:
     workflow_instances = defaultdict(list)
-    for task in tasks:
+    for task_change in task_changes:
+        task = Store.get_task(task_change.iid, task_change.tid)
+        task.update_task_data({
+            field.dataId: field.data
+            for field in task_change.data
+        })
+        workflow_instances[task.iid].append(task)
+    results = await asyncio.gather(*[
+        _save_tasks(iid, tasks)
+        for iid, tasks in workflow_instances.items()
+    ])
+
+    final_result = TaskOperationResults()
+    for result in results:
+        final_result.successful.extend(result.successful)
+        final_result.errors.extend(result.errors)
+
+    return final_result
+
+
+@validate_arguments
+async def save_tasks_exchange(
+    task_changes: List[TaskExchangeChange],
+) -> TaskOperationResults:
+    workflow_instances = defaultdict(list)
+    for task_change in task_changes:
+        task = Store.get_task_exchange(task_change.xid)
+        task.update_task_data({
+            field.dataId: field.data
+            for field in task_change.data
+        })
         workflow_instances[task.iid].append(task)
     results = await asyncio.gather(*[
         _save_tasks(iid, tasks)
@@ -378,7 +424,7 @@ async def save_tasks(tasks: List[TaskChange]) -> TaskOperationResults:
 
 async def _complete_tasks(
     iid: WorkflowInstanceId,
-    tasks: List[TaskChange],
+    tasks: List[Task],
 ) -> TaskOperationResults:
     updated_tasks = await _save_tasks(iid, tasks)
     bridge = REXFlowBridge(Store.get_workflow(iid))
@@ -399,10 +445,35 @@ async def _complete_tasks(
 
 @validate_arguments
 async def complete_tasks(
-    tasks: List[TaskChange],
+    task_changes: List[TaskChange],
 ) -> TaskOperationResults:
     workflow_instances = defaultdict(list)
-    for task in tasks:
+    for task_change in task_changes:
+        task = Store.get_task(task_change.iid, task_change.tid)
+        logger.info(
+            f'Complete task {task.tid} on instance {task.iid}'
+        )
+        workflow_instances[task.iid].append(task)
+    results = await asyncio.gather(*[
+        _complete_tasks(iid, tasks)
+        for iid, tasks in workflow_instances.items()
+    ])
+
+    final_result = TaskOperationResults()
+    for result in results:
+        final_result.successful.extend(result.successful)
+        final_result.errors.extend(result.errors)
+
+    return final_result
+
+
+@validate_arguments
+async def complete_tasks_exchange(
+    task_changes: List[TaskExchangeChange],
+) -> TaskOperationResults:
+    workflow_instances = defaultdict(list)
+    for task_change in task_changes:
+        task = Store.get_task_exchange(task_change.xid)
         logger.info(
             f'Complete task {task.tid} on instance {task.iid}'
         )
