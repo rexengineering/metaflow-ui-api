@@ -3,7 +3,11 @@ import logging
 from datetime import datetime, timedelta
 
 from .decorators import _verify_access_token, resolver_verify_token
-from .entities.wrappers import EventBroadcastPayload, KeepAlivePayload
+from .entities.wrappers import (
+    EventBroadcastPayload,
+    EventData,
+    KeepAlivePayload,
+)
 from rexflow_ui.events import Event, EventManager, EventWrapper
 from rexflow_ui.entities.types import OperationStatus
 
@@ -51,7 +55,7 @@ async def broadcast_event_subscription(event: EventWrapper, info):
     if event:
         return EventBroadcastPayload(
             event=event.event,
-            data=event.data,
+            data=EventData(**event.data),
         )
 
     logger.error('Unexpected event broadcast termination')

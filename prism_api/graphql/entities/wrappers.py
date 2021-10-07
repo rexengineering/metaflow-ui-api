@@ -112,9 +112,14 @@ class KeepAlivePayload(BaseModel):
     status: OperationStatus
 
 
+class EventData(BaseModel):
+    workflow: Optional[Workflow]
+    task: Optional[Task]
+
+
 class EventBroadcastPayload(BaseModel):
     event: Event
-    data: Optional[Dict]
+    data: Optional[EventData]
 
 
 class Payload(BaseModel):
