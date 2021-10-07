@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 class Subscription:
-    keep_alive = None
+    expiration_time = None
 
     @classmethod
-    def refresh(cls):
-        cls.keep_alive = datetime.now() + timedelta(seconds=60)
+    def keep_alive(cls):
+        cls.expiration_time = datetime.now() + timedelta(seconds=60)
 
 
 async def event_generator(obj, info):
@@ -27,10 +27,10 @@ async def event_generator(obj, info):
     session_id = info.context['session_id']
     events = EventManager.start_listening(listener=session_id)
 
-    Subscription.keep_alive = datetime.now() + timedelta(seconds=60)
+    Subscription.keep_alive()
     yield EventWrapper(event=Event.START_BROADCAST)
 
-    while Subscription.keep_alive > datetime.now():
+    while Subscription.expiration_time > datetime.now():
         try:
             event = await events.get()
         except asyncio.TimeoutError:
@@ -38,7 +38,7 @@ async def event_generator(obj, info):
         else:
             if event.event == Event.KEEP_ALIVE:
                 if event.data.get('session_id') == session_id:
-                    Subscription.refresh()
+                    Subscription.keep_alive()
             else:
                 workflow: dict = event.data.get('workflow')
                 if workflow is None or workflow.get(
