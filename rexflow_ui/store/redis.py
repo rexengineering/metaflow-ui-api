@@ -68,11 +68,13 @@ class Store(StoreABC):
         if workflow_data:
             try:
                 workflow = Workflow(**workflow_data)
-            except ValidationError:
+            except ValidationError as e:
                 redis.delete_keys(workflow_key)
+                raise WorkflowNotFoundError from e
         else:
             raise WorkflowNotFoundError
-        tasks = cls.get_workflow_tasks(workflow.iid)
+        # There is a risk of recursion with this call
+        tasks = cls.get_workflow_tasks(workflow.iid, workflow=workflow)
         workflow.tasks = list(tasks.values())
         return workflow
 
@@ -123,19 +125,21 @@ class Store(StoreABC):
     @classmethod
     def add_task(cls, task: Task):
         redis = cls._get_redis()
-        if task.xid:
+        if task.xid:  # Saving by xid when possible
             task_key = cls._get_task_exchange_key(task.xid)
-        else:
-            task_key = cls._get_task_key(task.iid, task.tid)
+            redis.set_json(task_key, task.dict())
+        task_key = cls._get_task_key(task.iid, task.tid)
         redis.set_json(task_key, task.dict())
 
     @classmethod
     def update_task(cls, task: Task):
         redis = cls._get_redis()
-        if task.xid:
+        if task.xid:  # Updating by xid when possible
             task_key = cls._get_task_exchange_key(task.xid)
-        else:
-            task_key = cls._get_task_key(task.iid, task.tid)
+            if redis.exists(task_key):
+                redis.set_json(task_key, task.dict())
+
+        task_key = cls._get_task_key(task.iid, task.tid)
         if redis.exists(task_key):
             redis.set_json(task_key, task.dict())
 
@@ -143,17 +147,33 @@ class Store(StoreABC):
     def get_workflow_tasks(
         cls,
         workflow_id: WorkflowInstanceId,
+        workflow: Workflow = None
     ) -> Dict[TaskId, Task]:
         redis = cls._get_redis()
         if not redis.exists(cls.WORKFLOW_PREFIX + workflow_id):
             raise WorkflowNotFoundError
-        task_keys = redis.find_keys(cls.TASK_PREFIX + workflow_id)
+
         tasks = {}
+
+        task_keys = redis.find_keys(cls.TASK_PREFIX + workflow_id)
         for task_key in task_keys:
+            task_data = redis.get_from_json(task_key)
+            if task_data and task_data['xid'] is None:
+                task = Task(**task_data)
+                tasks[task.tid] = task
+
+        if workflow is None:
+            workflow = cls.get_workflow(workflow_id)
+        xid_keys = []
+        for xid in workflow.task_xids:
+            xid_keys.append(cls._get_task_exchange_key(xid))
+
+        for task_key in xid_keys:
             task_data = redis.get_from_json(task_key)
             if task_data:
                 task = Task(**task_data)
                 tasks[task.tid] = task
+
         return tasks
 
     @classmethod

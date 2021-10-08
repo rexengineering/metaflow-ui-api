@@ -144,6 +144,7 @@ class Workflow(BaseModel):
     name: Optional[str]
     status: WorkflowStatus
     tasks: List[Task] = []
+    task_xids: List[ExchangeId] = []
     metadata_dict: Dict[str, str] = {}
 
     bridge_url: Optional[str]

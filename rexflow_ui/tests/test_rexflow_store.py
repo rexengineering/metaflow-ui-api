@@ -86,7 +86,11 @@ class TestREXFlowStore(unittest.TestCase):
         with mock.patch(REXREDIS_PATH, return_value=self.mock_redis):
             self.mock_redis.find_keys.return_value = [self.task_key]
             self.mock_redis.get_from_json.return_value = self.task.dict()
-            tasks_list = RedisStore.get_workflow_tasks(self.workflow.iid)
+            with mock.patch(
+                'rexflow_ui.store.redis.Store.get_workflow',
+                return_value=self.workflow,
+            ):
+                tasks_list = RedisStore.get_workflow_tasks(self.workflow.iid)
             self.assertIn(self.task.tid, tasks_list)
             self.assertEqual(self.task, tasks_list[self.task.tid])
             self.mock_redis.find_keys.assert_called_with(

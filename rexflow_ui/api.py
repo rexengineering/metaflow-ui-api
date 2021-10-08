@@ -283,7 +283,21 @@ async def start_task_exchange(
         raise
 
     await bridge.save_task_data([task])
+    workflow = Store.get_workflow(workflow.iid)
+    workflow.task_xids.append(xid)
+    if workflow.status == WorkflowStatus.STARTING:
+        # Ugly fix for racing condition or something
+        logger.warning('manually set as a running workflow')
+        workflow.status = WorkflowStatus.RUNNING
     Store.add_task(task)
+    Store.add_workflow(workflow)
+    EventManager.dispatch(
+        Event.START_TASK,
+        data={
+            'workflow': workflow.dict(),
+            'task': task.dict(),
+        },
+    )
     return task
 
 
@@ -486,6 +500,10 @@ async def _complete_tasks(
 
     result.errors.extend(updated_tasks.errors)
     for task in result.successful:
+        if task.xid:
+            Store.delete_task_exchange(task.xid)
+            workflow.task_xids.remove(task.xid)
+
         Store.delete_task(iid, task.tid)
         EventManager.dispatch(
             Event.FINISH_TASK,
@@ -494,6 +512,7 @@ async def _complete_tasks(
                 'task': task.dict(),
             },
         )
+    Store.add_workflow(workflow)
     return result
 
 
