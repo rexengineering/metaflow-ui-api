@@ -124,10 +124,10 @@ class TaskExchangeResolver:
             ],
         }
 
-    async def _go_to_next_task(self, iid, tid):
+    async def _go_to_next_task(self, iid, tid, xid):
         scheduler: Scheduler = Scheduler.get_scheduler(iid)
         if scheduler:
-            result = await scheduler.next_task(tid)
+            result = await scheduler.next_task(tid, xid)
             if result is False:
                 await cancel_workflow(self.did, iid)
 
@@ -138,7 +138,15 @@ class TaskExchangeResolver:
         tid = task['tid']
 
         background: BackgroundTasks = info.context['background']
-        background.add_task(self._go_to_next_task, iid=iid, tid=tid)
+        scheduler: Scheduler = Scheduler.get_scheduler(iid)
+        next_tid = scheduler.get_next_tid(tid)
+        if next_tid:
+            xid = generate_xid()
+            Store.save_task(xid, iid, next_tid)
+            background.add_task(scheduler.next_task, tid=tid, xid=xid)
+        else:
+            await cancel_workflow(self.did, iid)
+            background.add_task(scheduler.cancel_workflow)
 
         return {
             'iid': iid,
@@ -206,21 +214,20 @@ class TaskResolver:
             ],
         }
 
-    async def _go_to_next_task(self, iid, tid, xid):
+    async def _go_to_next_task(self, iid, tid):
         scheduler: Scheduler = Scheduler.get_scheduler(iid)
         if scheduler:
             result = await scheduler.next_task(tid)
             if result is False:
                 await cancel_workflow(self.did, iid)
+                await scheduler.cancel_workflow()
 
     async def complete(self, info, input):
         iid = input['iid']
         tid = input['tid']
 
-        xid = generate_xid()
-        Store.save_task(xid, iid, tid)
         background: BackgroundTasks = info.context['background']
-        background.add_task(self._go_to_next_task, iid=iid, tid=tid, xid=xid)
+        background.add_task(self._go_to_next_task, iid=iid, tid=tid)
 
         return {
             'iid': iid,

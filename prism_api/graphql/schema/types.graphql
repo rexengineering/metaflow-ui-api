@@ -129,6 +129,7 @@ type Workflow {
 type Task {
     iid: WorkflowInstanceId!
     tid: TaskId!
+    xid: ExchangeId
     data: [TaskFieldData!]!
     status: TaskStatus!
 }

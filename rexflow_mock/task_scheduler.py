@@ -73,7 +73,7 @@ class Scheduler:
 
         return result['task']['start']['status'] == 'SUCCESS'
 
-    async def _cancel_workflow(self):
+    async def cancel_workflow(self):
         query = gql(COMPLETE_WORKFLOW_MUTATION)
         params = {
             'completeWorkflow': {
@@ -99,15 +99,19 @@ class Scheduler:
             await self._start_task(first_task, xid)
 
     async def next_task(self, tid, xid=None):
+        next_tid = self.get_next_tid(tid)
+        if next_tid:
+            await self._start_task(next_tid, xid)
+            return True
+
+        return False
+
+    def get_next_tid(self, tid):
         found = False
         for task in self.task_list:
             if found:
-                await self._start_task(task, xid)
-                return True
+                return task
             elif task == tid:
                 found = True
 
-        if found:
-            await self._cancel_workflow()
-
-        return False
+        return None
