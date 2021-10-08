@@ -35,7 +35,6 @@ from ...entities.wrappers import (
     TaskExchangeMutationSaveInput,
     TaskExchangeMutationValidateInput,
     TaskFieldInput,
-    TaskFormPayload,
     TaskMutationCompleteInput,
     TaskMutationFormInput,
     TaskMutationSaveInput,
@@ -151,12 +150,29 @@ class REXFlowBridgeGQL(REXFlowBridgeABC):
             ).dict(),
         }
         result = await client.execute(query, params)
-        payload = TaskFormPayload(**result['tasks']['exchange']['form'])
         task = Task(
-            xid=payload.xid,
-            iid=payload.iid,
-            tid=payload.tid,
-            data=payload.fields,
+            iid=result['tasks']['exchange']['form']['iid'],
+            tid=result['tasks']['exchange']['form']['tid'],
+            xid=result['tasks']['exchange']['form']['xid'],
+            data=[
+                TaskFieldData(
+                    dataId=field['dataId'],
+                    type=field['type'],
+                    order=field['order'],
+                    label=field['label'],
+                    data=field['data'],
+                    variant=field['variant'],
+                    encrypted=field['encrypted'],
+                    validators=[
+                        Validator(
+                            type=validator['type'],
+                            constraint=validator['constraint'],
+                        )
+                        for validator in field['validators']
+                    ] if field['validators'] else [],
+                )
+                for field in result['tasks']['exchange']['form']['fields']
+            ]
         )
         return task
 

@@ -2,6 +2,8 @@ scalar WorkflowInstanceId
 
 scalar TaskId
 
+scalar ExchangeId
+
 enum OperationStatus {
     SUCCESS
     FAILURE
@@ -24,6 +26,7 @@ type TaskMutations {
 input StartTaskInput {
     iid: WorkflowInstanceId!
     tid: TaskId!
+    xid: ExchangeId
 }
 
 type StartTaskPayload {
