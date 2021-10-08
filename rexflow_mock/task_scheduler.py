@@ -51,12 +51,13 @@ class Scheduler:
         else:
             return None
 
-    async def _start_task(self, tid):
+    async def _start_task(self, tid, xid):
         query = gql(START_TASK_MUTATION)
         params = {
             'startTask': {
                 'iid': self.iid,
                 'tid': tid,
+                'xid': xid,
             },
         }
 
@@ -92,16 +93,16 @@ class Scheduler:
 
         return result['workflow']['complete']['status'] == 'SUCCESS'
 
-    async def start(self):
+    async def start(self, xid=None):
         if self.task_list:
             first_task = self.task_list[0]
-            await self._start_task(first_task)
+            await self._start_task(first_task, xid)
 
-    async def next_task(self, tid):
+    async def next_task(self, tid, xid=None):
         found = False
         for task in self.task_list:
             if found:
-                await self._start_task(task)
+                await self._start_task(task, xid)
                 return True
             elif task == tid:
                 found = True
